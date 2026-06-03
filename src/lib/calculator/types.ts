@@ -119,8 +119,8 @@ export type CalculationResult = {
 export type LeadFormInput = CalculatorInput & {
   email: string;
   companyName: string;
-  name?: string;
-  phone?: string;
+  name: string;
+  phone: string;
   consentMarketing: boolean;
   consentPrivacy: boolean;
 };

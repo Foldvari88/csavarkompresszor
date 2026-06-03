@@ -4,25 +4,17 @@ import {
   ArrowRight,
   BadgeCheck,
   BarChart3,
-  Bot,
   CheckCircle2,
-  ChevronDown,
   Clock3,
-  Factory,
   FileText,
   Gauge,
   Mail,
-  MessageCircle,
-  Plus,
-  Send,
-  ShieldCheck,
   Sparkles,
   Target,
   TrendingDown,
-  Trash2,
-  X,
   Zap
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useMemo, useRef, useState } from "react";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import {
@@ -33,13 +25,17 @@ import {
 } from "@/lib/calculator/generated-data";
 import type {
   AgeBand,
-  CalculationResult,
   CalculatorInput,
   CampaignTracking,
-  CompressorUnitInput,
   LeadFormInput
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { homeFaq, homeSeoLinks } from "@/lib/home-seo";
+
+const CompressorChat = dynamic(
+  () => import("@/components/compressor-chat").then((module) => module.CompressorChat),
+  { ssr: false }
+);
 
 type LeadFields = Pick<
   LeadFormInput,
@@ -90,17 +86,13 @@ export function CalculatorApp() {
   const oldInputKw = result.selectedLegacy.degradedInputKw;
   const recommendedInputKw = result.recommendedModel.inputKw;
   const recommendedBarWidth = Math.max(8, Math.min(100, (recommendedInputKw / oldInputKw) * 100));
-  const calculatorUnits = getCalculatorUnits(calculator);
-  const extraUnits = calculatorUnits.slice(1);
-  const paybackLabel =
-    result.estimatedPaybackYears === null
-      ? "Adjon meg becsült gépárat"
-      : `${formatNumber(result.estimatedPaybackYears, 1)} év`;
-  const canSubmit =
+  const isLeadFormValid =
     lead.companyName.trim().length > 1 &&
-    lead.email.includes("@") &&
-    lead.consentPrivacy &&
-    !isSubmitting;
+    lead.name.trim().length > 1 &&
+    isValidEmail(lead.email) &&
+    isValidHungarianPhone(lead.phone) &&
+    lead.consentPrivacy;
+  const canSubmit = isLeadFormValid && !isSubmitting;
   const completionItems = [
     Boolean(calculator.brand),
     Boolean(calculator.category),
@@ -110,7 +102,9 @@ export function CalculatorApp() {
     calculator.energyPriceHufKwh > 0,
     Boolean(calculator.loadProfile),
     lead.companyName.trim().length > 1,
-    lead.email.includes("@"),
+    lead.name.trim().length > 1,
+    isValidEmail(lead.email),
+    isValidHungarianPhone(lead.phone),
     lead.consentPrivacy
   ];
   const completionPercent = Math.round(
@@ -130,47 +124,17 @@ export function CalculatorApp() {
     setCalculator((current) => syncPrimaryUnit(updater(current)));
   }
 
-  function updateUnit(index: number, patch: Partial<CompressorUnitInput>) {
-    triggerRecalculation();
-    setCalculator((current) => {
-      const units = getCalculatorUnits(current);
-      const nextUnits = units.map((unit, unitIndex) =>
-        unitIndex === index ? { ...unit, ...patch } : unit
-      );
-      return syncCalculatorFromUnits({ ...current, units: nextUnits });
-    });
-  }
-
-  function addUnit() {
-    triggerRecalculation();
-    setCalculator((current) => {
-      const units = getCalculatorUnits(current);
-      const nextIndex = units.length + 1;
-      return {
-        ...current,
-        units: [
-          ...units,
-          {
-            ...units[0],
-            id: `unit-${Date.now()}`,
-            label: `${nextIndex}. gép`
-          }
-        ]
-      };
-    });
-  }
-
-  function removeUnit(index: number) {
-    triggerRecalculation();
-    setCalculator((current) => {
-      const units = getCalculatorUnits(current).filter((_, unitIndex) => unitIndex !== index);
-      return syncCalculatorFromUnits({ ...current, units });
-    });
-  }
-
   async function submitLead() {
     setError(null);
     setSuccess(null);
+
+    if (!isLeadFormValid) {
+      setError(
+        "Minden kötelező mezőt ki kell tölteni. Az email cím legyen érvényes, a telefonszám formátuma például: +36701234567."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -199,14 +163,10 @@ export function CalculatorApp() {
         <div className="container topbar">
           <div className="brand-mark">
             <span className="brand-blade">
-              <Factory size={20} />
+              <MiniScrewCompressorLogo />
             </span>
             <span>Ipari csavarkompresszor kalkulátor</span>
           </div>
-          <a className="nav-pill" href="/admin">
-            <ShieldCheck size={16} />
-            Admin
-          </a>
           <a className="top-cta" href="#kalkulator">
             Megtakarítás számítása
             <ArrowRight size={15} />
@@ -266,7 +226,7 @@ export function CalculatorApp() {
               <b>{formatNumber(oldInputKw, 1)} kW</b>
             </span>
             <span>
-              Ajánlott
+              Korszerű
               <b>{formatNumber(recommendedInputKw, 1)} kW</b>
             </span>
           </div>
@@ -299,6 +259,7 @@ export function CalculatorApp() {
           <div className="form-grid two">
             <Field label="Jelenlegi gép márkája">
               <select
+                required
                 value={calculator.brand}
                 onChange={(event) =>
                   updateCalculator((current) => ({ ...current, brand: event.target.value }))
@@ -314,6 +275,7 @@ export function CalculatorApp() {
 
             <Field label="Kategória">
               <select
+                required
                 value={calculator.category}
                 onChange={(event) =>
                   updateCalculator((current) => ({ ...current, category: event.target.value }))
@@ -329,6 +291,7 @@ export function CalculatorApp() {
 
             <Field label="Névleges teljesítmény">
               <select
+                required
                 value={calculator.nominalKw}
                 onChange={(event) =>
                   updateCalculator((current) => ({
@@ -350,6 +313,7 @@ export function CalculatorApp() {
                 inputMode="numeric"
                 min={100}
                 max={8760}
+                required
                 type="number"
                 value={calculator.annualHours}
                 onChange={(event) =>
@@ -366,6 +330,7 @@ export function CalculatorApp() {
                 inputMode="decimal"
                 min={1}
                 max={500}
+                required
                 type="number"
                 value={calculator.energyPriceHufKwh}
                 onChange={(event) =>
@@ -379,6 +344,7 @@ export function CalculatorApp() {
 
             <Field label="Terhelési profil">
               <select
+                required
                 value={calculator.loadProfile ?? "fluctuating"}
                 onChange={(event) =>
                   updateCalculator((current) => ({
@@ -395,25 +361,7 @@ export function CalculatorApp() {
               </select>
             </Field>
 
-            <Field label="Becsült gépár / keret">
-              <input
-                inputMode="numeric"
-                min={0}
-                type="number"
-                value={calculator.estimatedMachinePriceHuf ?? ""}
-                onChange={(event) =>
-                  updateCalculator((current) => ({
-                    ...current,
-                    estimatedMachinePriceHuf: event.target.value
-                      ? Number(event.target.value)
-                      : null
-                  }))
-                }
-                placeholder="pl. 14500000"
-              />
-            </Field>
-
-            <Field label="Ajánlott géptípus">
+            <Field label="Technológiai preferencia">
               <label className="toggle-row">
                 <input
                   type="checkbox"
@@ -425,7 +373,7 @@ export function CalculatorApp() {
                     }))
                   }
                 />
-                <span>Fordulatszám szabályzós RS modell előnyben</span>
+                <span>Fordulatszám szabályzós technológia előnyben</span>
               </label>
             </Field>
           </div>
@@ -446,106 +394,6 @@ export function CalculatorApp() {
             </div>
           </div>
 
-          <div className="fleet-panel">
-            <div className="fleet-head">
-              <div>
-                <span className="metric-label">Több gépes üzem</span>
-                <h3>{calculatorUnits.length} gép az összesítésben</h3>
-              </div>
-              <button className="secondary-button" type="button" onClick={addUnit}>
-                <Plus size={16} />
-                Új gép
-              </button>
-            </div>
-
-            {extraUnits.length ? (
-              <div className="fleet-list">
-                {extraUnits.map((unit, index) => {
-                  const unitIndex = index + 1;
-                  return (
-                    <div className="fleet-card" key={unit.id ?? unitIndex}>
-                      <div className="fleet-card-head">
-                        <strong>{unit.label ?? `${unitIndex + 1}. gép`}</strong>
-                        <button
-                          aria-label="Gép törlése"
-                          className="ai-icon-button"
-                          type="button"
-                          onClick={() => removeUnit(unitIndex)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                      <div className="form-grid two">
-                        <Field label="Névleges kW">
-                          <select
-                            value={unit.nominalKw}
-                            onChange={(event) =>
-                              updateUnit(unitIndex, { nominalKw: Number(event.target.value) })
-                            }
-                          >
-                            {NOMINAL_KW_VALUES.map((kw) => (
-                              <option key={kw} value={kw}>
-                                {formatKw(kw)}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                        <Field label="Éves üzemóra">
-                          <input
-                            inputMode="numeric"
-                            max={8760}
-                            min={100}
-                            type="number"
-                            value={unit.annualHours}
-                            onChange={(event) =>
-                              updateUnit(unitIndex, { annualHours: Number(event.target.value) })
-                            }
-                          />
-                        </Field>
-                        <Field label="Gép kora">
-                          <select
-                            value={unit.ageBand}
-                            onChange={(event) =>
-                              updateUnit(unitIndex, { ageBand: event.target.value as AgeBand })
-                            }
-                          >
-                            {(["5-10", "10-15", "15+"] satisfies AgeBand[]).map((ageBand) => (
-                              <option key={ageBand} value={ageBand}>
-                                {ageBand} év
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                        <Field label="Profil">
-                          <select
-                            value={unit.loadProfile ?? calculator.loadProfile ?? "fluctuating"}
-                            onChange={(event) =>
-                              updateUnit(unitIndex, {
-                                loadProfile: event.target
-                                  .value as NonNullable<CalculatorInput["loadProfile"]>
-                              })
-                            }
-                          >
-                            {loadProfileOptions.map((profile) => (
-                              <option key={profile.value} value={profile.value}>
-                                {profile.label}
-                              </option>
-                            ))}
-                          </select>
-                        </Field>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="fleet-empty">
-                Ha több kompresszor dolgozik az üzemben, adja hozzá őket az összesített
-                megtakarításhoz.
-              </p>
-            )}
-          </div>
-
           <div className="section-title" style={{ marginTop: 28 }}>
             <div>
               <div className="panel-kicker">
@@ -563,6 +411,8 @@ export function CalculatorApp() {
           <div className="form-grid two">
             <Field label="Cégnév">
               <input
+                required
+                minLength={2}
                 value={lead.companyName}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, companyName: event.target.value }))
@@ -573,6 +423,8 @@ export function CalculatorApp() {
 
             <Field label="Email cím">
               <input
+                aria-invalid={lead.email.length > 0 && !isValidEmail(lead.email)}
+                required
                 value={lead.email}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, email: event.target.value }))
@@ -584,6 +436,8 @@ export function CalculatorApp() {
 
             <Field label="Kapcsolattartó">
               <input
+                required
+                minLength={2}
                 value={lead.name}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, name: event.target.value }))
@@ -594,11 +448,17 @@ export function CalculatorApp() {
 
             <Field label="Telefon">
               <input
+                aria-invalid={lead.phone.length > 0 && !isValidHungarianPhone(lead.phone)}
+                inputMode="tel"
+                pattern="[+]36[0-9]{9}"
+                required
+                title="Formátum: +36701234567"
                 value={lead.phone}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, phone: event.target.value }))
                 }
-                placeholder="+36..."
+                placeholder="+36701234567"
+                type="tel"
               />
             </Field>
           </div>
@@ -607,12 +467,16 @@ export function CalculatorApp() {
             <label className="checkbox-line">
               <input
                 type="checkbox"
+                required
                 checked={lead.consentPrivacy}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, consentPrivacy: event.target.checked }))
                 }
               />
-              <span>Elfogadom, hogy a megadott adatok alapján elkészüljön és emailben megérkezzen a kalkuláció.</span>
+              <span>
+                Elfogadom, hogy a megadott adatok alapján elkészüljön és emailben
+                megérkezzen a kalkuláció. <b className="required-mark">*</b>
+              </span>
             </label>
             <button
               className="submit-button"
@@ -638,7 +502,7 @@ export function CalculatorApp() {
           <div className="result-rail">
             <span>
               <Gauge size={18} />
-              ROI cockpit
+              ROI számítás
             </span>
             <span className="live-status">
               <i />
@@ -695,7 +559,7 @@ export function CalculatorApp() {
                 <strong>{formatNumber(oldInputKw, 2)} kW</strong>
               </div>
               <div className="bar-row">
-                <span>Ajánlott</span>
+                <span>Korszerű gép</span>
                 <div className="bar-track recommended">
                   <span style={{ width: `${recommendedBarWidth}%` }} />
                 </div>
@@ -706,56 +570,12 @@ export function CalculatorApp() {
             <div className="mini-metrics">
               <MetricTile label="Havi hatás" value={formatHuf(result.monthlyHufSaved)} />
               <MetricTile label="5 éves potenciál" value={formatHuf(result.fiveYearHufSaved)} />
-              <MetricTile label="Megtérülési idő" value={paybackLabel} />
               <MetricTile label="Gépek száma" value={`${result.totalMachineCount} db`} />
               <MetricTile
                 label="Régi gép"
                 value={`${formatNumber(result.selectedLegacy.degradedInputKw, 2)} kW`}
               />
-              <MetricTile
-                label="Ajánlott gép"
-                value={`${formatNumber(result.recommendedModel.inputKw, 2)} kW`}
-              />
             </div>
-
-            <div className="model-strip">
-              <div className="model-heading">
-                <div>
-                  <div className="metric-label">Ajánlott modell</div>
-                  <div className="model-name">{result.recommendedModel.model}</div>
-                </div>
-                <span className="red-chip">{result.recommendedModel.kind === "rs" ? "RS" : "Fix"}</span>
-              </div>
-              <p className="metric-sub">
-                {formatKw(result.recommendedModel.nominalKw)} névleges teljesítmény,
-                azonos vagy következő nagyobb korszerű gép alapján.
-              </p>
-            </div>
-
-            <details className="why-panel">
-              <summary>
-                <span>Miért ennyi?</span>
-                <ChevronDown size={17} />
-              </summary>
-              <div className="why-grid">
-                <MetricTile
-                  label="Üzemóra"
-                  value={`${formatNumber(result.whyBreakdown.annualHours)} óra/év`}
-                />
-                <MetricTile
-                  label="Áramár"
-                  value={`${formatHuf(result.whyBreakdown.energyPriceHufKwh)} / kWh`}
-                />
-                <MetricTile
-                  label="Régi becsült kW"
-                  value={`${formatNumber(result.whyBreakdown.oldInputKw, 2)} kW`}
-                />
-                <MetricTile
-                  label="Ajánlott kW"
-                  value={`${formatNumber(result.whyBreakdown.recommendedInputKw, 2)} kW`}
-                />
-              </div>
-            </details>
 
             <a className="result-cta" href="#kalkulator">
               Kérem a részletes riportot
@@ -763,7 +583,7 @@ export function CalculatorApp() {
             </a>
 
             <ul className="assumption-list">
-              {result.assumptions.map((assumption) => (
+              {getPublicAssumptions(result.assumptions).map((assumption) => (
                 <li key={assumption}>{assumption}</li>
               ))}
             </ul>
@@ -771,20 +591,48 @@ export function CalculatorApp() {
         </aside>
       </section>
 
-      <section className="content-band">
-        <div className="container source-grid">
-          <SourceCard
-            title="Átlátható feltételek"
-            text="A régi gép becsült energiaigényét korcsoport, kategória, névleges teljesítmény és éves üzemóra alapján vesszük figyelembe."
-          />
-          <SourceCard
-            title="Emailes részletes riport"
-            text="Az oldalon előnézet látható, emailben pedig részletes bemeneti adatokkal és feltételezésekkel érkezik az eredmény."
-          />
-          <SourceCard
-            title="Visszakereshető beküldések"
-            text="A beküldött kalkulációk admin felületen áttekinthetők, exportálhatók és státusz szerint rendezhetők."
-          />
+      <section className="seo-support-band" aria-labelledby="szakmai-valaszok">
+        <div className="container seo-support-grid">
+          <div className="seo-support-copy">
+            <span className="panel-kicker">
+              <span>SEO</span>
+              Szakmai válaszok
+            </span>
+            <h2 id="szakmai-valaszok">Csavarkompresszor fogyasztás és megtakarítás röviden</h2>
+            <p>
+              Egy ipari csavarkompresszor éves energiaköltsége a felvett teljesítmény,
+              az éves üzemóra és a villamosenergia ár szorzataként becsülhető. A
+              kalkulátor ezt fordítja át kWh/év és Ft/év megtakarítási előnézetté.
+            </p>
+            <div className="formula-box compact">
+              <strong>Éves költség képlete</strong>
+              <span>felvett teljesítmény kW x éves üzemóra x Ft/kWh</span>
+            </div>
+          </div>
+
+          <div className="legal-card faq-card">
+            <h2>Gyakori kérdések</h2>
+            <div className="faq-list">
+              {homeFaq.map((item) => (
+                <details key={item.question}>
+                  <summary>{item.question}</summary>
+                  <p>{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+
+          <div className="legal-card">
+            <h2>Kapcsolódó szakmai oldalak</h2>
+            <div className="seo-link-grid">
+              {homeSeoLinks.map((link) => (
+                <a href={link.href} key={link.href}>
+                  {link.label}
+                  <ArrowRight size={16} />
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -803,13 +651,51 @@ export function CalculatorApp() {
   );
 }
 
+function MiniScrewCompressorLogo() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="mini-compressor-logo"
+      focusable="false"
+      viewBox="0 0 32 32"
+    >
+      <path d="M5.5 21.5h21" />
+      <path d="M7.5 12.5h12.4a4.6 4.6 0 0 1 4.6 4.6v4.4h-17z" />
+      <path d="M9.5 12.5V9h5.2" />
+      <path d="M17 9h4.2" />
+      <path d="M24.5 14h2.3v5.2" />
+      <circle cx="12.4" cy="17" r="2.45" />
+      <circle cx="19.1" cy="17" r="2.45" />
+      <path d="M10.35 17h4.1" />
+      <path d="M17.05 17h4.1" />
+      <path d="M10 21.5v2.7" />
+      <path d="M23 21.5v2.7" />
+      <path d="M9 24.2h3.4" />
+      <path d="M22 24.2h3.4" />
+    </svg>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="field">
-      <label>{label}</label>
+      <label>
+        {label}
+        <span aria-hidden="true" className="required-mark">
+          *
+        </span>
+      </label>
       {children}
     </div>
   );
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+}
+
+function isValidHungarianPhone(phone: string) {
+  return /^\+36\d{9}$/.test(phone.trim());
 }
 
 function MetricTile({ label, value }: { label: string; value: string }) {
@@ -821,195 +707,6 @@ function MetricTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-type ChatMessage = {
-  role: "assistant" | "user";
-  text: string;
-};
-
-function CompressorChat({
-  calculator,
-  completionPercent,
-  result
-}: {
-  calculator: CalculatorInput;
-  completionPercent: number;
-  result: CalculationResult;
-}) {
-  const [isOpen, setIsOpen] = useState(true);
-  const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      text:
-        "Szia, én a kompresszoros AI asszisztens vagyok. Kérdezz a megtakarításról, RS/VSD gépekről, üzemóráról vagy arról, mit érdemes átállítani a kalkulátorban."
-    }
-  ]);
-
-  const quickPrompts = [
-    "Miért ennyi a megtakarítás?",
-    "RS/VSD mikor jó?",
-    "Mit állítsak át először?"
-  ];
-
-  function sendMessage(text: string) {
-    const cleanText = text.trim();
-    if (!cleanText) return;
-
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: cleanText },
-      {
-        role: "assistant",
-        text: buildCompressorReply(cleanText, calculator, result, completionPercent)
-      }
-    ]);
-    setDraft("");
-  }
-
-  return (
-    <section className={`ai-chat ${isOpen ? "open" : ""}`} aria-label="Kompresszoros AI chat">
-      {isOpen ? (
-        <div className="ai-chat-panel">
-          <div className="ai-chat-head">
-            <span className="ai-avatar">
-              <Bot size={19} />
-            </span>
-            <div>
-              <strong>Kompresszor AI</strong>
-              <p>Élő magyarázat a kalkulációhoz</p>
-            </div>
-            <button
-              aria-label="Chat bezárása"
-              className="ai-icon-button"
-              type="button"
-              onClick={() => setIsOpen(false)}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="ai-context-strip">
-            <span>{formatKw(calculator.nominalKw)}</span>
-            <span>{formatNumber(calculator.annualHours)} óra/év</span>
-            <span>{formatHuf(result.annualHufSaved)} / év</span>
-          </div>
-
-          <div className="ai-messages" aria-live="polite">
-            {messages.map((message, index) => (
-              <div className={`ai-message ${message.role}`} key={`${message.role}-${index}`}>
-                {message.text}
-              </div>
-            ))}
-          </div>
-
-          <div className="ai-quick-prompts">
-            {quickPrompts.map((prompt) => (
-              <button key={prompt} type="button" onClick={() => sendMessage(prompt)}>
-                {prompt}
-              </button>
-            ))}
-          </div>
-
-          <form
-            className="ai-chat-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              sendMessage(draft);
-            }}
-          >
-            <input
-              aria-label="Kérdés a kompresszoros AI asszisztensnek"
-              placeholder="Kérdezz a kompresszor cseréről..."
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-            />
-            <button aria-label="Küldés" type="submit">
-              <Send size={18} />
-            </button>
-          </form>
-        </div>
-      ) : null}
-
-      <button
-        className="ai-chat-launcher"
-        aria-label="Kompresszor AI megnyitása"
-        type="button"
-        onClick={() => setIsOpen((current) => !current)}
-      >
-        <span>
-          <MessageCircle size={20} />
-        </span>
-      </button>
-    </section>
-  );
-}
-
-function buildCompressorReply(
-  question: string,
-  calculator: CalculatorInput,
-  result: CalculationResult,
-  completionPercent: number
-) {
-  const normalized = question.toLowerCase();
-  const currentSummary = `${formatKw(calculator.nominalKw)} gépnél, ${formatNumber(
-    calculator.annualHours
-  )} óra/év üzemmel most kb. ${formatHuf(result.annualHufSaved)} éves megtakarítás látszik.`;
-
-  if (normalized.includes("rs") || normalized.includes("vsd") || normalized.includes("fordulat")) {
-    return `${currentSummary} Az RS/VSD akkor különösen erős, ha a levegőigény nem állandó: a gép nem teljes terhelésen fut végig, hanem követi a fogyasztást. Ha több műszak, változó termelés vagy gyakori részterhelés van, érdemes bekapcsolva hagyni az RS opciót.`;
-  }
-
-  if (
-    normalized.includes("megtakar") ||
-    normalized.includes("forint") ||
-    normalized.includes("kwh") ||
-    normalized.includes("energia")
-  ) {
-    return `${currentSummary} A számítás lényege a régi becsült felvett teljesítmény és az ajánlott korszerű gép felvett teljesítményének különbsége. Ennél a beállításnál ez ${formatNumber(
-      result.annualKwhSaved
-    )} kWh/év különbséget ad.`;
-  }
-
-  if (normalized.includes("üzem") || normalized.includes("óra") || normalized.includes("áram")) {
-    return `${currentSummary} A két legerősebb mező általában az éves üzemóra és az áramár. Ha a kompresszor sokat fut, már kis kW különbség is nagy éves forintértéket ad. Próbáld ki a valós termelési órát és a legutóbbi villanyszámla szerinti Ft/kWh értéket.`;
-  }
-
-  if (normalized.includes("kor") || normalized.includes("régi") || normalized.includes("elhasznál")) {
-    return `${currentSummary} Idősebb gépnél a kalkulátor nagyobb veszteségi kockázattal számol. A gyakorlatban ezt szivárgás, kopás, nem optimális szabályzás és rosszabb részterhelési viselkedés is erősítheti.`;
-  }
-
-  if (normalized.includes("modell") || normalized.includes("ajánlott") || normalized.includes("gép")) {
-    return `${currentSummary} A jelenlegi ajánlott gép: ${result.recommendedModel.model}. A logika először az azonos névleges kW-t keresi, ha nincs pontos találat, akkor a következő nagyobb korszerű modellt veszi figyelembe.`;
-  }
-
-  if (normalized.includes("riport") || normalized.includes("email") || normalized.includes("küld")) {
-    return `A képernyőn csak előnézetet látsz. A részletes email riportban benne lesznek a megadott adatok, a feltételezések, az éves kWh/Ft megtakarítás és az ajánlott gép. A kitöltési állapot most ${completionPercent}%.`;
-  }
-
-  return `${currentSummary} Jó következő lépés: ellenőrizd a névleges kW-t, az éves üzemórát és az áramárat. Ezek mozgatják legjobban a kalkulációt. Ha konkrét termelési profilt írsz, segítek értelmezni, melyik mezőn érdemes finomítani.`;
-}
-
-function getCalculatorUnits(input: CalculatorInput): CompressorUnitInput[] {
-  if (input.units?.length) return input.units;
-  return [primaryUnitFromCalculator(input)];
-}
-
-function primaryUnitFromCalculator(input: CalculatorInput): CompressorUnitInput {
-  return {
-    id: "unit-1",
-    label: "1. gép",
-    brand: input.brand,
-    category: input.category,
-    ageBand: input.ageBand,
-    nominalKw: input.nominalKw,
-    annualHours: input.annualHours,
-    energyPriceHufKwh: input.energyPriceHufKwh,
-    preferVariableSpeed: input.preferVariableSpeed,
-    loadProfile: input.loadProfile,
-    estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
-  };
-}
-
 function syncPrimaryUnit(input: CalculatorInput): CalculatorInput {
   if (!input.units?.length) return input;
   return {
@@ -1017,27 +714,20 @@ function syncPrimaryUnit(input: CalculatorInput): CalculatorInput {
     units: [
       {
         ...input.units[0],
-        ...primaryUnitFromCalculator(input)
+        id: "unit-1",
+        label: "1. gép",
+        brand: input.brand,
+        category: input.category,
+        ageBand: input.ageBand,
+        nominalKw: input.nominalKw,
+        annualHours: input.annualHours,
+        energyPriceHufKwh: input.energyPriceHufKwh,
+        preferVariableSpeed: input.preferVariableSpeed,
+        loadProfile: input.loadProfile,
+        estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
       },
       ...input.units.slice(1)
     ]
-  };
-}
-
-function syncCalculatorFromUnits(input: CalculatorInput): CalculatorInput {
-  const first = input.units?.[0];
-  if (!first) return { ...input, units: undefined };
-  return {
-    ...input,
-    brand: first.brand,
-    category: first.category,
-    ageBand: first.ageBand,
-    nominalKw: first.nominalKw,
-    annualHours: first.annualHours,
-    energyPriceHufKwh: first.energyPriceHufKwh,
-    preferVariableSpeed: first.preferVariableSpeed,
-    loadProfile: first.loadProfile,
-    estimatedMachinePriceHuf: first.estimatedMachinePriceHuf ?? input.estimatedMachinePriceHuf
   };
 }
 
@@ -1076,16 +766,12 @@ function LegalFooterClean() {
   );
 }
 
-function SourceCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="source-card">
-      <h3>{title}</h3>
-      <p>{text}</p>
-    </div>
-  );
-}
-
 function displayBrandName(brand: string) {
   return brand === "CompAir" ? "Prémium gyártó" : brand;
 }
+
+function getPublicAssumptions(assumptions: string[]) {
+  return assumptions.filter((assumption) => !assumption.toLowerCase().includes("ajánlott"));
+}
+
 

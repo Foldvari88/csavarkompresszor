@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { CookieBanner } from "@/components/cookie-banner";
+import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,16 +14,60 @@ const geistMono = Geist_Mono({
   subsets: ["latin"]
 });
 
+const verification = {
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.GOOGLE_SITE_VERIFICATION }
+    : {}),
+  ...(process.env.BING_SITE_VERIFICATION
+    ? { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } }
+    : {})
+} satisfies Metadata["verification"];
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://csavarkompresszorkalkulator.hu"),
-  title: "Ipari csavarkompresszor energiahatékonysági kalkulátor",
-  description:
-    "Számolja ki, mennyi villamosenergia-költséget takaríthat meg egy korszerű csavarkompresszorral.",
+  metadataBase: new URL(siteUrl),
+  applicationName: siteName,
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: ["/icon.svg"]
+  },
+  title: {
+    default: "Csavarkompresszor megtakarítás kalkulátor | Ipari energia költség számítás",
+    template: `%s | ${siteName}`
+  },
+  description: defaultDescription,
+  keywords: [
+    "csavarkompresszor kalkulátor",
+    "kompresszor áramfogyasztás",
+    "csavarkompresszor megtakarítás",
+    "sűrített levegő energiaaudit",
+    "ipari kompresszor csere",
+    "RS csavarkompresszor",
+    "VSD csavarkompresszor"
+  ],
+  alternates: {
+    canonical: "/"
+  },
+  verification,
   openGraph: {
-    title: "Ipari csavarkompresszor kalkulátor",
-    description:
-      "Energiahatékonysági előkalkuláció ipari csavarkompresszor cseréhez.",
-    images: ["/images/industrial-compressor-hero.png"]
+    type: "website",
+    locale: "hu_HU",
+    siteName,
+    title: "Csavarkompresszor megtakarítás kalkulátor",
+    description: defaultDescription,
+    images: [
+      {
+        url: "/images/industrial-compressor-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Ipari csavarkompresszor energiahatékonysági kalkulátor"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Csavarkompresszor megtakarítás kalkulátor",
+    description: defaultDescription,
+    images: ["/images/industrial-compressor-og.jpg"]
   }
 };
 
@@ -32,7 +78,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hu" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }

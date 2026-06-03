@@ -39,8 +39,8 @@ export const extendedCalculatorInputSchema = calculatorInputSchema.extend({
 export const leadInputSchema = extendedCalculatorInputSchema.extend({
   email: z.string().email(),
   companyName: z.string().min(2).max(120),
-  name: z.string().max(120).optional().or(z.literal("")),
-  phone: z.string().max(60).optional().or(z.literal("")),
+  name: z.string().min(2).max(120),
+  phone: z.string().regex(/^\+36\d{9}$/),
   consentMarketing: z.coerce.boolean().default(false),
   consentPrivacy: z.literal(true)
 });

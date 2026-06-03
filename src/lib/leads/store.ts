@@ -106,7 +106,7 @@ async function ensureLeadTable() {
 async function readLocalLeads(): Promise<LeadRecord[]> {
   try {
     const raw = await fs.readFile(localStorePath, "utf8");
-    return JSON.parse(raw) as LeadRecord[];
+    return JSON.parse(raw.replace(/^\uFEFF/, "")) as LeadRecord[];
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return [];
