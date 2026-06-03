@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import { calculateSavings, recommendEfficiencyModel } from "./calculate";
+import type { CalculatorInput } from "./types";
+
+const baseInput: CalculatorInput = {
+  brand: "Atlas Copco",
+  category: "Prémium",
+  ageBand: "5-10",
+  nominalKw: 37,
+  annualHours: 5500,
+  energyPriceHufKwh: 35,
+  preferVariableSpeed: true
+};
+
+describe("calculateSavings", () => {
+  it("matches the Excel-style annual saving formula for a 5-10 year compressor", () => {
+    const result = calculateSavings(baseInput);
+
+    expect(result.recommendedModel.model).toBe("L37RS");
+    expect(result.selectedLegacy.inputKwBase).toBeCloseTo(45.15);
+    expect(result.recommendedModel.inputKw).toBeCloseTo(27.594);
+    expect(result.annualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500);
+    expect(result.annualHufSaved).toBe(Math.round(result.annualKwhSaved * 35));
+  });
+
+  it("applies the 5 percent degradation step for 10-15 years", () => {
+    const result = calculateSavings({ ...baseInput, ageBand: "10-15" });
+
+    expect(result.selectedLegacy.degradationMultiplier).toBeCloseTo(1.05);
+    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(45.15 * 1.05);
+  });
+
+  it("applies two 5 percent degradation steps for 15+ years", () => {
+    const result = calculateSavings({ ...baseInput, ageBand: "15+" });
+
+    expect(result.selectedLegacy.degradationMultiplier).toBeCloseTo(1.1025);
+    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(45.15 * 1.1025);
+  });
+
+  it("uses the next larger recommended model when there is no exact nominal match", () => {
+    const model = recommendEfficiencyModel(40, true);
+
+    expect(model.model).toBe("L45RS");
+  });
+});

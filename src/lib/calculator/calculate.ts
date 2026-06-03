@@ -1,0 +1,344 @@
+﻿import {
+  ASSUMPTION_VERSION,
+  COMPAIR_MODELS,
+  LEGACY_PERFORMANCE_ROWS
+} from "./generated-data";
+import type {
+  AgeBand,
+  BenchmarkLevel,
+  CalculationResult,
+  CalculatorInput,
+  CompressorModel,
+  CompressorUnitInput,
+  LegacyPerformanceRow
+} from "./types";
+
+const ageMultipliers: Record<AgeBand, number> = {
+  "5-10": 1,
+  "10-15": 1 + ASSUMPTION_VERSION.ageDegradationStep,
+  "15+": (1 + ASSUMPTION_VERSION.ageDegradationStep) ** 2
+};
+
+export function calculateSavings(input: CalculatorInput): CalculationResult {
+  const unitInputs = normalizeUnitInputs(input);
+  const units = unitInputs.map((unit) => calculateUnitSavings(unit));
+  const primary = units[0];
+  const oldAnnualKwh = round(sum(units.map((unit) => unit.oldAnnualKwh)), 2);
+  const recommendedAnnualKwh = round(sum(units.map((unit) => unit.recommendedAnnualKwh)), 2);
+  const annualKwhSaved = round(sum(units.map((unit) => unit.annualKwhSaved)), 2);
+  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
+  const monthlyHufSaved = Math.round(annualHufSaved / 12);
+  const fiveYearHufSaved = annualHufSaved * 5;
+  const estimatedPaybackYears = input.estimatedMachinePriceHuf
+    ? round(input.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
+    : null;
+  const priority = buildPriority(annualHufSaved, estimatedPaybackYears, primary.benchmark.level);
+  const leadScore = buildLeadScore(input, annualHufSaved, units.length, primary.benchmark.level);
+
+  return {
+    assumptionVersionId: ASSUMPTION_VERSION.id,
+    selectedLegacy: primary.selectedLegacy,
+    recommendedModel: primary.recommendedModel,
+    nearestNominalKw: primary.recommendedModel.nominalKw,
+    oldAnnualKwh,
+    recommendedAnnualKwh,
+    annualKwhSaved,
+    annualHufSaved,
+    monthlyHufSaved,
+    fiveYearHufSaved,
+    estimatedPaybackYears,
+    loadProfile: input.loadProfile ?? "continuous",
+    totalMachineCount: units.length,
+    units,
+    benchmark: primary.benchmark,
+    priority,
+    leadScore,
+    whyBreakdown: {
+      annualHours: input.annualHours,
+      energyPriceHufKwh: input.energyPriceHufKwh,
+      oldInputKw: primary.selectedLegacy.degradedInputKw,
+      recommendedInputKw: primary.recommendedModel.inputKw,
+      annualKwhSaved
+    },
+    assumptions: buildAssumptions(input, primary.recommendedModel, primary.selectedLegacy, units)
+  };
+}
+
+function calculateUnitSavings(input: CompressorUnitInput) {
+  const selectedLegacyRow = resolveLegacyRow(input);
+  const recommendedModel = recommendEfficiencyModel(
+    input.nominalKw,
+    input.preferVariableSpeed ?? true
+  );
+  const degradationMultiplier = ageMultipliers[input.ageBand];
+  const degradedInputKw = round(selectedLegacyRow.inputKwBase * degradationMultiplier, 4);
+  const selectedLegacy = {
+    brand: selectedLegacyRow.brand,
+    category: selectedLegacyRow.category,
+    nominalKw: selectedLegacyRow.nominalKw,
+    inputKwBase: selectedLegacyRow.inputKwBase,
+    degradationMultiplier,
+    degradedInputKw
+  };
+  const profileMultiplier = getLoadProfileSavingsMultiplier(input, recommendedModel);
+  const adjustedRecommendedInputKw = round(recommendedModel.inputKw * profileMultiplier, 4);
+  const oldAnnualKwh = round(degradedInputKw * input.annualHours, 2);
+  const recommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
+  const annualKwhSaved = Math.max(0, round(oldAnnualKwh - recommendedAnnualKwh, 2));
+  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
+
+  return {
+    input,
+    selectedLegacy,
+    recommendedModel: {
+      ...recommendedModel,
+      inputKw: adjustedRecommendedInputKw
+    },
+    oldAnnualKwh,
+    recommendedAnnualKwh,
+    annualKwhSaved,
+    annualHufSaved,
+    benchmark: buildBenchmark(degradedInputKw, input.nominalKw)
+  };
+}
+
+export function recommendEfficiencyModel(
+  nominalKw: number,
+  preferVariableSpeed = true
+): CompressorModel {
+  const sorted = [...COMPAIR_MODELS].sort((a, b) => a.nominalKw - b.nominalKw);
+  const exactKind = preferVariableSpeed ? "rs" : "fixed";
+  const exactPreferred = sorted.find(
+    (model) => model.kind === exactKind && sameKw(model.nominalKw, nominalKw)
+  );
+
+  if (exactPreferred) return exactPreferred;
+
+  const exactFallback = sorted.find((model) => sameKw(model.nominalKw, nominalKw));
+  if (exactFallback) return exactFallback;
+
+  const nextPreferred = sorted.find(
+    (model) => model.kind === exactKind && model.nominalKw >= nominalKw
+  );
+  if (nextPreferred) return nextPreferred;
+
+  const nextAny = sorted.find((model) => model.nominalKw >= nominalKw);
+  return nextAny ?? sorted[sorted.length - 1];
+}
+
+export function resolveLegacyRow(input: CalculatorInput): LegacyPerformanceRow {
+  const exact = LEGACY_PERFORMANCE_ROWS.find(
+    (row) =>
+      row.brand === input.brand &&
+      row.category === input.category &&
+      sameKw(row.nominalKw, input.nominalKw)
+  );
+  if (exact) return exact;
+
+  const categoryMatch = LEGACY_PERFORMANCE_ROWS.find(
+    (row) => row.category === input.category && sameKw(row.nominalKw, input.nominalKw)
+  );
+  if (categoryMatch) return categoryMatch;
+
+  const brandRows = LEGACY_PERFORMANCE_ROWS.filter((row) => row.brand === input.brand);
+  const nearestBrandRow = nearestByKw(brandRows, input.nominalKw);
+  if (nearestBrandRow) return nearestBrandRow;
+
+  const anyNearest = nearestByKw(LEGACY_PERFORMANCE_ROWS, input.nominalKw);
+  if (!anyNearest) {
+    throw new Error("No legacy compressor performance data is available.");
+  }
+  return anyNearest;
+}
+
+function buildAssumptions(
+  input: CalculatorInput,
+  model: CompressorModel,
+  row: CalculationResult["selectedLegacy"],
+  units: CalculationResult["units"]
+) {
+  return [
+    `A számítás forrása: ${ASSUMPTION_VERSION.source}, verzió: ${ASSUMPTION_VERSION.id}.`,
+    `A régi gép alap felvett teljesítménye ${row.inputKwBase} kW, a kor szerinti szorzó ${ageMultipliers[input.ageBand].toFixed(4)}.`,
+    `Az ajánlott korszerű modell: ${model.model}, felvett teljesítmény: ${model.inputKw} kW.`,
+    `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
+    `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
+    `Gépek száma az összesítésben: ${units.length}.`
+  ];
+}
+
+const loadProfileLabels = {
+  continuous: "folyamatos",
+  shift: "műszakos",
+  fluctuating: "ingadozó",
+  peak: "csúcsterheléses"
+} satisfies Record<NonNullable<CalculatorInput["loadProfile"]>, string>;
+
+function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
+  if (input.units?.length) {
+    return input.units.map((unit, index) => ({
+      ...unit,
+      id: unit.id ?? `unit-${index + 1}`,
+      label: unit.label ?? `${index + 1}. gép`,
+      energyPriceHufKwh: unit.energyPriceHufKwh || input.energyPriceHufKwh,
+      loadProfile: unit.loadProfile ?? input.loadProfile ?? "continuous",
+      preferVariableSpeed: unit.preferVariableSpeed ?? input.preferVariableSpeed ?? true
+    }));
+  }
+
+  return [
+    {
+      id: "unit-1",
+      label: "1. gép",
+      brand: input.brand,
+      category: input.category,
+      ageBand: input.ageBand,
+      nominalKw: input.nominalKw,
+      annualHours: input.annualHours,
+      energyPriceHufKwh: input.energyPriceHufKwh,
+      preferVariableSpeed: input.preferVariableSpeed ?? true,
+      loadProfile: input.loadProfile ?? "continuous",
+      estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
+    }
+  ];
+}
+
+function getLoadProfileSavingsMultiplier(input: CompressorUnitInput, model: CompressorModel) {
+  if (model.kind !== "rs") return 1;
+  const profile = input.loadProfile ?? "continuous";
+  const multipliers = {
+    continuous: 1,
+    shift: 0.96,
+    fluctuating: 0.9,
+    peak: 0.93
+  } satisfies Record<NonNullable<CalculatorInput["loadProfile"]>, number>;
+  return multipliers[profile];
+}
+
+function buildBenchmark(degradedInputKw: number, nominalKw: number) {
+  const ratio = round(degradedInputKw / nominalKw, 2);
+  let level: BenchmarkLevel = "average";
+  if (ratio >= 1.55) level = "critical";
+  else if (ratio >= 1.35) level = "high";
+
+  const labels = {
+    average: "Átlagos energiaigény",
+    high: "Magas energiaigény",
+    critical: "Kritikus energiaigény"
+  } satisfies Record<BenchmarkLevel, string>;
+
+  const descriptions = {
+    average: "A jelenlegi gép fogyasztása nem kiugró, de a csere így is megtakarítást adhat.",
+    high: "A felvett teljesítmény a névleges kW-hoz képest magas, érdemes részletesen ellenőrizni.",
+    critical: "A becsült energiaigény kritikus sávban van, a műszaki felmérés erősen indokolt."
+  } satisfies Record<BenchmarkLevel, string>;
+
+  return {
+    level,
+    label: labels[level],
+    description: descriptions[level],
+    inputKwPerNominalKw: ratio
+  };
+}
+
+function buildPriority(
+  annualHufSaved: number,
+  paybackYears: number | null,
+  benchmarkLevel: BenchmarkLevel
+) {
+  if (paybackYears !== null && paybackYears <= 2.5) {
+    return {
+      level: "fast_payback" as const,
+      label: "Gyors megtérülési esély",
+      description: "A megadott becsült gépár mellett a megtérülés kiemelten gyors lehet."
+    };
+  }
+
+  if (benchmarkLevel === "critical") {
+    return {
+      level: "survey_recommended" as const,
+      label: "Érdemes műszaki felmérést kérni",
+      description: "A jelenlegi energiaigény kritikus sávban van, a pontosító mérés sokat segíthet."
+    };
+  }
+
+  if (annualHufSaved >= 1_500_000) {
+    return {
+      level: "high" as const,
+      label: "Magas megtakarítási potenciál",
+      description: "A becsült éves megtakarítás alapján a csere gazdaságilag is figyelemre méltó."
+    };
+  }
+
+  return {
+    level: "standard" as const,
+    label: "Közepes megtakarítási potenciál",
+    description: "A kalkuláció alapján van megtakarítás, de a pontosításhoz érdemes további adatokat megadni."
+  };
+}
+
+function buildLeadScore(
+  input: CalculatorInput,
+  annualHufSaved: number,
+  machineCount: number,
+  benchmarkLevel: BenchmarkLevel
+) {
+  const reasons: string[] = [];
+  let score = 0;
+
+  if (annualHufSaved >= 3_000_000) {
+    score += 35;
+    reasons.push("3M Ft feletti éves megtakarítás");
+  } else if (annualHufSaved >= 1_500_000) {
+    score += 25;
+    reasons.push("1.5M Ft feletti éves megtakarítás");
+  } else if (annualHufSaved > 0) {
+    score += 12;
+    reasons.push("pozitív megtakarítási előnézet");
+  }
+
+  if (input.nominalKw >= 37) {
+    score += 20;
+    reasons.push("nagyobb, ipari teljesítmény");
+  }
+
+  if (input.annualHours >= 5500) {
+    score += 18;
+    reasons.push("magas éves üzemóra");
+  }
+
+  if (machineCount > 1) {
+    score += 12;
+    reasons.push("több gépes üzem");
+  }
+
+  if (benchmarkLevel === "critical") {
+    score += 15;
+    reasons.push("kritikus energiaigény benchmark");
+  } else if (benchmarkLevel === "high") {
+    score += 8;
+    reasons.push("magas energiaigény benchmark");
+  }
+
+  const label = score >= 70 ? "Forró" : score >= 45 ? "Erős" : score >= 25 ? "Közepes" : "Alap";
+  return { score: Math.min(100, score), label, reasons };
+}
+
+function sum(values: number[]) {
+  return values.reduce((total, value) => total + value, 0);
+}
+function nearestByKw(rows: LegacyPerformanceRow[], nominalKw: number) {
+  return rows
+    .slice()
+    .sort((a, b) => Math.abs(a.nominalKw - nominalKw) - Math.abs(b.nominalKw - nominalKw))[0];
+}
+
+function sameKw(a: number, b: number) {
+  return Math.abs(a - b) < 0.001;
+}
+
+function round(value: number, digits: number) {
+  const scale = 10 ** digits;
+  return Math.round(value * scale) / scale;
+}
+
