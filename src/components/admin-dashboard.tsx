@@ -10,6 +10,7 @@ import {
   Flame,
   Mail,
   Search,
+  Star,
   Zap
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -56,6 +57,9 @@ export function AdminDashboard({
         lead.result.leadScore?.label,
         lead.input.tracking?.utmSource,
         lead.input.tracking?.utmCampaign,
+        lead.input.tracking?.gclid,
+        lead.input.tracking?.gbraid,
+        lead.input.tracking?.wbraid,
         lead.input.tracking?.referrer,
         lead.status
       ]
@@ -95,6 +99,10 @@ export function AdminDashboard({
             <Mail size={17} />
             Email preview
           </Link>
+          <a className="secondary-button" href="/admin/google-ads-export">
+            <Download size={17} />
+            Google Ads export
+          </a>
           <a className="secondary-button" href="/admin/export">
             <Download size={17} />
             CSV export
@@ -113,7 +121,11 @@ export function AdminDashboard({
         <AdminMetric icon={<Building2 size={18} />} label="Összes lead" value={`${leads.length} db`} />
         <AdminMetric icon={<Mail size={18} />} label="Új lead" value={`${metrics.newLeads} db`} />
         <AdminMetric icon={<Zap size={18} />} label="Éves potenciál" value={formatHuf(metrics.totalSavings)} />
-        <AdminMetric icon={<Flame size={18} />} label="Forró lead / átlag score" value={`${metrics.hotLeads} db / ${metrics.averageScore}`} />
+        <AdminMetric
+          icon={<Flame size={18} />}
+          label="Forró lead / átlag score"
+          value={`${metrics.hotLeads} db / ${metrics.averageScore}`}
+        />
       </section>
 
       <section className="admin-toolbar" aria-label="Lead keresés és szűrés">
@@ -147,17 +159,37 @@ export function AdminDashboard({
           <strong>{filteredLeads.length} lead látható</strong>
           <span>{status === "all" ? "Minden státusz" : formatStatus(status)}</span>
         </div>
-        <table className="lead-table">
+        <table className="lead-table lead-table-wide">
           <thead>
             <tr>
               <th>Dátum</th>
-              <th>Lead</th>
-              <th>Kapcsolat</th>
-              <th>Gép</th>
+              <th>Cégnév</th>
+              <th>Kapcsolattartó</th>
+              <th>Email</th>
+              <th>Telefon</th>
+              <th>Márka</th>
+              <th>Kategória</th>
+              <th>Kor</th>
+              <th>kW</th>
+              <th>Üzemóra</th>
+              <th>Áramár</th>
+              <th>Profil</th>
+              <th>VSD</th>
+              <th>Marketing</th>
+              <th>GDPR</th>
               <th>Ajánlott modell</th>
-              <th>Megtakarítás</th>
+              <th>Éves Ft</th>
+              <th>Havi Ft</th>
+              <th>5 éves Ft</th>
+              <th>kWh/év</th>
               <th>Score</th>
-              <th>Forrás</th>
+              <th>Csillag</th>
+              <th>UTM source</th>
+              <th>UTM campaign</th>
+              <th>GCLID</th>
+              <th>GBRAID</th>
+              <th>WBRAID</th>
+              <th>Referrer</th>
               <th>Státusz</th>
               <th />
             </tr>
@@ -165,9 +197,7 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={10}>
-                  Nincs találat. Próbálj más keresést vagy státusz szűrőt.
-                </td>
+                <td colSpan={30}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -175,19 +205,22 @@ export function AdminDashboard({
                   <td>{new Date(lead.createdAt).toLocaleString("hu-HU")}</td>
                   <td>
                     <strong>{lead.input.companyName}</strong>
-                    <span>{lead.input.name || "Nincs név"}</span>
                   </td>
                   <td>
-                    <strong>{lead.input.email}</strong>
-                    <span>{lead.input.phone || "-"}</span>
+                    <strong>{lead.input.name || "-"}</strong>
                   </td>
-                  <td>
-                    <strong>{lead.input.brand}</strong>
-                    <span>
-                      {formatKw(lead.input.nominalKw)} · {lead.input.ageBand} év ·{" "}
-                      {lead.input.annualHours} óra
-                    </span>
-                  </td>
+                  <td>{lead.input.email}</td>
+                  <td>{lead.input.phone || "-"}</td>
+                  <td>{lead.input.brand}</td>
+                  <td>{lead.input.category}</td>
+                  <td>{lead.input.ageBand} év</td>
+                  <td>{formatKw(lead.input.nominalKw)}</td>
+                  <td>{lead.input.annualHours} óra</td>
+                  <td>{formatHuf(lead.input.energyPriceHufKwh)} / kWh</td>
+                  <td>{formatLoadProfile(lead.input.loadProfile)}</td>
+                  <td>{lead.input.preferVariableSpeed ? "igen" : "nem"}</td>
+                  <td>{lead.input.consentMarketing ? "igen" : "nem"}</td>
+                  <td>{lead.input.consentPrivacy ? "igen" : "nem"}</td>
                   <td>
                     <strong>{formatCompressorModel(lead.result.recommendedModel)}</strong>
                     <span>{formatKw(lead.result.recommendedModel.nominalKw)}</span>
@@ -196,15 +229,24 @@ export function AdminDashboard({
                     <strong>{formatHuf(lead.result.annualHufSaved)}</strong>
                     <span>{lead.result.priority?.label ?? "-"}</span>
                   </td>
+                  <td>{formatHuf(lead.result.monthlyHufSaved)}</td>
+                  <td>{formatHuf(lead.result.fiveYearHufSaved)}</td>
+                  <td>{Math.round(lead.result.annualKwhSaved).toLocaleString("hu-HU")}</td>
                   <td>
                     <span className={`admin-score ${getScoreLevel(lead.result.leadScore?.score ?? 0)}`}>
-                      {lead.result.leadScore
-                        ? `${lead.result.leadScore.score}/100`
-                        : "-"}
+                      {lead.result.leadScore ? `${lead.result.leadScore.score}/100` : "-"}
                     </span>
                     <span>{lead.result.leadScore?.label ?? "Nincs score"}</span>
                   </td>
-                  <td>{lead.input.tracking?.utmSource ?? lead.input.tracking?.referrer ?? "organikus"}</td>
+                  <td>
+                    <StarRating leadId={lead.id} initialRating={lead.customerRating} />
+                  </td>
+                  <td>{lead.input.tracking?.utmSource ?? "organikus"}</td>
+                  <td>{lead.input.tracking?.utmCampaign ?? "-"}</td>
+                  <td className="tracking-cell">{lead.input.tracking?.gclid ?? "-"}</td>
+                  <td className="tracking-cell">{lead.input.tracking?.gbraid ?? "-"}</td>
+                  <td className="tracking-cell">{lead.input.tracking?.wbraid ?? "-"}</td>
+                  <td className="tracking-cell">{lead.input.tracking?.referrer ?? "-"}</td>
                   <td>
                     <span className={`admin-status ${lead.status}`}>{formatStatus(lead.status)}</span>
                   </td>
@@ -221,6 +263,54 @@ export function AdminDashboard({
         </table>
       </div>
     </>
+  );
+}
+
+function StarRating({
+  leadId,
+  initialRating
+}: {
+  leadId: string;
+  initialRating: number | null;
+}) {
+  const [rating, setRating] = useState(initialRating);
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function updateRating(nextRating: number) {
+    const previousRating = rating;
+    const value = rating === nextRating ? null : nextRating;
+    setRating(value);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`/api/admin/leads/${leadId}/rating`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerRating: value })
+      });
+
+      if (!response.ok) {
+        setRating(previousRating);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <div className={`star-rating ${isSaving ? "is-saving" : ""}`} aria-label="Ügyfélminősítés">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          aria-label={`${star} csillag`}
+          className={rating && star <= rating ? "active" : ""}
+          key={star}
+          type="button"
+          onClick={() => updateRating(star)}
+        >
+          <Star size={16} />
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -246,4 +336,12 @@ function getScoreLevel(score: number) {
   if (score >= 70) return "hot";
   if (score >= 45) return "warm";
   return "cold";
+}
+
+function formatLoadProfile(profile: LeadRecord["input"]["loadProfile"]) {
+  if (profile === "continuous") return "folyamatos";
+  if (profile === "shift") return "műszakos";
+  if (profile === "fluctuating") return "ingadozó";
+  if (profile === "peak") return "csúcsterhelés";
+  return "-";
 }

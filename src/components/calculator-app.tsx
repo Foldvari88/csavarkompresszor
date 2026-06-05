@@ -826,6 +826,9 @@ function getCampaignTracking(): CampaignTracking {
     utmCampaign: params.get("utm_campaign") ?? undefined,
     utmContent: params.get("utm_content") ?? undefined,
     utmTerm: params.get("utm_term") ?? undefined,
+    gclid: params.get("gclid") ?? undefined,
+    gbraid: params.get("gbraid") ?? undefined,
+    wbraid: params.get("wbraid") ?? undefined,
     referrer: document.referrer || undefined
   };
 }

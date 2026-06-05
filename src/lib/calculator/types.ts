@@ -16,6 +16,9 @@ export type CampaignTracking = {
   utmCampaign?: string;
   utmContent?: string;
   utmTerm?: string;
+  gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
   referrer?: string;
 };
 
@@ -129,6 +132,7 @@ export type LeadRecord = {
   id: string;
   createdAt: string;
   status: LeadStatus;
+  customerRating: number | null;
   input: LeadFormInput;
   result: CalculationResult;
 };

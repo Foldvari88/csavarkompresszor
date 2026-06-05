@@ -29,6 +29,7 @@ export function createPreviewLead(): LeadRecord {
     id: "preview-lead-20260604",
     createdAt: new Date("2026-06-04T10:00:00+02:00").toISOString(),
     status: "new",
+    customerRating: 4,
     input,
     result: calculateSavings(input)
   };

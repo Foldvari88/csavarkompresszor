@@ -9,6 +9,9 @@ const campaignTrackingSchema = z.object({
   utmCampaign: z.string().max(200).optional(),
   utmContent: z.string().max(200).optional(),
   utmTerm: z.string().max(200).optional(),
+  gclid: z.string().max(300).optional(),
+  gbraid: z.string().max(300).optional(),
+  wbraid: z.string().max(300).optional(),
   referrer: z.string().max(500).optional()
 });
 

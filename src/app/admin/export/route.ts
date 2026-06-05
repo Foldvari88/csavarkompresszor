@@ -9,26 +9,47 @@ export async function GET() {
     [
       "createdAt",
       "status",
+      "customerRating",
       "companyName",
-      "name",
+      "contactName",
       "email",
       "phone",
       "brand",
       "category",
       "ageBand",
       "nominalKw",
+      "annualHours",
+      "energyPriceHufKwh",
+      "loadProfile",
+      "preferVariableSpeed",
+      "consentPrivacy",
+      "consentMarketing",
       "recommendedModel",
+      "recommendedNominalKw",
+      "recommendedInputKw",
+      "oldInputKw",
       "annualHufSaved",
+      "monthlyHufSaved",
+      "fiveYearHufSaved",
       "annualKwhSaved",
       "priority",
-      "score",
+      "leadScore",
+      "leadScoreLabel",
       "machineCount",
       "utmSource",
-      "utmCampaign"
+      "utmMedium",
+      "utmCampaign",
+      "utmContent",
+      "utmTerm",
+      "gclid",
+      "gbraid",
+      "wbraid",
+      "referrer"
     ],
     ...leads.map((lead) => [
       lead.createdAt,
       lead.status,
+      lead.customerRating ? String(lead.customerRating) : "",
       lead.input.companyName,
       lead.input.name ?? "",
       lead.input.email,
@@ -37,14 +58,33 @@ export async function GET() {
       lead.input.category,
       lead.input.ageBand,
       String(lead.input.nominalKw),
+      String(lead.input.annualHours),
+      String(lead.input.energyPriceHufKwh),
+      lead.input.loadProfile ?? "",
+      lead.input.preferVariableSpeed ? "true" : "false",
+      lead.input.consentPrivacy ? "true" : "false",
+      lead.input.consentMarketing ? "true" : "false",
       formatCompressorModel(lead.result.recommendedModel),
+      String(lead.result.recommendedModel.nominalKw),
+      String(lead.result.recommendedModel.inputKw),
+      String(lead.result.selectedLegacy.degradedInputKw),
       String(lead.result.annualHufSaved),
+      String(lead.result.monthlyHufSaved),
+      String(lead.result.fiveYearHufSaved),
       String(lead.result.annualKwhSaved),
       lead.result.priority?.label ?? "",
       lead.result.leadScore ? String(lead.result.leadScore.score) : "",
+      lead.result.leadScore?.label ?? "",
       lead.result.totalMachineCount ? String(lead.result.totalMachineCount) : "1",
       lead.input.tracking?.utmSource ?? "",
-      lead.input.tracking?.utmCampaign ?? ""
+      lead.input.tracking?.utmMedium ?? "",
+      lead.input.tracking?.utmCampaign ?? "",
+      lead.input.tracking?.utmContent ?? "",
+      lead.input.tracking?.utmTerm ?? "",
+      lead.input.tracking?.gclid ?? "",
+      lead.input.tracking?.gbraid ?? "",
+      lead.input.tracking?.wbraid ?? "",
+      lead.input.tracking?.referrer ?? ""
     ])
   ];
 
@@ -53,7 +93,7 @@ export async function GET() {
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": "attachment; filename=csavarkompresszor-bekuldesek.csv"
+      "Content-Disposition": "attachment; filename=csavarkompresszor-lead-cockpit.csv"
     }
   });
 }

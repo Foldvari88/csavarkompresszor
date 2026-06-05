@@ -12,6 +12,7 @@ type SupabaseLeadRow = {
   id: string;
   created_at: string;
   status: string;
+  customer_rating: number | null;
   email: string;
   company_name: string;
   input: unknown;
@@ -62,6 +63,7 @@ export async function createLead(input: LeadFormInput, result: CalculationResult
     id: randomUUID(),
     createdAt: new Date().toISOString(),
     status: "new",
+    customerRating: null,
     input,
     result
   };
@@ -73,6 +75,7 @@ export async function createLead(input: LeadFormInput, result: CalculationResult
       id: lead.id,
       createdAt: new Date(lead.createdAt),
       status: lead.status,
+      customerRating: lead.customerRating,
       email: input.email,
       companyName: input.companyName,
       input,
@@ -105,6 +108,7 @@ export async function listLeads(): Promise<LeadRecord[]> {
       id: row.id,
       createdAt: row.createdAt.toISOString(),
       status: row.status as LeadStatus,
+      customerRating: row.customerRating ?? null,
       input: row.input as LeadFormInput,
       result: row.result as CalculationResult
     }));
@@ -128,6 +132,7 @@ export async function getLead(id: string): Promise<LeadRecord | null> {
       id: row.id,
       createdAt: row.createdAt.toISOString(),
       status: row.status as LeadStatus,
+      customerRating: row.customerRating ?? null,
       input: row.input as LeadFormInput,
       result: row.result as CalculationResult
     };
@@ -163,6 +168,29 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
   await writeLocalLeads(records.map((lead) => (lead.id === id ? { ...lead, status } : lead)));
 }
 
+export async function updateLeadRating(id: string, customerRating: number | null) {
+  const db = getDb();
+  if (db) {
+    await ensureLeadTable();
+    await db.update(leads).set({ customerRating }).where(eq(leads.id, id));
+    return;
+  }
+
+  if (hasSupabaseLeadStorage()) {
+    await requestSupabase(`leads?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ customer_rating: customerRating }),
+      headers: { Prefer: "return=minimal" }
+    });
+    return;
+  }
+
+  const records = await readLocalLeads();
+  await writeLocalLeads(
+    records.map((lead) => (lead.id === id ? { ...lead, customerRating } : lead))
+  );
+}
+
 async function ensureLeadTable() {
   const db = getDb();
   if (!db) return;
@@ -172,18 +200,27 @@ async function ensureLeadTable() {
       id text PRIMARY KEY,
       created_at timestamptz NOT NULL DEFAULT now(),
       status text NOT NULL DEFAULT 'new',
+      customer_rating integer,
       email text NOT NULL,
       company_name text NOT NULL,
       input jsonb NOT NULL,
       result jsonb NOT NULL
     )
   `);
+
+  await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_rating integer`);
 }
 
 async function readLocalLeads(): Promise<LeadRecord[]> {
   try {
     const raw = await fs.readFile(localStorePath, "utf8");
-    return JSON.parse(raw.replace(/^\uFEFF/, "")) as LeadRecord[];
+    const records = JSON.parse(raw.replace(/^\uFEFF/, "")) as Array<
+      LeadRecord & { customerRating?: number | null }
+    >;
+    return records.map((lead) => ({
+      ...lead,
+      customerRating: lead.customerRating ?? null
+    }));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return [];
@@ -211,6 +248,7 @@ async function insertSupabaseLead(lead: LeadRecord) {
       id: lead.id,
       created_at: lead.createdAt,
       status: lead.status,
+      customer_rating: lead.customerRating,
       email: lead.input.email,
       company_name: lead.input.companyName,
       input: lead.input,
@@ -260,6 +298,7 @@ function mapSupabaseLeadRow(row: SupabaseLeadRow): LeadRecord {
     id: row.id,
     createdAt: new Date(row.created_at).toISOString(),
     status: row.status as LeadStatus,
+    customerRating: row.customer_rating ?? null,
     input: row.input as LeadFormInput,
     result: row.result as CalculationResult
   };

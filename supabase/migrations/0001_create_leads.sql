@@ -2,6 +2,7 @@ create table if not exists public.leads (
   id text primary key,
   created_at timestamptz not null default now(),
   status text not null default 'new',
+  customer_rating integer check (customer_rating between 1 and 5),
   email text not null,
   company_name text not null,
   input jsonb not null,
