@@ -11,7 +11,7 @@ export function GET() {
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'inline; filename="csavarkompresszor-riport-minta.pdf"'
+      "Content-Disposition": 'attachment; filename="csavarkompresszor-riport-minta.pdf"'
     }
   });
 }

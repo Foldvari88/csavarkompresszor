@@ -2,46 +2,51 @@ import { formatHuf, formatKw, formatNumber } from "@/lib/format";
 import type { LeadRecord } from "@/lib/calculator/types";
 
 export function generateLeadPdf(lead: LeadRecord) {
+  return createSimplePdf(getLeadReportLines(lead));
+}
+
+export function getLeadReportLines(lead: LeadRecord) {
   const { input, result } = lead;
-  const lines = [
-    "Csavarkompresszor energiahatékonysági riport",
-    `Azonosító: ${lead.id.slice(0, 8)}`,
-    `Dátum: ${new Date(lead.createdAt).toLocaleString("hu-HU")}`,
+
+  return [
+    "Csavarkompresszor energiahatekonysagi riport",
+    `Azonosito: ${lead.id.slice(0, 8)}`,
+    `Datum: ${new Date(lead.createdAt).toLocaleString("hu-HU")}`,
     "",
     "Bemeneti adatok",
-    `Cég: ${input.companyName}`,
+    `Ceg: ${input.companyName}`,
+    `Kapcsolattarto: ${input.name}`,
     `Email: ${input.email}`,
-    `Jelenlegi gép: ${input.brand}, ${formatKw(input.nominalKw)}, ${input.ageBand} év`,
-    `Üzemóra: ${formatNumber(input.annualHours)} óra/év`,
-    `Villamos energia díja: ${formatHuf(input.energyPriceHufKwh)} / kWh`,
-    `Terhelési profil: ${input.loadProfile ?? "ingadozó"}`,
-    `Gépek száma: ${result.totalMachineCount}`,
+    `Telefon: ${input.phone}`,
+    `Jelenlegi gep: ${input.brand}, ${formatKw(input.nominalKw)}, ${input.ageBand} ev`,
+    `Uzemora: ${formatNumber(input.annualHours)} ora/ev`,
+    `Villamos energia dija: ${formatHuf(input.energyPriceHufKwh)} / kWh`,
+    `Terhelesi profil: ${input.loadProfile ?? "ingadozo"}`,
+    `Gepek szama: ${result.totalMachineCount}`,
     "",
-    "Eredmény",
-    `Éves megtakarítás: ${formatHuf(result.annualHufSaved)}`,
-    `Havi megtakarítás: ${formatHuf(result.monthlyHufSaved)}`,
-    `5 éves potenciál: ${formatHuf(result.fiveYearHufSaved)}`,
-    `Éves kWh megtakarítás: ${formatNumber(result.annualKwhSaved)} kWh`,
-    `Becsült megtérülés: ${
+    "Eredmeny",
+    `Eves megtakaritas: ${formatHuf(result.annualHufSaved)}`,
+    `Havi megtakaritas: ${formatHuf(result.monthlyHufSaved)}`,
+    `5 eves potencial: ${formatHuf(result.fiveYearHufSaved)}`,
+    `Eves kWh megtakaritas: ${formatNumber(result.annualKwhSaved)} kWh`,
+    `Becsult megterules: ${
       result.estimatedPaybackYears === null
-        ? "gépár megadása után számolható"
-        : `${formatNumber(result.estimatedPaybackYears, 1)} év`
+        ? "gepar megadasa utan szamolhato"
+        : `${formatNumber(result.estimatedPaybackYears, 1)} ev`
     }`,
     "",
-    "Ajánlott modell",
+    "Ajanlott modell",
     `${result.recommendedModel.model} (${formatKw(result.recommendedModel.nominalKw)})`,
-    `Felvett teljesítmény: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
+    `Felvett teljesitmeny: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
     "",
-    "Minősítés",
+    "Minosites",
     `${result.priority.label}`,
     `${result.priority.description}`,
     `${result.benchmark.label}: ${result.benchmark.description}`,
     "",
-    "Következő lépés",
-    "A részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani."
+    "Kovetkezo lepes",
+    "A reszletes donteshez erdemes a tenyleges levegoigenyt, uzemi nyomast, szivargast es termelesi profilt muszaki felmeressel pontositani."
   ];
-
-  return createSimplePdf(lines);
 }
 
 function createSimplePdf(lines: string[]) {
@@ -104,8 +109,6 @@ function toPdfSafeText(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[őŐ]/g, "o")
-    .replace(/[űŰ]/g, "u")
     .replace(/[^\x20-\x7E]/g, "");
 }
 

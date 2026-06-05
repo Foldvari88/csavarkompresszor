@@ -29,9 +29,12 @@ export default function EmailPreviewPage() {
             <Link className="secondary-button" href="/admin">
               Admin dashboard
             </Link>
+            <Link className="secondary-button" href="/admin/email-preview/report-view">
+              Riport előnézet
+            </Link>
             <a className="secondary-button" href="/admin/email-preview/report">
               <Download size={17} />
-              PDF riport minta
+              PDF letöltés
             </a>
           </div>
         </div>
