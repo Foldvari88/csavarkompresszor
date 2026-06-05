@@ -77,10 +77,16 @@ export function AdminDashboard({ leads }: { leads: LeadRecord[] }) {
           <h1>Lead cockpit</h1>
           <p>Beküldött kalkulációk, kapcsolati adatok és megtakarítási potenciál egy helyen.</p>
         </div>
-        <a className="secondary-button" href="/admin/export">
-          <Download size={17} />
-          CSV export
-        </a>
+        <div className="admin-actions">
+          <Link className="secondary-button" href="/admin/email-preview">
+            <Mail size={17} />
+            Email preview
+          </Link>
+          <a className="secondary-button" href="/admin/export">
+            <Download size={17} />
+            CSV export
+          </a>
+        </div>
       </div>
 
       <section className="admin-metrics" aria-label="Lead összesítő">

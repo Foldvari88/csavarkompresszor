@@ -478,6 +478,19 @@ export function CalculatorApp() {
                 megérkezzen a kalkuláció. <b className="required-mark">*</b>
               </span>
             </label>
+            <label className="checkbox-line">
+              <input
+                type="checkbox"
+                checked={lead.consentMarketing}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, consentMarketing: event.target.checked }))
+                }
+              />
+              <span>
+                Kérem a kalkulációhoz kapcsolódó szakmai utánkövetést és ajánlat-előkészítő
+                emaileket.
+              </span>
+            </label>
             <button
               className="submit-button"
               disabled={!canSubmit}

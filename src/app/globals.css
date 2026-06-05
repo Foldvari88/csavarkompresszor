@@ -1964,6 +1964,12 @@ a {
   line-height: 1.55;
 }
 
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .admin-metrics {
   display: grid;
   gap: 12px;
@@ -2047,6 +2053,22 @@ a {
 
 .admin-panel {
   overflow: hidden;
+}
+
+.email-preview-panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0d1117;
+  box-shadow: 0 20px 56px rgba(15, 23, 42, 0.14);
+}
+
+.email-preview-panel iframe {
+  display: block;
+  width: 100%;
+  min-height: 720px;
+  border: 0;
+  background: #0d1117;
 }
 
 .admin-table-head {
