@@ -57,7 +57,9 @@ export function getLeadReportLines(lead: LeadRecord) {
     }`,
     "",
     "Ajánlott modell",
-    `${result.recommendedModel.model} (${formatKw(result.recommendedModel.nominalKw)})`,
+    `${result.recommendedModel.brand} ${result.recommendedModel.model} (${formatKw(
+      result.recommendedModel.nominalKw
+    )})`,
     `Felvett teljesítmény: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
     "",
     "Minősítés",
