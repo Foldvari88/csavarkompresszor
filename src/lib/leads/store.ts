@@ -8,23 +8,43 @@ import type { CalculationResult, LeadFormInput, LeadRecord, LeadStatus } from "@
 
 const localStorePath = path.join(process.cwd(), "leads.local.json");
 
+type SupabaseLeadRow = {
+  id: string;
+  created_at: string;
+  status: string;
+  email: string;
+  company_name: string;
+  input: unknown;
+  result: unknown;
+};
+
 export class LeadStorageNotConfiguredError extends Error {
   constructor() {
     super(
-      "A lead mentéshez production környezetben adatbázis szükséges. Állítsd be a DATABASE_URL környezeti változót Supabase/Postgres kapcsolattal, majd deployold újra az appot."
+      "A lead mentéshez production környezetben adatbázis szükséges. Állítsd be a SUPABASE_URL és SUPABASE_SERVICE_ROLE_KEY változókat, vagy egy Neon DATABASE_URL-t, majd deployold újra az appot."
     );
     this.name = "LeadStorageNotConfiguredError";
   }
 }
 
 export function getLeadStorageInfo() {
-  const hasDatabase = Boolean(process.env.DATABASE_URL);
+  const databaseUrl = process.env.DATABASE_URL;
+  const hasDatabase = Boolean(databaseUrl) && !databaseUrl?.includes(".supabase.co");
+  const hasSupabase = hasSupabaseLeadStorage();
 
   if (hasDatabase) {
     return {
       mode: "database" as const,
       isPersistent: true,
-      label: "Tartós adatbázis aktív"
+      label: "Tartós Neon/Postgres adatbázis aktív"
+    };
+  }
+
+  if (hasSupabase) {
+    return {
+      mode: "supabase" as const,
+      isPersistent: true,
+      label: "Tartós Supabase lead-tárolás aktív"
     };
   }
 
@@ -61,6 +81,11 @@ export async function createLead(input: LeadFormInput, result: CalculationResult
     return lead;
   }
 
+  if (hasSupabaseLeadStorage()) {
+    await insertSupabaseLead(lead);
+    return lead;
+  }
+
   if (isVercelWithoutDatabase()) {
     throw new LeadStorageNotConfiguredError();
   }
@@ -85,6 +110,11 @@ export async function listLeads(): Promise<LeadRecord[]> {
     }));
   }
 
+  if (hasSupabaseLeadStorage()) {
+    const rows = await requestSupabaseLeadRows("leads?select=*&order=created_at.desc");
+    return rows.map(mapSupabaseLeadRow);
+  }
+
   return readLocalLeads();
 }
 
@@ -103,6 +133,11 @@ export async function getLead(id: string): Promise<LeadRecord | null> {
     };
   }
 
+  if (hasSupabaseLeadStorage()) {
+    const rows = await requestSupabaseLeadRows(`leads?select=*&id=eq.${encodeURIComponent(id)}&limit=1`);
+    return rows[0] ? mapSupabaseLeadRow(rows[0]) : null;
+  }
+
   const records = await readLocalLeads();
   return records.find((lead) => lead.id === id) ?? null;
 }
@@ -112,6 +147,15 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
   if (db) {
     await ensureLeadTable();
     await db.update(leads).set({ status }).where(eq(leads.id, id));
+    return;
+  }
+
+  if (hasSupabaseLeadStorage()) {
+    await requestSupabase(`leads?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+      headers: { Prefer: "return=minimal" }
+    });
     return;
   }
 
@@ -153,5 +197,70 @@ async function writeLocalLeads(records: LeadRecord[]) {
 }
 
 function isVercelWithoutDatabase() {
-  return process.env.VERCEL === "1" && !process.env.DATABASE_URL;
+  return process.env.VERCEL === "1" && !getLeadStorageInfo().isPersistent;
+}
+
+function hasSupabaseLeadStorage() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+async function insertSupabaseLead(lead: LeadRecord) {
+  await requestSupabase("leads", {
+    method: "POST",
+    body: JSON.stringify({
+      id: lead.id,
+      created_at: lead.createdAt,
+      status: lead.status,
+      email: lead.input.email,
+      company_name: lead.input.companyName,
+      input: lead.input,
+      result: lead.result
+    }),
+    headers: { Prefer: "return=minimal" }
+  });
+}
+
+async function requestSupabaseLeadRows(pathname: string) {
+  return requestSupabase(pathname, { method: "GET" }) as Promise<SupabaseLeadRow[]>;
+}
+
+async function requestSupabase(pathname: string, init: RequestInit) {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new LeadStorageNotConfiguredError();
+  }
+
+  const url = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/${pathname}`;
+  const headers = new Headers(init.headers);
+  headers.set("apikey", serviceRoleKey);
+  headers.set("Authorization", `Bearer ${serviceRoleKey}`);
+  headers.set("Content-Type", "application/json");
+
+  const response = await fetch(url, {
+    ...init,
+    headers
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`Supabase lead tárolási hiba (${response.status}): ${detail}`);
+  }
+
+  if (response.status === 204) {
+    return [];
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : [];
+}
+
+function mapSupabaseLeadRow(row: SupabaseLeadRow): LeadRecord {
+  return {
+    id: row.id,
+    createdAt: new Date(row.created_at).toISOString(),
+    status: row.status as LeadStatus,
+    input: row.input as LeadFormInput,
+    result: row.result as CalculationResult
+  };
 }

@@ -20,7 +20,7 @@ import { formatStatus } from "@/lib/status-label";
 const statuses: Array<LeadStatus | "all"> = ["all", "new", "contacted", "quoted", "closed", "lost"];
 
 type StorageInfo = {
-  mode: "database" | "local";
+  mode: "database" | "supabase" | "local";
   isPersistent: boolean;
   label: string;
   message?: string;

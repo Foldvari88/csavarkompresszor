@@ -8,6 +8,8 @@ create table if not exists public.leads (
   result jsonb not null
 );
 
+alter table public.leads enable row level security;
+
 create index if not exists leads_created_at_idx on public.leads (created_at desc);
 create index if not exists leads_email_idx on public.leads (email);
 create index if not exists leads_company_name_idx on public.leads (company_name);
