@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
-import { formatHuf, formatKw } from "@/lib/format";
+import { formatCompressorModel, formatHuf, formatKw } from "@/lib/format";
 import { formatStatus } from "@/lib/status-label";
 
 const statuses: Array<LeadStatus | "all"> = ["all", "new", "contacted", "quoted", "closed", "lost"];
@@ -169,7 +169,7 @@ export function AdminDashboard({ leads }: { leads: LeadRecord[] }) {
                     </span>
                   </td>
                   <td>
-                    <strong>{lead.result.recommendedModel.brand} {lead.result.recommendedModel.model}</strong>
+                    <strong>{formatCompressorModel(lead.result.recommendedModel)}</strong>
                     <span>{formatKw(lead.result.recommendedModel.nominalKw)}</span>
                   </td>
                   <td>

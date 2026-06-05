@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Mail, Phone, Zap } from "lucide-react";
 import { StatusForm } from "@/components/status-form";
 import { getLead } from "@/lib/leads/store";
-import { formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,7 +60,11 @@ export default async function LeadDetailPage({
           <section className="lead-card">
             <h2>Eredmény</h2>
             <div className="kv-grid">
-              <Kv label="Ajánlott modell" value={lead.result.recommendedModel.model} icon={<Zap size={15} />} />
+              <Kv
+                label="Ajánlott modell"
+                value={formatCompressorModel(lead.result.recommendedModel)}
+                icon={<Zap size={15} />}
+              />
               <Kv label="Éves megtakarítás" value={formatHuf(lead.result.annualHufSaved)} />
               <Kv label="KWh megtakarítás" value={`${formatNumber(lead.result.annualKwhSaved)} kWh/év`} />
               <Kv label="5 éves potenciál" value={formatHuf(lead.result.fiveYearHufSaved)} />

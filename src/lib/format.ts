@@ -1,3 +1,5 @@
+import type { CompressorModel } from "@/lib/calculator/types";
+
 export function formatHuf(value: number) {
   return new Intl.NumberFormat("hu-HU", {
     style: "currency",
@@ -14,4 +16,8 @@ export function formatNumber(value: number, digits = 0) {
 
 export function formatKw(value: number) {
   return `${formatNumber(value, value % 1 === 0 ? 0 : 1)} kW`;
+}
+
+export function formatCompressorModel(model: CompressorModel) {
+  return `${model.brand} ${model.model}`;
 }

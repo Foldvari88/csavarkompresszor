@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import type { LeadRecord } from "@/lib/calculator/types";
 import { generateLeadPdf } from "./pdf";
 
@@ -248,13 +248,14 @@ async function scheduleLeadSequence({
 export function renderCustomerEmail(lead: LeadRecord) {
   const { result, input } = lead;
   const appointmentUrl = getAppointmentUrl();
+  const recommendedModelName = formatCompressorModel(result.recommendedModel);
   return emailShell(`
-    <p>Köszönjük a kalkulációt. A megadott adatok alapján az ajánlott ${escapeHtml(result.recommendedModel.model)} modell várható éves megtakarítása:</p>
+    <p>Köszönjük a kalkulációt. A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
     <div class="metric">${formatHuf(result.annualHufSaved)} / év</div>
     <p>Ez körülbelül ${formatNumber(result.annualKwhSaved)} kWh villamosenergia-megtakarítás évente, ${formatNumber(input.annualHours)} üzemórával és ${formatHuf(input.energyPriceHufKwh)} / kWh áramárral számolva.</p>
     <table>
       <tr><td>Jelenlegi gép</td><td>${escapeHtml(input.brand)} - ${formatKw(input.nominalKw)}</td></tr>
-      <tr><td>Ajánlott modell</td><td>${escapeHtml(result.recommendedModel.model)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
+      <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
       <tr><td>Régi felvett teljesítmény</td><td>${formatNumber(result.selectedLegacy.degradedInputKw, 2)} kW</td></tr>
       <tr><td>Ajánlott modell felvett teljesítménye</td><td>${formatNumber(result.recommendedModel.inputKw, 2)} kW</td></tr>
       <tr><td>Megtérülési becslés</td><td>${formatPayback(result.estimatedPaybackYears)}</td></tr>
@@ -269,6 +270,7 @@ export function renderCustomerEmail(lead: LeadRecord) {
 function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[number]) {
   const appointmentUrl = getAppointmentUrl();
   const { result, input } = lead;
+  const recommendedModelName = formatCompressorModel(result.recommendedModel);
   return emailShell(`
     <div class="preheader">${escapeHtml(step.preview)}</div>
     <h1>${escapeHtml(step.heading)}</h1>
@@ -279,7 +281,7 @@ function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[numb
       <table>
         <tr><td>Becsült éves megtakarítás</td><td>${formatHuf(result.annualHufSaved)}</td></tr>
         <tr><td>5 éves potenciál</td><td>${formatHuf(result.fiveYearHufSaved)}</td></tr>
-        <tr><td>Ajánlott modell</td><td>${escapeHtml(result.recommendedModel.model)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
+        <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
         <tr><td>Prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
       </table>
     </div>
@@ -295,6 +297,7 @@ export function renderInternalNotificationEmail(
   lead: LeadRecord,
   sequence?: SequenceScheduleResult
 ) {
+  const recommendedModelName = formatCompressorModel(lead.result.recommendedModel);
   return emailShell(`
     <p>Új kalkulációs beküldés érkezett a csavarkompresszor kalkulátorból.</p>
     <table>
@@ -309,7 +312,7 @@ export function renderInternalNotificationEmail(
       <tr><td>Score</td><td>${lead.result.leadScore.score}/100 - ${escapeHtml(lead.result.leadScore.label)}</td></tr>
       <tr><td>Benchmark</td><td>${escapeHtml(lead.result.benchmark.label)}</td></tr>
       <tr><td>Gépek száma</td><td>${lead.result.totalMachineCount}</td></tr>
-      <tr><td>Ajánlott modell</td><td>${escapeHtml(lead.result.recommendedModel.model)}</td></tr>
+      <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)}</td></tr>
     </table>
     <p>${escapeHtml(lead.result.leadScore.reasons.join(" "))}</p>
   `);

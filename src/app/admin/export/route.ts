@@ -1,4 +1,5 @@
 import { listLeads } from "@/lib/leads/store";
+import { formatCompressorModel } from "@/lib/format";
 
 export const runtime = "nodejs";
 
@@ -36,7 +37,7 @@ export async function GET() {
       lead.input.category,
       lead.input.ageBand,
       String(lead.input.nominalKw),
-      lead.result.recommendedModel.model,
+      formatCompressorModel(lead.result.recommendedModel),
       String(lead.result.annualHufSaved),
       String(lead.result.annualKwhSaved),
       lead.result.priority?.label ?? "",

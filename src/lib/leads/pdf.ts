@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import type { LeadRecord } from "@/lib/calculator/types";
 
 type ParsedFont = {
@@ -57,7 +57,7 @@ export function getLeadReportLines(lead: LeadRecord) {
     }`,
     "",
     "Ajánlott modell",
-    `${result.recommendedModel.brand} ${result.recommendedModel.model} (${formatKw(
+    `${formatCompressorModel(result.recommendedModel)} (${formatKw(
       result.recommendedModel.nominalKw
     )})`,
     `Felvett teljesítmény: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
