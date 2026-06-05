@@ -6,7 +6,8 @@ Next.js alapú, mobil-first ipari csavarkompresszor energiahatékonysági kalkul
 
 Másold a `.env.example` értékeit Vercel project environment variable-ként:
 
-- `ADMIN_PASSWORD`: admin basic auth jelszó
+- `ADMIN_USERNAME`: admin basic auth felhasználónév, alapértelmezetten `admin`
+- `ADMIN_PASSWORD`: admin basic auth jelszó, átmenetileg `admin`
 - `DATABASE_URL`: Supabase Postgres connection string
 - `RESEND_API_KEY`: Resend email küldéshez
 - `EMAIL_FROM`: feladó email

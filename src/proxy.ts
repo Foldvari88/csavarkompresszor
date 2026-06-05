@@ -5,13 +5,14 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const password = process.env.ADMIN_PASSWORD ?? "kompresszor-demo";
+  const username = process.env.ADMIN_USERNAME ?? "admin";
+  const password = process.env.ADMIN_PASSWORD ?? "admin";
   const authorization = request.headers.get("authorization");
 
   if (authorization?.startsWith("Basic ")) {
     const decoded = atob(authorization.slice(6));
-    const [, suppliedPassword] = decoded.split(":");
-    if (suppliedPassword === password) {
+    const [suppliedUsername, suppliedPassword] = decoded.split(":");
+    if (suppliedUsername === username && suppliedPassword === password) {
       return NextResponse.next();
     }
   }
