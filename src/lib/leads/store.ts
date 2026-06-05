@@ -8,6 +8,35 @@ import type { CalculationResult, LeadFormInput, LeadRecord, LeadStatus } from "@
 
 const localStorePath = path.join(process.cwd(), "leads.local.json");
 
+export class LeadStorageNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "A lead mentéshez production környezetben adatbázis szükséges. Állítsd be a DATABASE_URL környezeti változót Supabase/Postgres kapcsolattal, majd deployold újra az appot."
+    );
+    this.name = "LeadStorageNotConfiguredError";
+  }
+}
+
+export function getLeadStorageInfo() {
+  const hasDatabase = Boolean(process.env.DATABASE_URL);
+
+  if (hasDatabase) {
+    return {
+      mode: "database" as const,
+      isPersistent: true,
+      label: "Tartós adatbázis aktív"
+    };
+  }
+
+  return {
+    mode: "local" as const,
+    isPersistent: false,
+    label: "Helyi teszt tárolás",
+    message:
+      "Productionben a leadek csak akkor jelennek meg tartósan az adminban, ha be van kötve egy Supabase/Postgres DATABASE_URL. A helyi fájlos tárolás csak fejlesztéshez való."
+  };
+}
+
 export async function createLead(input: LeadFormInput, result: CalculationResult) {
   const lead: LeadRecord = {
     id: randomUUID(),
@@ -30,6 +59,10 @@ export async function createLead(input: LeadFormInput, result: CalculationResult
       result
     });
     return lead;
+  }
+
+  if (isVercelWithoutDatabase()) {
+    throw new LeadStorageNotConfiguredError();
   }
 
   const records = await readLocalLeads();
@@ -117,4 +150,8 @@ async function readLocalLeads(): Promise<LeadRecord[]> {
 
 async function writeLocalLeads(records: LeadRecord[]) {
   await fs.writeFile(localStorePath, JSON.stringify(records, null, 2), "utf8");
+}
+
+function isVercelWithoutDatabase() {
+  return process.env.VERCEL === "1" && !process.env.DATABASE_URL;
 }

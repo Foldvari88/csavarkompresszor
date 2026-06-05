@@ -19,7 +19,20 @@ import { formatStatus } from "@/lib/status-label";
 
 const statuses: Array<LeadStatus | "all"> = ["all", "new", "contacted", "quoted", "closed", "lost"];
 
-export function AdminDashboard({ leads }: { leads: LeadRecord[] }) {
+type StorageInfo = {
+  mode: "database" | "local";
+  isPersistent: boolean;
+  label: string;
+  message?: string;
+};
+
+export function AdminDashboard({
+  leads,
+  storageInfo
+}: {
+  leads: LeadRecord[];
+  storageInfo: StorageInfo;
+}) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<LeadStatus | "all">("all");
 
@@ -88,6 +101,13 @@ export function AdminDashboard({ leads }: { leads: LeadRecord[] }) {
           </a>
         </div>
       </div>
+
+      {!storageInfo.isPersistent ? (
+        <div className="admin-storage-alert" role="status">
+          <strong>{storageInfo.label}</strong>
+          <span>{storageInfo.message}</span>
+        </div>
+      ) : null}
 
       <section className="admin-metrics" aria-label="Lead összesítő">
         <AdminMetric icon={<Building2 size={18} />} label="Összes lead" value={`${leads.length} db`} />

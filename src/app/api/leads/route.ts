@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import { leadInputSchema } from "@/lib/calculator/schema";
 import { sendLeadEmails } from "@/lib/leads/email";
-import { createLead } from "@/lib/leads/store";
+import { createLead, LeadStorageNotConfiguredError } from "@/lib/leads/store";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,18 @@ export async function POST(request: Request) {
   }
 
   const result = calculateSavings(parsed.data);
-  const lead = await createLead(parsed.data, result);
+  let lead: Awaited<ReturnType<typeof createLead>>;
+
+  try {
+    lead = await createLead(parsed.data, result);
+  } catch (error) {
+    if (error instanceof LeadStorageNotConfiguredError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+
+    throw error;
+  }
+
   const email = await sendLeadEmails(lead);
 
   return NextResponse.json({

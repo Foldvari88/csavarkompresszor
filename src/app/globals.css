@@ -1995,6 +1995,31 @@ a {
   gap: 10px;
 }
 
+.admin-storage-alert {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(48, 49, 132, 0.22);
+  border-left: 5px solid var(--red);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 244, 250, 0.92)),
+    repeating-linear-gradient(90deg, rgba(48, 49, 132, 0.04) 0 1px, transparent 1px 18px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+  margin-bottom: 14px;
+  padding: 14px 16px;
+}
+
+.admin-storage-alert strong {
+  color: var(--red-strong);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.admin-storage-alert span {
+  color: #475569;
+  line-height: 1.55;
+}
+
 .admin-metrics {
   display: grid;
   gap: 12px;

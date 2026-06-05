@@ -147,12 +147,18 @@ export function CalculatorApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...calculator, tracking: getCampaignTracking(), ...lead })
       });
+      const payload = (await response.json().catch(() => null)) as
+        | { leadId?: string; error?: string }
+        | null;
 
       if (!response.ok) {
-        throw new Error("A beküldés nem sikerült. Ellenőrizze az adatokat.");
+        throw new Error(payload?.error ?? "A beküldés nem sikerült. Ellenőrizze az adatokat.");
       }
 
-      const payload = (await response.json()) as { leadId: string };
+      if (!payload?.leadId) {
+        throw new Error("A beküldés sikerült, de az azonosító nem érkezett meg.");
+      }
+
       setSuccess(`A részletes riport elkészült. Azonosító: ${payload.leadId.slice(0, 8)}.`);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");
