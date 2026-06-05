@@ -9,10 +9,6 @@ export function getDb() {
     return null;
   }
 
-  if (databaseUrl.includes(".supabase.co")) {
-    return null;
-  }
-
   if (!db) {
     db = drizzle(neon(databaseUrl));
   }
