@@ -10,6 +10,8 @@
   --line-strong: rgba(17, 24, 39, 0.24);
   --red: #303184;
   --red-strong: #24266d;
+  --danger: #d92d20;
+  --danger-soft: rgba(217, 45, 32, 0.1);
   --amber: #ffb020;
   --green: #30d158;
   --steel: #9fb0c7;
@@ -592,12 +594,34 @@ a {
   box-shadow: 0 0 0 3px rgba(48, 49, 132, 0.18);
 }
 
-.field input[aria-invalid="true"] {
-  border-color: rgba(48, 49, 132, 0.7);
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: rgba(217, 45, 32, 0.78);
   background:
-    linear-gradient(90deg, rgba(48, 49, 132, 0.08), rgba(255, 255, 255, 0.88)),
+    linear-gradient(90deg, rgba(217, 45, 32, 0.08), rgba(255, 255, 255, 0.9)),
     #fff;
-  box-shadow: 0 0 0 3px rgba(48, 49, 132, 0.12);
+  box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.14);
+}
+
+.field-error {
+  margin: -2px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.checkbox-line.is-invalid {
+  border: 1px solid rgba(217, 45, 32, 0.32);
+  border-radius: 8px;
+  background: var(--danger-soft);
+  padding: 10px;
+  color: #7a271a;
+}
+
+.checkbox-line input[aria-invalid="true"] {
+  outline: 2px solid rgba(217, 45, 32, 0.38);
+  outline-offset: 2px;
 }
 
 .field input,
@@ -1011,12 +1035,13 @@ a {
 }
 
 .error-note {
-  border: 1px solid rgba(48, 49, 132, 0.35);
+  border: 1px solid rgba(217, 45, 32, 0.35);
   border-radius: 8px;
-  background: rgba(48, 49, 132, 0.1);
-  color: #272a73;
+  background: var(--danger-soft);
+  color: #7a271a;
   padding: 12px;
   font-size: 14px;
+  font-weight: 720;
 }
 
 .content-band {

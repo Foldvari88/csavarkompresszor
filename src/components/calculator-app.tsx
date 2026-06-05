@@ -42,6 +42,8 @@ type LeadFields = Pick<
   "companyName" | "name" | "email" | "phone" | "consentMarketing" | "consentPrivacy"
 >;
 
+type LeadFieldErrors = Partial<Record<keyof LeadFields, string>>;
+
 const initialCalculator: CalculatorInput = {
   brand: "Atlas Copco",
   category: "Prémium",
@@ -76,6 +78,7 @@ const initialLead: LeadFields = {
 export function CalculatorApp() {
   const [calculator, setCalculator] = useState<CalculatorInput>(initialCalculator);
   const [lead, setLead] = useState<LeadFields>(initialLead);
+  const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -86,13 +89,10 @@ export function CalculatorApp() {
   const oldInputKw = result.selectedLegacy.degradedInputKw;
   const recommendedInputKw = result.recommendedModel.inputKw;
   const recommendedBarWidth = Math.max(8, Math.min(100, (recommendedInputKw / oldInputKw) * 100));
-  const isLeadFormValid =
-    lead.companyName.trim().length > 1 &&
-    lead.name.trim().length > 1 &&
-    isValidEmail(lead.email) &&
-    isValidHungarianPhone(lead.phone) &&
-    lead.consentPrivacy;
-  const canSubmit = isLeadFormValid && !isSubmitting;
+  const leadFieldErrors = useMemo(() => getLeadFieldErrors(lead), [lead]);
+  const visibleLeadFieldErrors = hasTriedSubmit ? leadFieldErrors : {};
+  const isLeadFormValid = Object.keys(leadFieldErrors).length === 0;
+  const canSubmit = !isSubmitting;
   const completionItems = [
     Boolean(calculator.brand),
     Boolean(calculator.category),
@@ -125,6 +125,7 @@ export function CalculatorApp() {
   }
 
   async function submitLead() {
+    setHasTriedSubmit(true);
     setError(null);
     setSuccess(null);
 
@@ -132,6 +133,9 @@ export function CalculatorApp() {
       setError(
         "Minden kötelező mezőt ki kell tölteni. Az email cím legyen érvényes, a telefonszám formátuma például: +36701234567."
       );
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
+      });
       return;
     }
 
@@ -411,6 +415,9 @@ export function CalculatorApp() {
           <div className="form-grid two">
             <Field label="Cégnév">
               <input
+                id="companyName"
+                aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
                 required
                 minLength={2}
                 value={lead.companyName}
@@ -419,11 +426,14 @@ export function CalculatorApp() {
                 }
                 placeholder="Példa Kft."
               />
+              <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
             </Field>
 
             <Field label="Email cím">
               <input
-                aria-invalid={lead.email.length > 0 && !isValidEmail(lead.email)}
+                id="email"
+                aria-describedby={visibleLeadFieldErrors.email ? "email-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.email)}
                 required
                 value={lead.email}
                 onChange={(event) =>
@@ -432,10 +442,14 @@ export function CalculatorApp() {
                 placeholder="email@ceg.hu"
                 type="email"
               />
+              <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
             </Field>
 
             <Field label="Kapcsolattartó">
               <input
+                id="name"
+                aria-describedby={visibleLeadFieldErrors.name ? "name-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.name)}
                 required
                 minLength={2}
                 value={lead.name}
@@ -444,11 +458,14 @@ export function CalculatorApp() {
                 }
                 placeholder="Név"
               />
+              <FieldError id="name-error" message={visibleLeadFieldErrors.name} />
             </Field>
 
             <Field label="Telefon">
               <input
-                aria-invalid={lead.phone.length > 0 && !isValidHungarianPhone(lead.phone)}
+                id="phone"
+                aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
                 inputMode="tel"
                 pattern="[+]36[0-9]{9}"
                 required
@@ -460,12 +477,19 @@ export function CalculatorApp() {
                 placeholder="+36701234567"
                 type="tel"
               />
+              <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
             </Field>
           </div>
 
           <div className="form-grid" style={{ marginTop: 16 }}>
-            <label className="checkbox-line">
+            <label
+              className={`checkbox-line ${visibleLeadFieldErrors.consentPrivacy ? "is-invalid" : ""}`}
+            >
               <input
+                aria-describedby={
+                  visibleLeadFieldErrors.consentPrivacy ? "consentPrivacy-error" : undefined
+                }
+                aria-invalid={Boolean(visibleLeadFieldErrors.consentPrivacy)}
                 type="checkbox"
                 required
                 checked={lead.consentPrivacy}
@@ -478,6 +502,10 @@ export function CalculatorApp() {
                 megérkezzen a kalkuláció. <b className="required-mark">*</b>
               </span>
             </label>
+            <FieldError
+              id="consentPrivacy-error"
+              message={visibleLeadFieldErrors.consentPrivacy}
+            />
             <label className="checkbox-line">
               <input
                 type="checkbox"
@@ -701,6 +729,45 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </div>
   );
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p className="field-error" id={id}>
+      {message}
+    </p>
+  );
+}
+
+function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
+  const errors: LeadFieldErrors = {};
+
+  if (lead.companyName.trim().length < 2) {
+    errors.companyName = "Add meg a cégnevet, legalább 2 karakterrel.";
+  }
+
+  if (lead.email.trim().length === 0) {
+    errors.email = "Add meg az email címet.";
+  } else if (!isValidEmail(lead.email)) {
+    errors.email = "Az email formátuma nem jó. Példa: nev@ceg.hu";
+  }
+
+  if (lead.name.trim().length < 2) {
+    errors.name = "Add meg a kapcsolattartó nevét, legalább 2 karakterrel.";
+  }
+
+  if (lead.phone.trim().length === 0) {
+    errors.phone = "Add meg a telefonszámot.";
+  } else if (!isValidHungarianPhone(lead.phone)) {
+    errors.phone = "A telefonszám formátuma nem jó. Példa: +36701234567";
+  }
+
+  if (!lead.consentPrivacy) {
+    errors.consentPrivacy = "A riport elkészítéséhez ezt az elfogadást be kell jelölni.";
+  }
+
+  return errors;
 }
 
 function isValidEmail(email: string) {
