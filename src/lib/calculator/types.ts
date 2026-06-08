@@ -137,6 +137,7 @@ export type CalculationResult = {
 export type HeatRecoveryResult = {
   enabled: true;
   sourceVersionId: string;
+  compressorModelName: string;
   compressorNominalKw: number;
   annualHours: number;
   recoverablePowerRatio: number;

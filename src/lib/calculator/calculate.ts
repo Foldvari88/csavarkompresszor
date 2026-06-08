@@ -47,7 +47,7 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const estimatedPaybackYears = normalizedInput.estimatedMachinePriceHuf
     ? round(normalizedInput.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
     : null;
-  const heatRecovery = calculateHeatRecovery(normalizedInput);
+  const heatRecovery = calculateHeatRecovery(normalizedInput, primary.recommendedModel);
   const priority = buildPriority(annualHufSaved, estimatedPaybackYears, primary.benchmark.level);
   const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
 
@@ -182,7 +182,7 @@ function buildAssumptions(
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
     input.heatRecovery?.enabled
-      ? "A hővisszanyerési modul forrása: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx."
+      ? `A hővisszanyerési modul az ajánlott ${model.brand} ${model.model} modell névleges ${model.nominalKw} kW teljesítményével számol. Forrás: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx.`
       : null,
     `Gépek száma az összesítésben: ${units.length}.`
   ].filter(Boolean) as string[];
@@ -236,11 +236,12 @@ function applyExcelBrandCategories(input: CalculatorInput): CalculatorInput {
   };
 }
 
-function calculateHeatRecovery(input: CalculatorInput) {
+function calculateHeatRecovery(input: CalculatorInput, recommendedModel: CompressorModel) {
   if (!input.heatRecovery?.enabled) return null;
 
   const config = normalizeHeatRecoveryInput(input.heatRecovery);
-  const recoverableHeatKw = round(input.nominalKw * config.recoverablePowerRatio, 3);
+  const compressorNominalKw = recommendedModel.nominalKw;
+  const recoverableHeatKw = round(compressorNominalKw * config.recoverablePowerRatio, 3);
   const usefulHeatKw = round(recoverableHeatKw * config.utilizationEfficiency, 3);
   const annualUsefulHeatKwh = round(usefulHeatKw * input.annualHours, 2);
   const annualUsefulHeatMj = round(annualUsefulHeatKwh * 3.6, 2);
@@ -258,7 +259,8 @@ function calculateHeatRecovery(input: CalculatorInput) {
   return {
     enabled: true as const,
     sourceVersionId: heatRecoveryDefaults.sourceVersionId,
-    compressorNominalKw: input.nominalKw,
+    compressorModelName: `${recommendedModel.brand} ${recommendedModel.model}`,
+    compressorNominalKw,
     annualHours: input.annualHours,
     recoverablePowerRatio: config.recoverablePowerRatio,
     utilizationEfficiency: config.utilizationEfficiency,

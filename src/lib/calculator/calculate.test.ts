@@ -86,4 +86,23 @@ describe("calculateSavings", () => {
       1
     );
   });
+
+  it("uses the recommended compressor model for heat recovery calculations", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      nominalKw: 40,
+      annualHours: 4000,
+      heatRecovery: {
+        enabled: true,
+        gasPriceHufPerM3: 300,
+        heatingMonths: 7,
+        hotWaterMonths: 5
+      }
+    });
+
+    expect(result.recommendedModel.model).toBe("L45RS");
+    expect(result.heatRecovery?.compressorModelName).toBe("CompAir L45RS");
+    expect(result.heatRecovery?.compressorNominalKw).toBe(45);
+    expect(result.heatRecovery?.annualUsefulHeatKwh).toBeCloseTo(45 * 0.9 * 0.9 * 4000);
+  });
 });

@@ -84,11 +84,29 @@ export default async function LeadDetailPage({
               <h2>Hővisszanyerés</h2>
               <div className="kv-grid">
                 <Kv
+                  label="Számítás alapja"
+                  value={`${lead.result.heatRecovery.compressorModelName} - ${formatKw(
+                    lead.result.heatRecovery.compressorNominalKw
+                  )}`}
+                />
+                <Kv
+                  label="Üzemóra"
+                  value={`${formatNumber(lead.result.heatRecovery.annualHours)} óra/év`}
+                />
+                <Kv
+                  label="Visszanyerhető hőteljesítmény"
+                  value={`${formatNumber(lead.result.heatRecovery.recoverableHeatKw, 2)} kW`}
+                />
+                <Kv
+                  label="Veszteséggel hasznosítható hőteljesítmény"
+                  value={`${formatNumber(lead.result.heatRecovery.usefulHeatKw, 2)} kW`}
+                />
+                <Kv
                   label="Szezonális megtakarítás"
                   value={`${formatHuf(lead.result.heatRecovery.seasonalSavingsHuf)} / év`}
                 />
                 <Kv
-                  label="Elméleti éves hatás"
+                  label="Folyamatos HMV/ipari éves hatás"
                   value={`${formatHuf(lead.result.heatRecovery.theoreticalSavingsHuf)} / év`}
                 />
                 <Kv
@@ -104,10 +122,22 @@ export default async function LeadDetailPage({
                   value={`${formatHuf(lead.result.heatRecovery.gasPriceHufPerM3)} / m3`}
                 />
                 <Kv
-                  label="Megtérülés"
+                  label="HMV jelentése"
+                  value="használati melegvíz"
+                />
+                <Kv
+                  label="Megtérülés fűtés/HMV"
                   value={
                     lead.result.heatRecovery.seasonalPaybackYears
                       ? `${formatNumber(lead.result.heatRecovery.seasonalPaybackYears, 1)} év`
+                      : "beruházási költség nélkül"
+                  }
+                />
+                <Kv
+                  label="Megtérülés folyamatos felhasználásnál"
+                  value={
+                    lead.result.heatRecovery.theoreticalPaybackYears
+                      ? `${formatNumber(lead.result.heatRecovery.theoreticalPaybackYears, 1)} év`
                       : "beruházási költség nélkül"
                   }
                 />

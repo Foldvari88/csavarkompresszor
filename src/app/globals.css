@@ -1033,6 +1033,38 @@ a {
   font-size: 15px;
 }
 
+.heat-recovery-breakdown {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(48, 49, 132, 0.14);
+  border-radius: 8px;
+  background: rgba(48, 49, 132, 0.14);
+}
+
+.heat-recovery-row {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.86);
+  padding: 10px;
+}
+
+.heat-recovery-row span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.heat-recovery-row strong {
+  color: #111827;
+  font-family: var(--font-geist-mono);
+  font-size: 15px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
 .efficiency-compare {
   display: grid;
   gap: 12px;

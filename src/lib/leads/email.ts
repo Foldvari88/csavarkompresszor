@@ -326,11 +326,20 @@ function renderHeatRecoveryRows(result: CalculationResult) {
   if (!heat) return "";
 
   return `
+      <tr><td>Hővisszanyerés alapja</td><td>${escapeHtml(heat.compressorModelName)} - ${formatKw(heat.compressorNominalKw)}</td></tr>
+      <tr><td>Kompresszor üzemóra / év</td><td>${formatNumber(heat.annualHours)} óra</td></tr>
+      <tr><td>Visszanyerhető hőteljesítmény</td><td>${formatNumber(heat.recoverableHeatKw, 2)} kW</td></tr>
+      <tr><td>Visszanyerhető hőteljesítmény veszteséggel</td><td>${formatNumber(heat.usefulHeatKw, 2)} kW</td></tr>
+      <tr><td>Földgáz ára</td><td>${formatHuf(heat.gasPriceHufPerM3)} / m3</td></tr>
+      <tr><td>HMV jelentése</td><td>használati melegvíz</td></tr>
       <tr><td>Hővisszanyerési megtakarítás</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
       <tr><td>Elméleti hővisszanyerési hatás</td><td>${formatHuf(heat.theoreticalSavingsHuf)} / év</td></tr>
-      <tr><td>Kiváltható földgáz</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
+      <tr><td>Kiváltható földgáz fűtés/HMV kombinációval</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
+      <tr><td>Kiváltható földgáz folyamatos HMV/ipari felhasználásnál</td><td>${formatNumber(heat.theoreticalGasSavedM3)} m3 / év</td></tr>
       <tr><td>Hasznosítható hőenergia</td><td>${formatNumber(heat.annualUsefulHeatKwh)} kWh / év</td></tr>
-      <tr><td>Hővisszanyerési megtérülés</td><td>${formatHeatRecoveryPayback(heat.seasonalPaybackYears)}</td></tr>
+      <tr><td>Beruházás költsége</td><td>${heat.investmentCostHuf ? formatHuf(heat.investmentCostHuf) : "nincs megadva"}</td></tr>
+      <tr><td>Megtérülés folyamatos felhasználás mellett</td><td>${formatHeatRecoveryPayback(heat.theoreticalPaybackYears)}</td></tr>
+      <tr><td>Megtérülés fűtés/HMV kombinációval</td><td>${formatHeatRecoveryPayback(heat.seasonalPaybackYears)}</td></tr>
     `;
 }
 

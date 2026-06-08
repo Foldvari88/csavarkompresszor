@@ -444,11 +444,12 @@ export function CalculatorApp() {
             {calculator.heatRecovery?.enabled ? (
               <>
                 <div className="heat-recovery-note">
-                  Excel logika: 90% visszanyerhető hőteljesítmény x 90% hasznosítási tényező,
-                  majd földgáz kiváltás 9,44 kWh/m3 és 90% kazánhatásfok alapján.
+                  Excel logika: az ajánlott kompresszor névleges teljesítménye alapján 90%
+                  visszanyerhető hőteljesítmény x 90% hasznosítási tényező. HMV = használati
+                  melegvíz, azaz mosdóhoz, technológiához vagy üzemi melegvízhez használt víz.
                 </div>
                 <div className="form-grid two">
-                  <OptionalField label="Földgáz ára">
+                  <OptionalField label="Földgáz ára Ft/m3">
                     <input
                       inputMode="numeric"
                       min={1}
@@ -463,7 +464,7 @@ export function CalculatorApp() {
                     />
                   </OptionalField>
 
-                  <OptionalField label="Beruházás költsége">
+                  <OptionalField label="Beruházás költsége Ft">
                     <input
                       inputMode="numeric"
                       min={0}
@@ -479,7 +480,7 @@ export function CalculatorApp() {
                     />
                   </OptionalField>
 
-                  <OptionalField label="Fűtési időszak">
+                  <OptionalField label="Fűtési időszak hónap/év">
                     <select
                       value={calculator.heatRecovery.heatingMonths ?? 7}
                       onChange={(event) =>
@@ -497,7 +498,7 @@ export function CalculatorApp() {
                     </select>
                   </OptionalField>
 
-                  <OptionalField label="Csak HMV időszak">
+                  <OptionalField label="Csak HMV időszak hónap/év">
                     <select
                       value={calculator.heatRecovery.hotWaterMonths ?? 5}
                       onChange={(event) =>
@@ -744,9 +745,11 @@ export function CalculatorApp() {
                 <span className="metric-label">Hővisszanyerési megtérülés</span>
                 <strong>{formatHuf(result.heatRecovery.seasonalSavingsHuf)} / év</strong>
                 <p>
-                  {formatNumber(result.heatRecovery.annualUsefulHeatKwh)} kWh/év hasznosítható hő,
-                  nagyságrendileg {formatNumber(result.heatRecovery.seasonalGasSavedM3)} m3 földgáz
-                  kiváltás a fűtés/HMV modellben.
+                  {result.heatRecovery.compressorModelName} ajánlott kompresszorral számolva.
+                  HMV = használati melegvíz. {formatNumber(result.heatRecovery.annualUsefulHeatKwh)}
+                  kWh/év hasznosítható hő, nagyságrendileg{" "}
+                  {formatNumber(result.heatRecovery.seasonalGasSavedM3)} m3 földgáz kiváltás
+                  a fűtés/HMV modellben.
                 </p>
                 <div className="heat-recovery-result-grid">
                   <span>
@@ -761,6 +764,68 @@ export function CalculatorApp() {
                         : "beruházási költség nélkül"}
                     </b>
                   </span>
+                </div>
+                <div className="heat-recovery-breakdown">
+                  <HeatRecoveryRow
+                    label="Kompresszor teljesítménye"
+                    value={`${formatKw(result.heatRecovery.compressorNominalKw)}`}
+                  />
+                  <HeatRecoveryRow
+                    label="Kompresszor üzemóra / év"
+                    value={`${formatNumber(result.heatRecovery.annualHours)} óra`}
+                  />
+                  <HeatRecoveryRow
+                    label="Visszanyerhető hőteljesítmény"
+                    value={`${formatNumber(result.heatRecovery.recoverableHeatKw, 2)} kW`}
+                  />
+                  <HeatRecoveryRow
+                    label="Visszanyerhető hőteljesítmény veszteséggel"
+                    value={`${formatNumber(result.heatRecovery.usefulHeatKw, 2)} kW`}
+                  />
+                  <HeatRecoveryRow
+                    label="Földgáz ára"
+                    value={`${formatHuf(result.heatRecovery.gasPriceHufPerM3)} / m3`}
+                  />
+                  <HeatRecoveryRow
+                    label="Visszanyerhető összes hőmennyiség"
+                    value={`${formatNumber(result.heatRecovery.annualUsefulHeatKwh)} kWh/év`}
+                  />
+                  <HeatRecoveryRow
+                    label="Megtakarított földgáz folyamatos HMV/ipari felhasználásnál"
+                    value={`${formatNumber(result.heatRecovery.theoreticalGasSavedM3)} m3`}
+                  />
+                  <HeatRecoveryRow
+                    label="Folyamatos HMV/ipari felhasználás megtakarítása"
+                    value={formatHuf(result.heatRecovery.theoreticalSavingsHuf)}
+                  />
+                  <HeatRecoveryRow
+                    label={`${result.heatRecovery.heatingMonths} hónap fűtés + ${result.heatRecovery.hotWaterMonths} hónap csak HMV`}
+                    value={formatHuf(result.heatRecovery.seasonalSavingsHuf)}
+                  />
+                  <HeatRecoveryRow
+                    label="Beruházás költsége"
+                    value={
+                      result.heatRecovery.investmentCostHuf
+                        ? formatHuf(result.heatRecovery.investmentCostHuf)
+                        : "nincs megadva"
+                    }
+                  />
+                  <HeatRecoveryRow
+                    label="Megtérülés folyamatos felhasználás mellett"
+                    value={
+                      result.heatRecovery.theoreticalPaybackYears
+                        ? `${formatNumber(result.heatRecovery.theoreticalPaybackYears, 1)} év`
+                        : "beruházási költség nélkül"
+                    }
+                  />
+                  <HeatRecoveryRow
+                    label="Megtérülés fűtés/HMV kombinációval"
+                    value={
+                      result.heatRecovery.seasonalPaybackYears
+                        ? `${formatNumber(result.heatRecovery.seasonalPaybackYears, 1)} év`
+                        : "beruházási költség nélkül"
+                    }
+                  />
                 </div>
               </div>
             ) : null}
@@ -938,6 +1003,15 @@ function MetricTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="mini-metric">
       <span className="metric-label">{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function HeatRecoveryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="heat-recovery-row">
+      <span>{label}</span>
       <strong>{value}</strong>
     </div>
   );

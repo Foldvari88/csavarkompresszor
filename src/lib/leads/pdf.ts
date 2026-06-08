@@ -80,16 +80,28 @@ function getHeatRecoveryReportLines(result: CalculationResult) {
   return [
     "",
     "Hővisszanyerés",
-    `Szezonális hőmegtakarítás: ${formatHuf(heat.seasonalSavingsHuf)} / év`,
-    `Elméleti éves hővisszanyerési hatás: ${formatHuf(heat.theoreticalSavingsHuf)} / év`,
-    `Kiváltható földgáz: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
+    `Hővisszanyerés alapja: ${heat.compressorModelName} (${formatKw(heat.compressorNominalKw)})`,
+    `Kompresszor üzemóra / év: ${formatNumber(heat.annualHours)} óra`,
+    `Visszanyerhető hőteljesítmény: ${formatNumber(heat.recoverableHeatKw, 2)} kW`,
+    `Visszanyerhető hőteljesítmény veszteséggel: ${formatNumber(heat.usefulHeatKw, 2)} kW`,
+    `Földgáz ára: ${formatHuf(heat.gasPriceHufPerM3)} / m3`,
+    `HMV jelentése: használati melegvíz.`,
+    `Elméleti megtakarítás 1 év alatt, vagy ipari folyamatos HMV felhasználás: ${formatHuf(heat.theoreticalSavingsHuf)} / év`,
+    `Visszanyerhető összes hőmennyiség: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
+    `Megtakarított földgáz folyamatos HMV/ipari felhasználásnál: ${formatNumber(heat.theoreticalGasSavedM3)} m3 / év`,
+    `Megtakarítás ${heat.heatingMonths} hónap fűtés, ${heat.hotWaterMonths} hónap csak HMV előállítás mellett: ${formatHuf(heat.seasonalSavingsHuf)} / év`,
+    `Megtakarított földgáz fűtés/HMV kombinációval: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
     `Hasznosítható hőenergia: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
     `Hőenergia MJ-ban: ${formatNumber(heat.annualUsefulHeatMj)} MJ / év`,
-    `Gázár: ${formatHuf(heat.gasPriceHufPerM3)} / m3`,
     `Beruházási költség: ${
       heat.investmentCostHuf === null ? "nincs megadva" : formatHuf(heat.investmentCostHuf)
     }`,
-    `Becsült hővisszanyerési megtérülés: ${
+    `Megtérülés folyamatos felhasználás mellett: ${
+      heat.theoreticalPaybackYears === null
+        ? "beruházási költség megadása után számolható"
+        : `${formatNumber(heat.theoreticalPaybackYears, 1)} év`
+    }`,
+    `Megtérülés fűtés/HMV kombinációval: ${
       heat.seasonalPaybackYears === null
         ? "beruházási költség megadása után számolható"
         : `${formatNumber(heat.seasonalPaybackYears, 1)} év`
