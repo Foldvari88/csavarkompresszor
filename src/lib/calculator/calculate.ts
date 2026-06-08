@@ -23,7 +23,7 @@ const ageMultipliers: Record<AgeBand, number> = {
 
 const heatRecoveryDefaults = {
   sourceVersionId: "heat-recovery-excel-v1-2026-06-08",
-  gasPriceHufPerM3: 300,
+  gasPriceHufPerM3: 304,
   heatingMonths: 7,
   hotWaterMonths: 5,
   hotWaterLoadFactor: 0.5,

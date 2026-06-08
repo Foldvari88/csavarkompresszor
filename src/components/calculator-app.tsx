@@ -56,7 +56,7 @@ const initialCalculator: CalculatorInput = {
   estimatedMachinePriceHuf: null,
   heatRecovery: {
     enabled: false,
-    gasPriceHufPerM3: 300,
+    gasPriceHufPerM3: 304,
     heatingMonths: 7,
     hotWaterMonths: 5,
     hotWaterLoadFactor: 0.5,
@@ -446,6 +446,7 @@ export function CalculatorApp() {
                   Excel logika: az ajánlott kompresszor névleges teljesítménye alapján 90%
                   visszanyerhető hőteljesítmény x 90% hasznosítási tényező. HMV = használati
                   melegvíz, azaz mosdóhoz, technológiához vagy üzemi melegvízhez használt víz.
+                  Az alap földgázár 304 Ft/m3 ipari piaci becslés, szabadon módosítható.
                 </div>
                 <div className="form-grid two">
                   <OptionalField label="Földgáz ára Ft/m3">
@@ -453,7 +454,7 @@ export function CalculatorApp() {
                       inputMode="numeric"
                       min={1}
                       type="number"
-                      value={calculator.heatRecovery.gasPriceHufPerM3 ?? 300}
+                      value={calculator.heatRecovery.gasPriceHufPerM3 ?? 304}
                       onChange={(event) =>
                         updateHeatRecovery((current) => ({
                           ...current,
