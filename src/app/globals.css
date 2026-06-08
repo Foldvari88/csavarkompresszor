@@ -649,6 +649,37 @@ a {
   outline-offset: 2px;
 }
 
+.heat-recovery-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  border: 1px solid rgba(48, 49, 132, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(48, 49, 132, 0.08), rgba(255, 255, 255, 0.94)),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.025) 0 1px, transparent 1px 16px);
+  padding: 14px;
+}
+
+.heat-recovery-toggle {
+  align-items: center;
+  color: #111827;
+  font-weight: 850;
+}
+
+.heat-recovery-toggle span {
+  line-height: 1.35;
+}
+
+.heat-recovery-note {
+  border-left: 3px solid #303184;
+  background: rgba(255, 255, 255, 0.72);
+  color: #526173;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .field input,
 .field select,
 .segment,
@@ -948,6 +979,58 @@ a {
   margin-top: 8px;
   font-family: var(--font-geist-mono);
   font-size: 22px;
+}
+
+.heat-recovery-result {
+  display: grid;
+  gap: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(48, 49, 132, 0.22);
+  border-top: 4px solid #303184;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(48, 49, 132, 0.1), rgba(255, 255, 255, 0.94)),
+    repeating-linear-gradient(90deg, rgba(48, 49, 132, 0.05) 0 1px, transparent 1px 18px);
+  padding: 16px;
+}
+
+.heat-recovery-result strong {
+  color: #0f172a;
+  font-family: var(--font-geist-mono);
+  font-size: clamp(24px, 8vw, 34px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.heat-recovery-result p {
+  margin: 0;
+  color: #526173;
+  line-height: 1.5;
+}
+
+.heat-recovery-result-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.heat-recovery-result-grid span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid rgba(48, 49, 132, 0.13);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #64748b;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.heat-recovery-result-grid b {
+  color: #111827;
+  font-family: var(--font-geist-mono);
+  font-size: 15px;
 }
 
 .efficiency-compare {
@@ -2431,6 +2514,10 @@ a {
   }
 
   .form-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .heat-recovery-result-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

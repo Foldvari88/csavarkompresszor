@@ -54,4 +54,36 @@ describe("calculateSavings", () => {
     expect(result.selectedLegacy.brand).toBe("Boge");
     expect(result.selectedLegacy.category).toBe("Közép");
   });
+
+  it("calculates optional heat recovery payback with the attached Excel logic", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      nominalKw: 37,
+      annualHours: 4000,
+      heatRecovery: {
+        enabled: true,
+        gasPriceHufPerM3: 300,
+        investmentCostHuf: 6000000,
+        heatingMonths: 7,
+        hotWaterMonths: 5
+      }
+    });
+
+    expect(result.heatRecovery).not.toBeNull();
+    expect(result.heatRecovery?.recoverableHeatKw).toBeCloseTo(37 * 0.9);
+    expect(result.heatRecovery?.usefulHeatKw).toBeCloseTo(37 * 0.9 * 0.9);
+    expect(result.heatRecovery?.annualUsefulHeatKwh).toBeCloseTo(37 * 0.9 * 0.9 * 4000);
+    expect(result.heatRecovery?.annualUsefulHeatMj).toBeCloseTo(37 * 0.9 * 0.9 * 4000 * 3.6);
+    expect(result.heatRecovery?.theoreticalGasSavedM3).toBeCloseTo(
+      (37 * 0.9 * 0.9 * 4000) / 9.44 / 0.9,
+      1
+    );
+    expect(result.heatRecovery?.seasonalSavingsHuf).toBe(
+      Math.round(((37 * 0.9 * 0.9 * 4000) / 9.44 / 0.9) * ((7 + 5 * 0.5) / 12) * 300)
+    );
+    expect(result.heatRecovery?.seasonalPaybackYears).toBeCloseTo(
+      6000000 / (result.heatRecovery?.seasonalSavingsHuf ?? 1),
+      1
+    );
+  });
 });

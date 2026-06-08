@@ -55,6 +55,10 @@ export function AdminDashboard({
         lead.result.recommendedModel.brand,
         lead.result.priority?.label,
         lead.result.leadScore?.label,
+        lead.result.heatRecovery ? "hővisszanyerés" : "",
+        lead.result.heatRecovery?.seasonalSavingsHuf
+          ? String(lead.result.heatRecovery.seasonalSavingsHuf)
+          : "",
         lead.input.tracking?.utmSource,
         lead.input.tracking?.utmCampaign,
         lead.input.tracking?.gclid,
@@ -182,6 +186,11 @@ export function AdminDashboard({
               <th>Havi Ft</th>
               <th>5 éves Ft</th>
               <th>kWh/év</th>
+              <th>Hővisszanyerés</th>
+              <th>Hő Ft/év</th>
+              <th>Gáz m3/év</th>
+              <th>Hő megtérülés</th>
+              <th>Gázár</th>
               <th>Score</th>
               <th>Csillag</th>
               <th>UTM source</th>
@@ -197,7 +206,7 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={30}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={35}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -232,6 +241,27 @@ export function AdminDashboard({
                   <td>{formatHuf(lead.result.monthlyHufSaved)}</td>
                   <td>{formatHuf(lead.result.fiveYearHufSaved)}</td>
                   <td>{Math.round(lead.result.annualKwhSaved).toLocaleString("hu-HU")}</td>
+                  <td>{lead.result.heatRecovery ? "igen" : "nem"}</td>
+                  <td>
+                    {lead.result.heatRecovery
+                      ? formatHuf(lead.result.heatRecovery.seasonalSavingsHuf)
+                      : "-"}
+                  </td>
+                  <td>
+                    {lead.result.heatRecovery
+                      ? `${Math.round(lead.result.heatRecovery.seasonalGasSavedM3).toLocaleString("hu-HU")} m3`
+                      : "-"}
+                  </td>
+                  <td>
+                    {lead.result.heatRecovery?.seasonalPaybackYears
+                      ? `${lead.result.heatRecovery.seasonalPaybackYears.toLocaleString("hu-HU")} év`
+                      : "-"}
+                  </td>
+                  <td>
+                    {lead.result.heatRecovery
+                      ? `${formatHuf(lead.result.heatRecovery.gasPriceHufPerM3)} / m3`
+                      : "-"}
+                  </td>
                   <td>
                     <span className={`admin-score ${getScoreLevel(lead.result.leadScore?.score ?? 0)}`}>
                       {lead.result.leadScore ? `${lead.result.leadScore.score}/100` : "-"}

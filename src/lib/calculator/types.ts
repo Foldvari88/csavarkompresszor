@@ -22,6 +22,19 @@ export type CampaignTracking = {
   referrer?: string;
 };
 
+export type HeatRecoveryInput = {
+  enabled: boolean;
+  gasPriceHufPerM3?: number;
+  investmentCostHuf?: number | null;
+  heatingMonths?: number;
+  hotWaterMonths?: number;
+  hotWaterLoadFactor?: number;
+  recoverablePowerRatio?: number;
+  utilizationEfficiency?: number;
+  gasKwhPerM3?: number;
+  boilerEfficiency?: number;
+};
+
 export type CompressorModel = {
   brand: "CompAir";
   kind: CompressorKind;
@@ -49,11 +62,12 @@ export type CalculatorInput = {
   preferVariableSpeed?: boolean;
   loadProfile?: LoadProfile;
   estimatedMachinePriceHuf?: number | null;
+  heatRecovery?: HeatRecoveryInput;
   units?: CompressorUnitInput[];
   tracking?: CampaignTracking;
 };
 
-export type CompressorUnitInput = Omit<CalculatorInput, "units" | "tracking"> & {
+export type CompressorUnitInput = Omit<CalculatorInput, "units" | "tracking" | "heatRecovery"> & {
   id?: string;
   label?: string;
 };
@@ -95,6 +109,7 @@ export type CalculationResult = {
   monthlyHufSaved: number;
   fiveYearHufSaved: number;
   estimatedPaybackYears: number | null;
+  heatRecovery: HeatRecoveryResult | null;
   loadProfile: LoadProfile;
   totalMachineCount: number;
   units: UnitCalculationResult[];
@@ -117,6 +132,34 @@ export type CalculationResult = {
     annualKwhSaved: number;
   };
   assumptions: string[];
+};
+
+export type HeatRecoveryResult = {
+  enabled: true;
+  sourceVersionId: string;
+  compressorNominalKw: number;
+  annualHours: number;
+  recoverablePowerRatio: number;
+  utilizationEfficiency: number;
+  effectiveRecoveryRatio: number;
+  recoverableHeatKw: number;
+  usefulHeatKw: number;
+  annualUsefulHeatKwh: number;
+  annualUsefulHeatMj: number;
+  gasKwhPerM3: number;
+  gasHeatingValueMjPerM3: number;
+  boilerEfficiency: number;
+  gasPriceHufPerM3: number;
+  theoreticalGasSavedM3: number;
+  theoreticalSavingsHuf: number;
+  heatingMonths: number;
+  hotWaterMonths: number;
+  hotWaterLoadFactor: number;
+  seasonalGasSavedM3: number;
+  seasonalSavingsHuf: number;
+  investmentCostHuf: number | null;
+  theoreticalPaybackYears: number | null;
+  seasonalPaybackYears: number | null;
 };
 
 export type LeadFormInput = CalculatorInput & {

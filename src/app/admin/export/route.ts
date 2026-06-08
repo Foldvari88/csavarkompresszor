@@ -32,6 +32,14 @@ export async function GET() {
       "monthlyHufSaved",
       "fiveYearHufSaved",
       "annualKwhSaved",
+      "heatRecoveryEnabled",
+      "heatRecoverySeasonalSavingsHuf",
+      "heatRecoveryTheoreticalSavingsHuf",
+      "heatRecoverySeasonalGasSavedM3",
+      "heatRecoveryAnnualUsefulHeatKwh",
+      "heatRecoverySeasonalPaybackYears",
+      "heatRecoveryGasPriceHufPerM3",
+      "heatRecoveryInvestmentCostHuf",
       "priority",
       "leadScore",
       "leadScoreLabel",
@@ -72,6 +80,18 @@ export async function GET() {
       String(lead.result.monthlyHufSaved),
       String(lead.result.fiveYearHufSaved),
       String(lead.result.annualKwhSaved),
+      lead.result.heatRecovery ? "true" : "false",
+      lead.result.heatRecovery ? String(lead.result.heatRecovery.seasonalSavingsHuf) : "",
+      lead.result.heatRecovery ? String(lead.result.heatRecovery.theoreticalSavingsHuf) : "",
+      lead.result.heatRecovery ? String(lead.result.heatRecovery.seasonalGasSavedM3) : "",
+      lead.result.heatRecovery ? String(lead.result.heatRecovery.annualUsefulHeatKwh) : "",
+      lead.result.heatRecovery?.seasonalPaybackYears
+        ? String(lead.result.heatRecovery.seasonalPaybackYears)
+        : "",
+      lead.result.heatRecovery ? String(lead.result.heatRecovery.gasPriceHufPerM3) : "",
+      lead.result.heatRecovery?.investmentCostHuf
+        ? String(lead.result.heatRecovery.investmentCostHuf)
+        : "",
       lead.result.priority?.label ?? "",
       lead.result.leadScore ? String(lead.result.leadScore.score) : "",
       lead.result.leadScore?.label ?? "",

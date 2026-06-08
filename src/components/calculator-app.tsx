@@ -53,7 +53,19 @@ const initialCalculator: CalculatorInput = {
   energyPriceHufKwh: ASSUMPTION_VERSION.defaultEnergyPriceHufKwh,
   preferVariableSpeed: true,
   loadProfile: "fluctuating",
-  estimatedMachinePriceHuf: null
+  estimatedMachinePriceHuf: null,
+  heatRecovery: {
+    enabled: false,
+    gasPriceHufPerM3: 300,
+    investmentCostHuf: null,
+    heatingMonths: 7,
+    hotWaterMonths: 5,
+    hotWaterLoadFactor: 0.5,
+    recoverablePowerRatio: 0.9,
+    utilizationEfficiency: 0.9,
+    gasKwhPerM3: 9.44,
+    boilerEfficiency: 0.9
+  }
 };
 
 const appointmentUrl =
@@ -122,6 +134,15 @@ export function CalculatorApp() {
   function updateCalculator(updater: (current: CalculatorInput) => CalculatorInput) {
     triggerRecalculation();
     setCalculator((current) => syncPrimaryUnit(updater(current)));
+  }
+
+  function updateHeatRecovery(
+    updater: (current: NonNullable<CalculatorInput["heatRecovery"]>) => NonNullable<CalculatorInput["heatRecovery"]>
+  ) {
+    updateCalculator((current) => ({
+      ...current,
+      heatRecovery: updater(current.heatRecovery ?? initialCalculator.heatRecovery!)
+    }));
   }
 
   async function submitLead() {
@@ -399,6 +420,95 @@ export function CalculatorApp() {
             </div>
           </div>
 
+          <div className="heat-recovery-panel">
+            <label className="checkbox-line heat-recovery-toggle">
+              <input
+                type="checkbox"
+                checked={Boolean(calculator.heatRecovery?.enabled)}
+                onChange={(event) =>
+                  updateHeatRecovery((current) => ({
+                    ...current,
+                    enabled: event.target.checked
+                  }))
+                }
+              />
+              <span>Szeretne hővisszanyerési megtérülést is számolni?</span>
+            </label>
+
+            {calculator.heatRecovery?.enabled ? (
+              <>
+                <div className="heat-recovery-note">
+                  Excel logika: 90% visszanyerhető hőteljesítmény x 90% hasznosítási tényező,
+                  majd földgáz kiváltás 9,44 kWh/m3 és 90% kazánhatásfok alapján.
+                </div>
+                <div className="form-grid two">
+                  <OptionalField label="Földgáz ára">
+                    <input
+                      inputMode="numeric"
+                      min={1}
+                      type="number"
+                      value={calculator.heatRecovery.gasPriceHufPerM3 ?? 300}
+                      onChange={(event) =>
+                        updateHeatRecovery((current) => ({
+                          ...current,
+                          gasPriceHufPerM3: Number(event.target.value)
+                        }))
+                      }
+                    />
+                  </OptionalField>
+
+                  <OptionalField label="Beruházás költsége">
+                    <input
+                      inputMode="numeric"
+                      min={0}
+                      placeholder="pl. 6000000"
+                      type="number"
+                      value={calculator.heatRecovery.investmentCostHuf ?? ""}
+                      onChange={(event) =>
+                        updateHeatRecovery((current) => ({
+                          ...current,
+                          investmentCostHuf: event.target.value ? Number(event.target.value) : null
+                        }))
+                      }
+                    />
+                  </OptionalField>
+
+                  <OptionalField label="Fűtési időszak">
+                    <input
+                      inputMode="decimal"
+                      min={0}
+                      max={12}
+                      type="number"
+                      value={calculator.heatRecovery.heatingMonths ?? 7}
+                      onChange={(event) =>
+                        updateHeatRecovery((current) => ({
+                          ...current,
+                          heatingMonths: Number(event.target.value)
+                        }))
+                      }
+                    />
+                  </OptionalField>
+
+                  <OptionalField label="Csak HMV időszak">
+                    <input
+                      inputMode="decimal"
+                      min={0}
+                      max={12}
+                      type="number"
+                      value={calculator.heatRecovery.hotWaterMonths ?? 5}
+                      onChange={(event) =>
+                        updateHeatRecovery((current) => ({
+                          ...current,
+                          hotWaterMonths: Number(event.target.value)
+                        }))
+                      }
+                    />
+                  </OptionalField>
+                </div>
+              </>
+            ) : null}
+          </div>
+
           <div className="section-title" style={{ marginTop: 28 }}>
             <div>
               <div className="panel-kicker">
@@ -619,6 +729,32 @@ export function CalculatorApp() {
               />
             </div>
 
+            {result.heatRecovery ? (
+              <div className="heat-recovery-result">
+                <span className="metric-label">Hővisszanyerési megtérülés</span>
+                <strong>{formatHuf(result.heatRecovery.seasonalSavingsHuf)} / év</strong>
+                <p>
+                  {formatNumber(result.heatRecovery.annualUsefulHeatKwh)} kWh/év hasznosítható hő,
+                  nagyságrendileg {formatNumber(result.heatRecovery.seasonalGasSavedM3)} m3 földgáz
+                  kiváltás a fűtés/HMV modellben.
+                </p>
+                <div className="heat-recovery-result-grid">
+                  <span>
+                    Elméleti éves hatás
+                    <b>{formatHuf(result.heatRecovery.theoreticalSavingsHuf)}</b>
+                  </span>
+                  <span>
+                    Megtérülés
+                    <b>
+                      {result.heatRecovery.seasonalPaybackYears
+                        ? `${formatNumber(result.heatRecovery.seasonalPaybackYears, 1)} év`
+                        : "beruházási költség nélkül"}
+                    </b>
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
             <a className="result-cta" href="#kalkulator">
               Kérem a részletes riportot
               <ArrowRight size={17} />
@@ -727,6 +863,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
           *
         </span>
       </label>
+      {children}
+    </div>
+  );
+}
+
+function OptionalField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
       {children}
     </div>
   );

@@ -12,6 +12,13 @@ export function createPreviewLead(): LeadRecord {
     preferVariableSpeed: true,
     loadProfile: "fluctuating",
     estimatedMachinePriceHuf: null,
+    heatRecovery: {
+      enabled: true,
+      gasPriceHufPerM3: 300,
+      investmentCostHuf: 6000000,
+      heatingMonths: 7,
+      hotWaterMonths: 5
+    },
     email: "minta@ceg.hu",
     companyName: "Minta Ipari Kft.",
     name: "Teszt Kapcsolattartó",

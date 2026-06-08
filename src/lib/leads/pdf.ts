@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
-import type { LeadRecord } from "@/lib/calculator/types";
+import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 
 type ParsedFont = {
   buffer: Buffer;
@@ -55,6 +55,7 @@ export function getLeadReportLines(lead: LeadRecord) {
         ? "gépár megadása után számolható"
         : `${formatNumber(result.estimatedPaybackYears, 1)} év`
     }`,
+    ...getHeatRecoveryReportLines(result),
     "",
     "Ajánlott modell",
     `${formatCompressorModel(result.recommendedModel)} (${formatKw(
@@ -69,6 +70,31 @@ export function getLeadReportLines(lead: LeadRecord) {
     "",
     "Következő lépés",
     "A részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani."
+  ];
+}
+
+function getHeatRecoveryReportLines(result: CalculationResult) {
+  const heat = result.heatRecovery;
+  if (!heat) return [];
+
+  return [
+    "",
+    "Hővisszanyerés",
+    `Szezonális hőmegtakarítás: ${formatHuf(heat.seasonalSavingsHuf)} / év`,
+    `Elméleti éves hővisszanyerési hatás: ${formatHuf(heat.theoreticalSavingsHuf)} / év`,
+    `Kiváltható földgáz: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
+    `Hasznosítható hőenergia: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
+    `Hőenergia MJ-ban: ${formatNumber(heat.annualUsefulHeatMj)} MJ / év`,
+    `Gázár: ${formatHuf(heat.gasPriceHufPerM3)} / m3`,
+    `Beruházási költség: ${
+      heat.investmentCostHuf === null ? "nincs megadva" : formatHuf(heat.investmentCostHuf)
+    }`,
+    `Becsült hővisszanyerési megtérülés: ${
+      heat.seasonalPaybackYears === null
+        ? "beruházási költség megadása után számolható"
+        : `${formatNumber(heat.seasonalPaybackYears, 1)} év`
+    }`,
+    `Forráslogika: 90% visszanyerhető hőteljesítmény, 90% hasznosítás, 9,44 kWh/m3 földgáz, 90% kazánhatásfok.`
   ];
 }
 
@@ -187,7 +213,14 @@ function getTextStyle(line: string, index: number): TextStyle {
 function isHeading(line: string, index: number) {
   return (
     index === 0 ||
-    ["Bemeneti adatok", "Eredmény", "Ajánlott modell", "Minősítés", "Következő lépés"].includes(
+    [
+      "Bemeneti adatok",
+      "Eredmény",
+      "Hővisszanyerés",
+      "Ajánlott modell",
+      "Minősítés",
+      "Következő lépés"
+    ].includes(
       line
     )
   );

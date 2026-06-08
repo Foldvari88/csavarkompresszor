@@ -11,6 +11,7 @@ import type {
   CalculatorInput,
   CompressorModel,
   CompressorUnitInput,
+  HeatRecoveryInput,
   LegacyPerformanceRow
 } from "./types";
 
@@ -19,6 +20,18 @@ const ageMultipliers: Record<AgeBand, number> = {
   "10-15": 1 + ASSUMPTION_VERSION.ageDegradationStep,
   "15+": (1 + ASSUMPTION_VERSION.ageDegradationStep) ** 2
 };
+
+const heatRecoveryDefaults = {
+  sourceVersionId: "heat-recovery-excel-v1-2026-06-08",
+  gasPriceHufPerM3: 300,
+  heatingMonths: 7,
+  hotWaterMonths: 5,
+  hotWaterLoadFactor: 0.5,
+  recoverablePowerRatio: 0.9,
+  utilizationEfficiency: 0.9,
+  gasKwhPerM3: 9.44,
+  boilerEfficiency: 0.9
+} as const;
 
 export function calculateSavings(input: CalculatorInput): CalculationResult {
   const normalizedInput = applyExcelBrandCategories(input);
@@ -34,6 +47,7 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const estimatedPaybackYears = normalizedInput.estimatedMachinePriceHuf
     ? round(normalizedInput.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
     : null;
+  const heatRecovery = calculateHeatRecovery(normalizedInput);
   const priority = buildPriority(annualHufSaved, estimatedPaybackYears, primary.benchmark.level);
   const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
 
@@ -49,6 +63,7 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     monthlyHufSaved,
     fiveYearHufSaved,
     estimatedPaybackYears,
+    heatRecovery,
     loadProfile: normalizedInput.loadProfile ?? "continuous",
     totalMachineCount: units.length,
     units,
@@ -166,8 +181,11 @@ function buildAssumptions(
     `Az ajánlott korszerű modell: ${model.model}, felvett teljesítmény: ${model.inputKw} kW.`,
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
+    input.heatRecovery?.enabled
+      ? "A hővisszanyerési modul forrása: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx."
+      : null,
     `Gépek száma az összesítésben: ${units.length}.`
-  ];
+  ].filter(Boolean) as string[];
 }
 
 const loadProfileLabels = {
@@ -215,6 +233,72 @@ function applyExcelBrandCategories(input: CalculatorInput): CalculatorInput {
       ...unit,
       category: getBrandCategory(unit.brand)
     }))
+  };
+}
+
+function calculateHeatRecovery(input: CalculatorInput) {
+  if (!input.heatRecovery?.enabled) return null;
+
+  const config = normalizeHeatRecoveryInput(input.heatRecovery);
+  const recoverableHeatKw = round(input.nominalKw * config.recoverablePowerRatio, 3);
+  const usefulHeatKw = round(recoverableHeatKw * config.utilizationEfficiency, 3);
+  const annualUsefulHeatKwh = round(usefulHeatKw * input.annualHours, 2);
+  const annualUsefulHeatMj = round(annualUsefulHeatKwh * 3.6, 2);
+  const theoreticalGasSavedM3 = round(
+    annualUsefulHeatKwh / config.gasKwhPerM3 / config.boilerEfficiency,
+    2
+  );
+  const theoreticalSavingsHuf = Math.round(theoreticalGasSavedM3 * config.gasPriceHufPerM3);
+  const seasonalFactor =
+    (config.heatingMonths + config.hotWaterMonths * config.hotWaterLoadFactor) / 12;
+  const seasonalGasSavedM3 = round(theoreticalGasSavedM3 * seasonalFactor, 2);
+  const seasonalSavingsHuf = Math.round(seasonalGasSavedM3 * config.gasPriceHufPerM3);
+  const investmentCostHuf = config.investmentCostHuf ?? null;
+
+  return {
+    enabled: true as const,
+    sourceVersionId: heatRecoveryDefaults.sourceVersionId,
+    compressorNominalKw: input.nominalKw,
+    annualHours: input.annualHours,
+    recoverablePowerRatio: config.recoverablePowerRatio,
+    utilizationEfficiency: config.utilizationEfficiency,
+    effectiveRecoveryRatio: round(config.recoverablePowerRatio * config.utilizationEfficiency, 4),
+    recoverableHeatKw,
+    usefulHeatKw,
+    annualUsefulHeatKwh,
+    annualUsefulHeatMj,
+    gasKwhPerM3: config.gasKwhPerM3,
+    gasHeatingValueMjPerM3: round(config.gasKwhPerM3 * 3.6, 2),
+    boilerEfficiency: config.boilerEfficiency,
+    gasPriceHufPerM3: config.gasPriceHufPerM3,
+    theoreticalGasSavedM3,
+    theoreticalSavingsHuf,
+    heatingMonths: config.heatingMonths,
+    hotWaterMonths: config.hotWaterMonths,
+    hotWaterLoadFactor: config.hotWaterLoadFactor,
+    seasonalGasSavedM3,
+    seasonalSavingsHuf,
+    investmentCostHuf,
+    theoreticalPaybackYears: investmentCostHuf
+      ? round(investmentCostHuf / Math.max(theoreticalSavingsHuf, 1), 1)
+      : null,
+    seasonalPaybackYears: investmentCostHuf
+      ? round(investmentCostHuf / Math.max(seasonalSavingsHuf, 1), 1)
+      : null
+  };
+}
+
+function normalizeHeatRecoveryInput(input: HeatRecoveryInput) {
+  return {
+    gasPriceHufPerM3: input.gasPriceHufPerM3 ?? heatRecoveryDefaults.gasPriceHufPerM3,
+    investmentCostHuf: input.investmentCostHuf ?? null,
+    heatingMonths: input.heatingMonths ?? heatRecoveryDefaults.heatingMonths,
+    hotWaterMonths: input.hotWaterMonths ?? heatRecoveryDefaults.hotWaterMonths,
+    hotWaterLoadFactor: input.hotWaterLoadFactor ?? heatRecoveryDefaults.hotWaterLoadFactor,
+    recoverablePowerRatio: input.recoverablePowerRatio ?? heatRecoveryDefaults.recoverablePowerRatio,
+    utilizationEfficiency: input.utilizationEfficiency ?? heatRecoveryDefaults.utilizationEfficiency,
+    gasKwhPerM3: input.gasKwhPerM3 ?? heatRecoveryDefaults.gasKwhPerM3,
+    boilerEfficiency: input.boilerEfficiency ?? heatRecoveryDefaults.boilerEfficiency
   };
 }
 

@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
-import type { LeadRecord } from "@/lib/calculator/types";
+import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 import { generateLeadPdf } from "./pdf";
 
 type SequenceScheduleResult =
@@ -259,6 +259,7 @@ export function renderCustomerEmail(lead: LeadRecord) {
       <tr><td>Régi felvett teljesítmény</td><td>${formatNumber(result.selectedLegacy.degradedInputKw, 2)} kW</td></tr>
       <tr><td>Ajánlott modell felvett teljesítménye</td><td>${formatNumber(result.recommendedModel.inputKw, 2)} kW</td></tr>
       <tr><td>Megtérülési becslés</td><td>${formatPayback(result.estimatedPaybackYears)}</td></tr>
+      ${renderHeatRecoveryRows(result)}
       <tr><td>Lead prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
     </table>
     <p>${escapeHtml(result.priority.description)}</p>
@@ -282,6 +283,7 @@ function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[numb
         <tr><td>Becsült éves megtakarítás</td><td>${formatHuf(result.annualHufSaved)}</td></tr>
         <tr><td>5 éves potenciál</td><td>${formatHuf(result.fiveYearHufSaved)}</td></tr>
         <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
+        ${renderHeatRecoveryRows(result)}
         <tr><td>Prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
       </table>
     </div>
@@ -308,6 +310,7 @@ export function renderInternalNotificationEmail(
       <tr><td>Marketing hozzájárulás</td><td>${lead.input.consentMarketing ? "igen" : "nem"}</td></tr>
       <tr><td>Email szekvencia</td><td>${escapeHtml(formatSequenceStatus(sequence))}</td></tr>
       <tr><td>Éves megtakarítás</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
+      ${renderHeatRecoveryRows(lead.result)}
       <tr><td>Prioritás</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
       <tr><td>Score</td><td>${lead.result.leadScore.score}/100 - ${escapeHtml(lead.result.leadScore.label)}</td></tr>
       <tr><td>Benchmark</td><td>${escapeHtml(lead.result.benchmark.label)}</td></tr>
@@ -316,6 +319,19 @@ export function renderInternalNotificationEmail(
     </table>
     <p>${escapeHtml(lead.result.leadScore.reasons.join(" "))}</p>
   `);
+}
+
+function renderHeatRecoveryRows(result: CalculationResult) {
+  const heat = result.heatRecovery;
+  if (!heat) return "";
+
+  return `
+      <tr><td>Hővisszanyerési megtakarítás</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
+      <tr><td>Elméleti hővisszanyerési hatás</td><td>${formatHuf(heat.theoreticalSavingsHuf)} / év</td></tr>
+      <tr><td>Kiváltható földgáz</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
+      <tr><td>Hasznosítható hőenergia</td><td>${formatNumber(heat.annualUsefulHeatKwh)} kWh / év</td></tr>
+      <tr><td>Hővisszanyerési megtérülés</td><td>${formatHeatRecoveryPayback(heat.seasonalPaybackYears)}</td></tr>
+    `;
 }
 
 function formatSequenceStatus(sequence?: SequenceScheduleResult) {
@@ -335,6 +351,11 @@ function getAppointmentUrl() {
 
 function formatPayback(years: number | null) {
   if (years === null) return "gépár megadása után számolható";
+  return `${formatNumber(years, 1)} év`;
+}
+
+function formatHeatRecoveryPayback(years: number | null) {
+  if (years === null) return "beruházási költség megadása után számolható";
   return `${formatNumber(years, 1)} év`;
 }
 

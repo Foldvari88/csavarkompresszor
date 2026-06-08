@@ -78,6 +78,42 @@ export default async function LeadDetailPage({
               />
             </div>
           </section>
+
+          {lead.result.heatRecovery ? (
+            <section className="lead-card">
+              <h2>Hővisszanyerés</h2>
+              <div className="kv-grid">
+                <Kv
+                  label="Szezonális megtakarítás"
+                  value={`${formatHuf(lead.result.heatRecovery.seasonalSavingsHuf)} / év`}
+                />
+                <Kv
+                  label="Elméleti éves hatás"
+                  value={`${formatHuf(lead.result.heatRecovery.theoreticalSavingsHuf)} / év`}
+                />
+                <Kv
+                  label="Kiváltható földgáz"
+                  value={`${formatNumber(lead.result.heatRecovery.seasonalGasSavedM3)} m3 / év`}
+                />
+                <Kv
+                  label="Hasznosítható hő"
+                  value={`${formatNumber(lead.result.heatRecovery.annualUsefulHeatKwh)} kWh / év`}
+                />
+                <Kv
+                  label="Gázár"
+                  value={`${formatHuf(lead.result.heatRecovery.gasPriceHufPerM3)} / m3`}
+                />
+                <Kv
+                  label="Megtérülés"
+                  value={
+                    lead.result.heatRecovery.seasonalPaybackYears
+                      ? `${formatNumber(lead.result.heatRecovery.seasonalPaybackYears, 1)} év`
+                      : "beruházási költség nélkül"
+                  }
+                />
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <section className="lead-card" style={{ marginTop: 16 }}>
