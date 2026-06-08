@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getBrandCategory } from "./brand-category";
 
 export const ageBandSchema = z.enum(["5-10", "10-15", "15+"]);
 export const loadProfileSchema = z.enum(["continuous", "shift", "fluctuating", "peak"]);
@@ -15,9 +16,9 @@ const campaignTrackingSchema = z.object({
   referrer: z.string().max(500).optional()
 });
 
-export const calculatorInputSchema = z.object({
+const calculatorInputBaseSchema = z.object({
   brand: z.string().min(1),
-  category: z.string().min(1),
+  category: z.string().min(1).optional(),
   ageBand: ageBandSchema,
   nominalKw: z.coerce.number().positive(),
   annualHours: z.coerce.number().min(100).max(8760),
@@ -28,22 +29,34 @@ export const calculatorInputSchema = z.object({
   tracking: campaignTrackingSchema.optional()
 });
 
-const compressorUnitInputSchema = calculatorInputSchema
+export const calculatorInputSchema = calculatorInputBaseSchema.transform(withExcelCategory);
+
+const compressorUnitInputSchema = calculatorInputBaseSchema
   .omit({ tracking: true })
   .extend({
     id: z.string().max(80).optional(),
     label: z.string().max(80).optional()
-  });
+  })
+  .transform(withExcelCategory);
 
-export const extendedCalculatorInputSchema = calculatorInputSchema.extend({
+const extendedCalculatorInputBaseSchema = calculatorInputBaseSchema.extend({
   units: z.array(compressorUnitInputSchema).min(1).max(8).optional()
 });
 
-export const leadInputSchema = extendedCalculatorInputSchema.extend({
+export const extendedCalculatorInputSchema = extendedCalculatorInputBaseSchema.transform(withExcelCategory);
+
+export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   email: z.string().email(),
   companyName: z.string().min(2).max(120),
   name: z.string().min(2).max(120),
   phone: z.string().regex(/^\+36\d{9}$/),
   consentMarketing: z.coerce.boolean().default(false),
   consentPrivacy: z.literal(true)
-});
+}).transform(withExcelCategory);
+
+function withExcelCategory<T extends { brand: string; category?: string }>(input: T) {
+  return {
+    ...input,
+    category: getBrandCategory(input.brand)
+  };
+}

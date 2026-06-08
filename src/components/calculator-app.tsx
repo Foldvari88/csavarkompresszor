@@ -20,9 +20,9 @@ import { calculateSavings } from "@/lib/calculator/calculate";
 import {
   ASSUMPTION_VERSION,
   LEGACY_BRANDS,
-  LEGACY_CATEGORIES,
   NOMINAL_KW_VALUES
 } from "@/lib/calculator/generated-data";
+import { getBrandCategory } from "@/lib/calculator/brand-category";
 import type {
   AgeBand,
   CalculatorInput,
@@ -46,7 +46,7 @@ type LeadFieldErrors = Partial<Record<keyof LeadFields, string>>;
 
 const initialCalculator: CalculatorInput = {
   brand: "Atlas Copco",
-  category: "Prémium",
+  category: getBrandCategory("Atlas Copco"),
   ageBand: "10-15",
   nominalKw: 37,
   annualHours: ASSUMPTION_VERSION.defaultAnnualHours,
@@ -272,7 +272,11 @@ export function CalculatorApp() {
                 required
                 value={calculator.brand}
                 onChange={(event) =>
-                  updateCalculator((current) => ({ ...current, brand: event.target.value }))
+                  updateCalculator((current) => ({
+                    ...current,
+                    brand: event.target.value,
+                    category: getBrandCategory(event.target.value)
+                  }))
                 }
               >
                 {LEGACY_BRANDS.map((brand) => (
@@ -283,20 +287,11 @@ export function CalculatorApp() {
               </select>
             </Field>
 
-            <Field label="Kategória">
-              <select
-                required
-                value={calculator.category}
-                onChange={(event) =>
-                  updateCalculator((current) => ({ ...current, category: event.target.value }))
-                }
-              >
-                {LEGACY_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+            <Field label="Excel szerinti kategória">
+              <div className="readonly-field">
+                <strong>{calculator.category}</strong>
+                <span>Márka alapján automatikus</span>
+              </div>
             </Field>
 
             <Field label="Névleges teljesítmény">
@@ -803,7 +798,7 @@ function syncPrimaryUnit(input: CalculatorInput): CalculatorInput {
         id: "unit-1",
         label: "1. gép",
         brand: input.brand,
-        category: input.category,
+        category: getBrandCategory(input.brand),
         ageBand: input.ageBand,
         nominalKw: input.nominalKw,
         annualHours: input.annualHours,

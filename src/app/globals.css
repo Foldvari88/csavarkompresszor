@@ -588,6 +588,31 @@ a {
   color: #111827;
 }
 
+.readonly-field {
+  display: grid;
+  min-height: 52px;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid rgba(48, 49, 132, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(48, 49, 132, 0.08), rgba(255, 255, 255, 0.9)),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.03) 0 1px, transparent 1px 14px);
+  color: #111827;
+  padding: 8px 13px;
+}
+
+.readonly-field strong {
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.readonly-field span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 720;
+}
+
 .field input:focus,
 .field select:focus {
   border-color: rgba(48, 49, 132, 0.78);

@@ -42,4 +42,16 @@ describe("calculateSavings", () => {
 
     expect(model.model).toBe("L45RS");
   });
+
+  it("ignores manually supplied category and uses the Excel category for the selected brand", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      brand: "Boge",
+      category: "Prémium",
+      nominalKw: 37
+    });
+
+    expect(result.selectedLegacy.brand).toBe("Boge");
+    expect(result.selectedLegacy.category).toBe("Közép");
+  });
 });

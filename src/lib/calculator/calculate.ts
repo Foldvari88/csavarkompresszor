@@ -3,6 +3,7 @@
   COMPAIR_MODELS,
   LEGACY_PERFORMANCE_ROWS
 } from "./generated-data";
+import { getBrandCategory } from "./brand-category";
 import type {
   AgeBand,
   BenchmarkLevel,
@@ -20,20 +21,21 @@ const ageMultipliers: Record<AgeBand, number> = {
 };
 
 export function calculateSavings(input: CalculatorInput): CalculationResult {
-  const unitInputs = normalizeUnitInputs(input);
+  const normalizedInput = applyExcelBrandCategories(input);
+  const unitInputs = normalizeUnitInputs(normalizedInput);
   const units = unitInputs.map((unit) => calculateUnitSavings(unit));
   const primary = units[0];
   const oldAnnualKwh = round(sum(units.map((unit) => unit.oldAnnualKwh)), 2);
   const recommendedAnnualKwh = round(sum(units.map((unit) => unit.recommendedAnnualKwh)), 2);
   const annualKwhSaved = round(sum(units.map((unit) => unit.annualKwhSaved)), 2);
-  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
+  const annualHufSaved = Math.round(annualKwhSaved * normalizedInput.energyPriceHufKwh);
   const monthlyHufSaved = Math.round(annualHufSaved / 12);
   const fiveYearHufSaved = annualHufSaved * 5;
-  const estimatedPaybackYears = input.estimatedMachinePriceHuf
-    ? round(input.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
+  const estimatedPaybackYears = normalizedInput.estimatedMachinePriceHuf
+    ? round(normalizedInput.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
     : null;
   const priority = buildPriority(annualHufSaved, estimatedPaybackYears, primary.benchmark.level);
-  const leadScore = buildLeadScore(input, annualHufSaved, units.length, primary.benchmark.level);
+  const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
 
   return {
     assumptionVersionId: ASSUMPTION_VERSION.id,
@@ -47,20 +49,20 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     monthlyHufSaved,
     fiveYearHufSaved,
     estimatedPaybackYears,
-    loadProfile: input.loadProfile ?? "continuous",
+    loadProfile: normalizedInput.loadProfile ?? "continuous",
     totalMachineCount: units.length,
     units,
     benchmark: primary.benchmark,
     priority,
     leadScore,
     whyBreakdown: {
-      annualHours: input.annualHours,
-      energyPriceHufKwh: input.energyPriceHufKwh,
+      annualHours: normalizedInput.annualHours,
+      energyPriceHufKwh: normalizedInput.energyPriceHufKwh,
       oldInputKw: primary.selectedLegacy.degradedInputKw,
       recommendedInputKw: primary.recommendedModel.inputKw,
       annualKwhSaved
     },
-    assumptions: buildAssumptions(input, primary.recommendedModel, primary.selectedLegacy, units)
+    assumptions: buildAssumptions(normalizedInput, primary.recommendedModel, primary.selectedLegacy, units)
   };
 }
 
@@ -127,16 +129,17 @@ export function recommendEfficiencyModel(
 }
 
 export function resolveLegacyRow(input: CalculatorInput): LegacyPerformanceRow {
+  const category = getBrandCategory(input.brand);
   const exact = LEGACY_PERFORMANCE_ROWS.find(
     (row) =>
       row.brand === input.brand &&
-      row.category === input.category &&
+      row.category === category &&
       sameKw(row.nominalKw, input.nominalKw)
   );
   if (exact) return exact;
 
   const categoryMatch = LEGACY_PERFORMANCE_ROWS.find(
-    (row) => row.category === input.category && sameKw(row.nominalKw, input.nominalKw)
+    (row) => row.category === category && sameKw(row.nominalKw, input.nominalKw)
   );
   if (categoryMatch) return categoryMatch;
 
@@ -180,6 +183,7 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       ...unit,
       id: unit.id ?? `unit-${index + 1}`,
       label: unit.label ?? `${index + 1}. gép`,
+      category: getBrandCategory(unit.brand),
       energyPriceHufKwh: unit.energyPriceHufKwh || input.energyPriceHufKwh,
       loadProfile: unit.loadProfile ?? input.loadProfile ?? "continuous",
       preferVariableSpeed: unit.preferVariableSpeed ?? input.preferVariableSpeed ?? true
@@ -191,7 +195,7 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       id: "unit-1",
       label: "1. gép",
       brand: input.brand,
-      category: input.category,
+      category: getBrandCategory(input.brand),
       ageBand: input.ageBand,
       nominalKw: input.nominalKw,
       annualHours: input.annualHours,
@@ -201,6 +205,17 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
     }
   ];
+}
+
+function applyExcelBrandCategories(input: CalculatorInput): CalculatorInput {
+  return {
+    ...input,
+    category: getBrandCategory(input.brand),
+    units: input.units?.map((unit) => ({
+      ...unit,
+      category: getBrandCategory(unit.brand)
+    }))
+  };
 }
 
 function getLoadProfileSavingsMultiplier(input: CompressorUnitInput, model: CompressorModel) {
