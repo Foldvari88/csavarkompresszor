@@ -82,6 +82,8 @@ const publicLegacyBrands = LEGACY_BRANDS.filter(
   (brand) => brand !== "CompAir" && brand !== "Egyéb"
 );
 
+const monthOptions = Array.from({ length: 12 }, (_, index) => index + 1);
+
 const initialLead: LeadFields = {
   companyName: "",
   name: "",
@@ -478,11 +480,7 @@ export function CalculatorApp() {
                   </OptionalField>
 
                   <OptionalField label="Fűtési időszak">
-                    <input
-                      inputMode="decimal"
-                      min={0}
-                      max={12}
-                      type="number"
+                    <select
                       value={calculator.heatRecovery.heatingMonths ?? 7}
                       onChange={(event) =>
                         updateHeatRecovery((current) => ({
@@ -490,15 +488,17 @@ export function CalculatorApp() {
                           heatingMonths: Number(event.target.value)
                         }))
                       }
-                    />
+                    >
+                      {monthOptions.map((month) => (
+                        <option key={month} value={month}>
+                          {month} hónap
+                        </option>
+                      ))}
+                    </select>
                   </OptionalField>
 
                   <OptionalField label="Csak HMV időszak">
-                    <input
-                      inputMode="decimal"
-                      min={0}
-                      max={12}
-                      type="number"
+                    <select
                       value={calculator.heatRecovery.hotWaterMonths ?? 5}
                       onChange={(event) =>
                         updateHeatRecovery((current) => ({
@@ -506,7 +506,13 @@ export function CalculatorApp() {
                           hotWaterMonths: Number(event.target.value)
                         }))
                       }
-                    />
+                    >
+                      {monthOptions.map((month) => (
+                        <option key={month} value={month}>
+                          {month} hónap
+                        </option>
+                      ))}
+                    </select>
                   </OptionalField>
                 </div>
               </>
