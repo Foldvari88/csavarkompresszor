@@ -11,7 +11,6 @@ export function createPreviewLead(): LeadRecord {
     energyPriceHufKwh: 35,
     preferVariableSpeed: true,
     loadProfile: "fluctuating",
-    estimatedMachinePriceHuf: null,
     heatRecovery: {
       enabled: true,
       gasPriceHufPerM3: 304,

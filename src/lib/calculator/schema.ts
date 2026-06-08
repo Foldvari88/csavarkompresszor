@@ -37,7 +37,6 @@ const calculatorInputBaseSchema = z.object({
   energyPriceHufKwh: z.coerce.number().min(1).max(500),
   preferVariableSpeed: z.coerce.boolean().optional().default(true),
   loadProfile: loadProfileSchema.optional().default("continuous"),
-  estimatedMachinePriceHuf: z.coerce.number().positive().optional().nullable(),
   heatRecovery: heatRecoverySchema.optional(),
   tracking: campaignTrackingSchema.optional()
 });

@@ -53,7 +53,6 @@ const initialCalculator: CalculatorInput = {
   energyPriceHufKwh: ASSUMPTION_VERSION.defaultEnergyPriceHufKwh,
   preferVariableSpeed: true,
   loadProfile: "fluctuating",
-  estimatedMachinePriceHuf: null,
   heatRecovery: {
     enabled: false,
     gasPriceHufPerM3: 304,
@@ -993,8 +992,7 @@ function syncPrimaryUnit(input: CalculatorInput): CalculatorInput {
         annualHours: input.annualHours,
         energyPriceHufKwh: input.energyPriceHufKwh,
         preferVariableSpeed: input.preferVariableSpeed,
-        loadProfile: input.loadProfile,
-        estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
+        loadProfile: input.loadProfile
       },
       ...input.units.slice(1)
     ]

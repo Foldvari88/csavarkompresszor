@@ -60,7 +60,6 @@ export type CalculatorInput = {
   energyPriceHufKwh: number;
   preferVariableSpeed?: boolean;
   loadProfile?: LoadProfile;
-  estimatedMachinePriceHuf?: number | null;
   heatRecovery?: HeatRecoveryInput;
   units?: CompressorUnitInput[];
   tracking?: CampaignTracking;
@@ -107,7 +106,6 @@ export type CalculationResult = {
   annualHufSaved: number;
   monthlyHufSaved: number;
   fiveYearHufSaved: number;
-  estimatedPaybackYears: number | null;
   heatRecovery: HeatRecoveryResult | null;
   loadProfile: LoadProfile;
   totalMachineCount: number;

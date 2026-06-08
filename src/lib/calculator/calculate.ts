@@ -44,11 +44,8 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const annualHufSaved = Math.round(annualKwhSaved * normalizedInput.energyPriceHufKwh);
   const monthlyHufSaved = Math.round(annualHufSaved / 12);
   const fiveYearHufSaved = annualHufSaved * 5;
-  const estimatedPaybackYears = normalizedInput.estimatedMachinePriceHuf
-    ? round(normalizedInput.estimatedMachinePriceHuf / Math.max(annualHufSaved, 1), 1)
-    : null;
   const heatRecovery = calculateHeatRecovery(normalizedInput, primary.recommendedModel);
-  const priority = buildPriority(annualHufSaved, estimatedPaybackYears, primary.benchmark.level);
+  const priority = buildPriority(annualHufSaved, primary.benchmark.level);
   const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
 
   return {
@@ -62,7 +59,6 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     annualHufSaved,
     monthlyHufSaved,
     fiveYearHufSaved,
-    estimatedPaybackYears,
     heatRecovery,
     loadProfile: normalizedInput.loadProfile ?? "continuous",
     totalMachineCount: units.length,
@@ -219,8 +215,7 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       annualHours: input.annualHours,
       energyPriceHufKwh: input.energyPriceHufKwh,
       preferVariableSpeed: input.preferVariableSpeed ?? true,
-      loadProfile: input.loadProfile ?? "continuous",
-      estimatedMachinePriceHuf: input.estimatedMachinePriceHuf ?? null
+      loadProfile: input.loadProfile ?? "continuous"
     }
   ];
 }
@@ -333,19 +328,7 @@ function buildBenchmark(degradedInputKw: number, nominalKw: number) {
   };
 }
 
-function buildPriority(
-  annualHufSaved: number,
-  paybackYears: number | null,
-  benchmarkLevel: BenchmarkLevel
-) {
-  if (paybackYears !== null && paybackYears <= 2.5) {
-    return {
-      level: "fast_payback" as const,
-      label: "Gyors megtérülési esély",
-      description: "A megadott becsült gépár mellett a megtérülés kiemelten gyors lehet."
-    };
-  }
-
+function buildPriority(annualHufSaved: number, benchmarkLevel: BenchmarkLevel) {
   if (benchmarkLevel === "critical") {
     return {
       level: "survey_recommended" as const,

@@ -836,6 +836,12 @@ a {
   padding: 0 14px;
 }
 
+.admin-button.compact {
+  min-height: 38px;
+  padding: 0 11px;
+  text-decoration: none;
+}
+
 .metric-stack {
   display: grid;
   gap: 14px;
@@ -2327,7 +2333,7 @@ a {
 }
 
 .lead-table-wide {
-  min-width: 2800px;
+  min-width: 1560px;
 }
 
 .lead-table th,

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default function EmailPreviewPage() {
   const lead = createPreviewLead();
-  const html = renderCustomerEmail(lead);
+  const html = renderCustomerEmail(lead, { inlineProductImages: true });
 
   return (
     <main className="admin-shell">

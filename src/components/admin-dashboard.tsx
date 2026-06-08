@@ -3,19 +3,14 @@
 import Link from "next/link";
 import {
   Activity,
-  ArrowUpRight,
-  Building2,
   Download,
   Filter,
-  Flame,
   Mail,
   Search,
-  Star,
-  Zap
+  Star
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
-import { formatCompressorModel, formatHuf, formatKw } from "@/lib/format";
 import { formatStatus } from "@/lib/status-label";
 
 const statuses: Array<LeadStatus | "all"> = ["all", "new", "contacted", "quoted", "closed", "lost"];
@@ -49,16 +44,7 @@ export function AdminDashboard({
         lead.input.name,
         lead.input.email,
         lead.input.phone,
-        lead.input.brand,
-        lead.input.category,
-        lead.result.recommendedModel.model,
-        lead.result.recommendedModel.brand,
-        lead.result.priority?.label,
         lead.result.leadScore?.label,
-        lead.result.heatRecovery ? "hővisszanyerés" : "",
-        lead.result.heatRecovery?.seasonalSavingsHuf
-          ? String(lead.result.heatRecovery.seasonalSavingsHuf)
-          : "",
         lead.input.tracking?.utmSource,
         lead.input.tracking?.utmCampaign,
         lead.input.tracking?.gclid,
@@ -74,19 +60,6 @@ export function AdminDashboard({
     });
   }, [leads, query, status]);
 
-  const metrics = useMemo(() => {
-    const totalSavings = leads.reduce((sum, lead) => sum + lead.result.annualHufSaved, 0);
-    const newLeads = leads.filter((lead) => lead.status === "new").length;
-    const hotLeads = leads.filter((lead) => (lead.result.leadScore?.score ?? 0) >= 70).length;
-    const averageScore = leads.length
-      ? Math.round(
-          leads.reduce((sum, lead) => sum + (lead.result.leadScore?.score ?? 0), 0) / leads.length
-        )
-      : 0;
-
-    return { totalSavings, newLeads, hotLeads, averageScore };
-  }, [leads]);
-
   return (
     <>
       <div className="admin-header">
@@ -96,7 +69,7 @@ export function AdminDashboard({
             Admin dashboard
           </span>
           <h1>Lead cockpit</h1>
-          <p>Beküldött kalkulációk, kapcsolati adatok és megtakarítási potenciál egy helyen.</p>
+          <p>Beküldött leadek, kapcsolati adatok és kampányazonosítók egy helyen.</p>
         </div>
         <div className="admin-actions">
           <Link className="secondary-button" href="/admin/email-preview">
@@ -121,23 +94,12 @@ export function AdminDashboard({
         </div>
       ) : null}
 
-      <section className="admin-metrics" aria-label="Lead összesítő">
-        <AdminMetric icon={<Building2 size={18} />} label="Összes lead" value={`${leads.length} db`} />
-        <AdminMetric icon={<Mail size={18} />} label="Új lead" value={`${metrics.newLeads} db`} />
-        <AdminMetric icon={<Zap size={18} />} label="Éves potenciál" value={formatHuf(metrics.totalSavings)} />
-        <AdminMetric
-          icon={<Flame size={18} />}
-          label="Forró lead / átlag score"
-          value={`${metrics.hotLeads} db / ${metrics.averageScore}`}
-        />
-      </section>
-
       <section className="admin-toolbar" aria-label="Lead keresés és szűrés">
         <label className="admin-search">
           <Search size={17} />
           <input
             aria-label="Lead keresése"
-            placeholder="Keresés: cég, email, telefon, modell, kampány..."
+            placeholder="Keresés: cég, email, telefon, kampány..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -171,25 +133,6 @@ export function AdminDashboard({
               <th>Kapcsolattartó</th>
               <th>Email</th>
               <th>Telefon</th>
-              <th>Márka</th>
-              <th>Kategória</th>
-              <th>Kor</th>
-              <th>kW</th>
-              <th>Üzemóra</th>
-              <th>Áramár</th>
-              <th>Profil</th>
-              <th>VSD</th>
-              <th>Marketing</th>
-              <th>GDPR</th>
-              <th>Ajánlott modell</th>
-              <th>Éves Ft</th>
-              <th>Havi Ft</th>
-              <th>5 éves Ft</th>
-              <th>kWh/év</th>
-              <th>Hővisszanyerés</th>
-              <th>Gázkiváltás Ft/év</th>
-              <th>Gáz m3/év</th>
-              <th>Gázár</th>
               <th>Score</th>
               <th>Csillag</th>
               <th>UTM source</th>
@@ -198,14 +141,14 @@ export function AdminDashboard({
               <th>GBRAID</th>
               <th>WBRAID</th>
               <th>Referrer</th>
+              <th>PDF</th>
               <th>Státusz</th>
-              <th />
             </tr>
           </thead>
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={34}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={15}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -219,43 +162,6 @@ export function AdminDashboard({
                   </td>
                   <td>{lead.input.email}</td>
                   <td>{lead.input.phone || "-"}</td>
-                  <td>{lead.input.brand}</td>
-                  <td>{lead.input.category}</td>
-                  <td>{lead.input.ageBand} év</td>
-                  <td>{formatKw(lead.input.nominalKw)}</td>
-                  <td>{lead.input.annualHours} óra</td>
-                  <td>{formatHuf(lead.input.energyPriceHufKwh)} / kWh</td>
-                  <td>{formatLoadProfile(lead.input.loadProfile)}</td>
-                  <td>{lead.input.preferVariableSpeed ? "igen" : "nem"}</td>
-                  <td>{lead.input.consentMarketing ? "igen" : "nem"}</td>
-                  <td>{lead.input.consentPrivacy ? "igen" : "nem"}</td>
-                  <td>
-                    <strong>{formatCompressorModel(lead.result.recommendedModel)}</strong>
-                    <span>{formatKw(lead.result.recommendedModel.nominalKw)}</span>
-                  </td>
-                  <td>
-                    <strong>{formatHuf(lead.result.annualHufSaved)}</strong>
-                    <span>{lead.result.priority?.label ?? "-"}</span>
-                  </td>
-                  <td>{formatHuf(lead.result.monthlyHufSaved)}</td>
-                  <td>{formatHuf(lead.result.fiveYearHufSaved)}</td>
-                  <td>{Math.round(lead.result.annualKwhSaved).toLocaleString("hu-HU")}</td>
-                  <td>{lead.result.heatRecovery ? "igen" : "nem"}</td>
-                  <td>
-                    {lead.result.heatRecovery
-                      ? formatHuf(lead.result.heatRecovery.seasonalSavingsHuf)
-                      : "-"}
-                  </td>
-                  <td>
-                    {lead.result.heatRecovery
-                      ? `${Math.round(lead.result.heatRecovery.seasonalGasSavedM3).toLocaleString("hu-HU")} m3`
-                      : "-"}
-                  </td>
-                  <td>
-                    {lead.result.heatRecovery
-                      ? `${formatHuf(lead.result.heatRecovery.gasPriceHufPerM3)} / m3`
-                      : "-"}
-                  </td>
                   <td>
                     <span className={`admin-score ${getScoreLevel(lead.result.leadScore?.score ?? 0)}`}>
                       {lead.result.leadScore ? `${lead.result.leadScore.score}/100` : "-"}
@@ -272,13 +178,13 @@ export function AdminDashboard({
                   <td className="tracking-cell">{lead.input.tracking?.wbraid ?? "-"}</td>
                   <td className="tracking-cell">{lead.input.tracking?.referrer ?? "-"}</td>
                   <td>
-                    <span className={`admin-status ${lead.status}`}>{formatStatus(lead.status)}</span>
+                    <a className="admin-button compact" href={`/admin/leads/${lead.id}/report`}>
+                      <Download size={15} />
+                      PDF
+                    </a>
                   </td>
                   <td>
-                    <Link className="admin-button" href={`/admin/leads/${lead.id}`}>
-                      Részlet
-                      <ArrowUpRight size={15} />
-                    </Link>
+                    <span className={`admin-status ${lead.status}`}>{formatStatus(lead.status)}</span>
                   </td>
                 </tr>
               ))
@@ -338,34 +244,8 @@ function StarRating({
   );
 }
 
-function AdminMetric({
-  icon,
-  label,
-  value
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="admin-metric">
-      <span>{icon}</span>
-      <small>{label}</small>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
 function getScoreLevel(score: number) {
   if (score >= 70) return "hot";
   if (score >= 45) return "warm";
   return "cold";
-}
-
-function formatLoadProfile(profile: LeadRecord["input"]["loadProfile"]) {
-  if (profile === "continuous") return "folyamatos";
-  if (profile === "shift") return "műszakos";
-  if (profile === "fluctuating") return "ingadozó";
-  if (profile === "peak") return "csúcsterhelés";
-  return "-";
 }

@@ -1,7 +1,16 @@
 import { Resend } from "resend";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
+import {
+  getCompressorProductImage,
+  getCompressorProductImageDataUri,
+  getCompressorProductImageUrl
+} from "@/lib/product-images";
 import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 import { generateLeadPdf } from "./pdf";
+
+type RenderEmailOptions = {
+  inlineProductImages?: boolean;
+};
 
 type SequenceScheduleResult =
   | {
@@ -245,20 +254,20 @@ async function scheduleLeadSequence({
   }
 }
 
-export function renderCustomerEmail(lead: LeadRecord) {
+export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOptions = {}) {
   const { result, input } = lead;
   const appointmentUrl = getAppointmentUrl();
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
   return emailShell(`
     <p>Köszönjük a kalkulációt. A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
     <div class="metric">${formatHuf(result.annualHufSaved)} / év</div>
+    ${renderRecommendedProductImage(result, options)}
     <p>Ez körülbelül ${formatNumber(result.annualKwhSaved)} kWh villamosenergia-megtakarítás évente, ${formatNumber(input.annualHours)} üzemórával és ${formatHuf(input.energyPriceHufKwh)} / kWh áramárral számolva.</p>
     <table>
       <tr><td>Jelenlegi gép</td><td>${escapeHtml(input.brand)} - ${formatKw(input.nominalKw)}</td></tr>
       <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
       <tr><td>Régi felvett teljesítmény</td><td>${formatNumber(result.selectedLegacy.degradedInputKw, 2)} kW</td></tr>
       <tr><td>Ajánlott modell felvett teljesítménye</td><td>${formatNumber(result.recommendedModel.inputKw, 2)} kW</td></tr>
-      <tr><td>Megtérülési becslés</td><td>${formatPayback(result.estimatedPaybackYears)}</td></tr>
       ${renderHeatRecoveryRows(result)}
       <tr><td>Lead prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
     </table>
@@ -279,6 +288,7 @@ function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[numb
     <p>${escapeHtml(step.intro)}</p>
     <div class="summary-box">
       <strong>${escapeHtml(input.companyName)} kalkulációs összefoglaló</strong>
+      ${renderRecommendedProductImage(result)}
       <table>
         <tr><td>Becsült éves megtakarítás</td><td>${formatHuf(result.annualHufSaved)}</td></tr>
         <tr><td>5 éves potenciál</td><td>${formatHuf(result.fiveYearHufSaved)}</td></tr>
@@ -302,6 +312,7 @@ export function renderInternalNotificationEmail(
   const recommendedModelName = formatCompressorModel(lead.result.recommendedModel);
   return emailShell(`
     <p>Új kalkulációs beküldés érkezett a csavarkompresszor kalkulátorból.</p>
+    ${renderRecommendedProductImage(lead.result)}
     <table>
       <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
       <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
@@ -319,6 +330,28 @@ export function renderInternalNotificationEmail(
     </table>
     <p>${escapeHtml(lead.result.leadScore.reasons.join(" "))}</p>
   `);
+}
+
+function renderRecommendedProductImage(
+  result: CalculationResult,
+  options: RenderEmailOptions = {}
+) {
+  const image = getCompressorProductImage(result.recommendedModel);
+  const imageUrl = options.inlineProductImages
+    ? getCompressorProductImageDataUri(result.recommendedModel)
+    : getCompressorProductImageUrl(result.recommendedModel);
+  const recommendedModelName = formatCompressorModel(result.recommendedModel);
+
+  return `
+    <div class="product-photo">
+      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(image.alt)}" />
+      <div>
+        <span>Ajánlott gépcsalád</span>
+        <strong>${escapeHtml(recommendedModelName)}</strong>
+        <small>${formatKw(result.recommendedModel.nominalKw)} névleges teljesítmény</small>
+      </div>
+    </div>
+  `;
 }
 
 function renderHeatRecoveryRows(result: CalculationResult) {
@@ -356,11 +389,6 @@ function getAppointmentUrl() {
   return process.env.APPOINTMENT_URL ?? defaultAppointmentUrl;
 }
 
-function formatPayback(years: number | null) {
-  if (years === null) return "gépár megadása után számolható";
-  return `${formatNumber(years, 1)} év`;
-}
-
 function emailShell(content: string) {
   return `
     <html>
@@ -375,6 +403,12 @@ function emailShell(content: string) {
           ul { color:#334155; line-height:1.7; padding-left:22px; }
           li { margin:8px 0; }
           .metric { font-size:32px; font-weight:800; color:#17202a; margin:18px 0; }
+          .product-photo { background:#f8fafc; border:1px solid #d7dee8; border-radius:12px; margin:18px 0; overflow:hidden; }
+          .product-photo img { display:block; width:100%; max-height:260px; object-fit:contain; background:#ffffff; }
+          .product-photo div { border-top:1px solid #e2e8f0; padding:14px 16px 16px; }
+          .product-photo span { color:#64748b; display:block; font-size:12px; font-weight:800; letter-spacing:.07em; margin-bottom:6px; text-transform:uppercase; }
+          .product-photo strong { color:#17202a; display:block; font-size:20px; line-height:1.25; }
+          .product-photo small { color:#64748b; display:block; font-size:13px; margin-top:5px; }
           .summary-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin:18px 0; }
           table { width:100%; border-collapse:collapse; margin:18px 0; }
           td { border-bottom:1px solid #e2e8f0; padding:12px 0; vertical-align:top; }

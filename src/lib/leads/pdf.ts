@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { getCompressorProductImage } from "@/lib/product-images";
 import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 
 type ParsedFont = {
@@ -20,10 +21,11 @@ type TextStyle = {
 };
 
 const fontPath = path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf");
+const productImageMarker = "__COMPRESSOR_PRODUCT_IMAGE__";
 let parsedFont: ParsedFont | null = null;
 
 export function generateLeadPdf(lead: LeadRecord) {
-  return createUnicodePdf(getLeadReportLines(lead));
+  return createUnicodePdf(getLeadReportLines(lead), getCompressorProductImage(lead.result.recommendedModel));
 }
 
 export function getLeadReportLines(lead: LeadRecord) {
@@ -50,11 +52,6 @@ export function getLeadReportLines(lead: LeadRecord) {
     `Havi megtakarítás: ${formatHuf(result.monthlyHufSaved)}`,
     `5 éves potenciál: ${formatHuf(result.fiveYearHufSaved)}`,
     `Éves kWh megtakarítás: ${formatNumber(result.annualKwhSaved)} kWh`,
-    `Becsült megtérülés: ${
-      result.estimatedPaybackYears === null
-        ? "gépár megadása után számolható"
-        : `${formatNumber(result.estimatedPaybackYears, 1)} év`
-    }`,
     ...getHeatRecoveryReportLines(result),
     "",
     "Ajánlott modell",
@@ -62,6 +59,7 @@ export function getLeadReportLines(lead: LeadRecord) {
       result.recommendedModel.nominalKw
     )})`,
     `Felvett teljesítmény: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
+    productImageMarker,
     "",
     "Minősítés",
     `${result.priority.label}`,
@@ -100,8 +98,9 @@ function getHeatRecoveryReportLines(result: CalculationResult) {
   ];
 }
 
-function createUnicodePdf(lines: string[]) {
+function createUnicodePdf(lines: string[], productImage?: ReturnType<typeof getCompressorProductImage>) {
   const font = getFont();
+  const image = productImage ? readPdfImage(productImage.localPath) : null;
   const usedGlyphs = new Map<number, number>();
   const pageCommands: string[][] = [[]];
   const pageWidth = 595;
@@ -110,6 +109,26 @@ function createUnicodePdf(lines: string[]) {
   let y = 790;
 
   for (const [index, line] of lines.entries()) {
+    if (line === productImageMarker) {
+      if (image) {
+        const imageWidth = 210;
+        const imageHeight = Math.min(150, (image.height / image.width) * imageWidth);
+
+        if (y - imageHeight < 54) {
+          pageCommands.push([]);
+          y = 790;
+        }
+
+        pageCommands[pageCommands.length - 1].push(
+          `q\n${imageWidth.toFixed(2)} 0 0 ${imageHeight.toFixed(2)} ${marginX} ${(
+            y - imageHeight
+          ).toFixed(2)} cm\n/Im1 Do\nQ`
+        );
+        y -= imageHeight + 12;
+      }
+      continue;
+    }
+
     if (!line) {
       y -= 10;
       continue;
@@ -149,6 +168,7 @@ function createUnicodePdf(lines: string[]) {
     contentIds.push(nextId++);
   });
 
+  const imageId = image ? nextId++ : null;
   const fontId = nextId++;
   const cidFontId = nextId++;
   const descriptorId = nextId++;
@@ -166,11 +186,19 @@ function createUnicodePdf(lines: string[]) {
   pageStreams.forEach((stream, index) => {
     const pageId = pageIds[index];
     const contentId = contentIds[index];
+    const imageResources = imageId ? ` /XObject << /Im1 ${imageId} 0 R >>` : "";
     objects[pageId - 1] = pdfText(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentId} 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontId} 0 R >>${imageResources} >> /Contents ${contentId} 0 R >>`
     );
     objects[contentId - 1] = pdfStream(`<< /Length ${stream.length} >>`, stream);
   });
+
+  if (image && imageId) {
+    objects[imageId - 1] = pdfStream(
+      `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.buffer.length} >>`,
+      image.buffer
+    );
+  }
 
   objects[fontId - 1] = pdfText(
     `<< /Type /Font /Subtype /Type0 /BaseFont /NotoSans-Regular /Encoding /Identity-H /DescendantFonts [${cidFontId} 0 R] /ToUnicode ${toUnicodeId} 0 R >>`
@@ -198,6 +226,51 @@ function createUnicodePdf(lines: string[]) {
   objects[toUnicodeId - 1] = pdfStream(`<< /Length ${toUnicode.length} >>`, toUnicode);
 
   return buildPdf(objects);
+}
+
+function readPdfImage(imagePath: string) {
+  try {
+    const buffer = readFileSync(imagePath);
+    return {
+      buffer,
+      ...getJpegDimensions(buffer)
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getJpegDimensions(buffer: Buffer) {
+  if (buffer[0] !== 0xff || buffer[1] !== 0xd8) {
+    throw new Error("PDF product image must be a JPEG.");
+  }
+
+  let offset = 2;
+  while (offset < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+
+    const marker = buffer[offset + 1];
+    const length = buffer.readUInt16BE(offset + 2);
+    const isStartOfFrame =
+      (marker >= 0xc0 && marker <= 0xc3) ||
+      (marker >= 0xc5 && marker <= 0xc7) ||
+      (marker >= 0xc9 && marker <= 0xcb) ||
+      (marker >= 0xcd && marker <= 0xcf);
+
+    if (isStartOfFrame) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7)
+      };
+    }
+
+    offset += 2 + length;
+  }
+
+  throw new Error("Unable to read JPEG dimensions.");
 }
 
 function getTextStyle(line: string, index: number): TextStyle {
