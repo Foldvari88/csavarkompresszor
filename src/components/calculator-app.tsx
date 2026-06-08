@@ -78,6 +78,10 @@ const loadProfileOptions = [
   { value: "peak", label: "Csúcsterheléses", helper: "időszakos kiugrások" }
 ] satisfies Array<{ value: NonNullable<CalculatorInput["loadProfile"]>; label: string; helper: string }>;
 
+const publicLegacyBrands = LEGACY_BRANDS.filter(
+  (brand) => brand !== "CompAir" && brand !== "Egyéb"
+);
+
 const initialLead: LeadFields = {
   companyName: "",
   name: "",
@@ -300,9 +304,9 @@ export function CalculatorApp() {
                   }))
                 }
               >
-                {LEGACY_BRANDS.map((brand) => (
+                {publicLegacyBrands.map((brand) => (
                   <option key={brand} value={brand}>
-                    {displayBrandName(brand)}
+                    {brand}
                   </option>
                 ))}
               </select>
@@ -993,10 +997,6 @@ function LegalFooterClean() {
       </div>
     </footer>
   );
-}
-
-function displayBrandName(brand: string) {
-  return brand === "CompAir" ? "Prémium gyártó" : brand;
 }
 
 function getPublicAssumptions(assumptions: string[]) {
