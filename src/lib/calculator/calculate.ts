@@ -254,7 +254,6 @@ function calculateHeatRecovery(input: CalculatorInput, recommendedModel: Compres
     (config.heatingMonths + config.hotWaterMonths * config.hotWaterLoadFactor) / 12;
   const seasonalGasSavedM3 = round(theoreticalGasSavedM3 * seasonalFactor, 2);
   const seasonalSavingsHuf = Math.round(seasonalGasSavedM3 * config.gasPriceHufPerM3);
-  const investmentCostHuf = config.investmentCostHuf ?? null;
 
   return {
     enabled: true as const,
@@ -279,21 +278,13 @@ function calculateHeatRecovery(input: CalculatorInput, recommendedModel: Compres
     hotWaterMonths: config.hotWaterMonths,
     hotWaterLoadFactor: config.hotWaterLoadFactor,
     seasonalGasSavedM3,
-    seasonalSavingsHuf,
-    investmentCostHuf,
-    theoreticalPaybackYears: investmentCostHuf
-      ? round(investmentCostHuf / Math.max(theoreticalSavingsHuf, 1), 1)
-      : null,
-    seasonalPaybackYears: investmentCostHuf
-      ? round(investmentCostHuf / Math.max(seasonalSavingsHuf, 1), 1)
-      : null
+    seasonalSavingsHuf
   };
 }
 
 function normalizeHeatRecoveryInput(input: HeatRecoveryInput) {
   return {
     gasPriceHufPerM3: input.gasPriceHufPerM3 ?? heatRecoveryDefaults.gasPriceHufPerM3,
-    investmentCostHuf: input.investmentCostHuf ?? null,
     heatingMonths: input.heatingMonths ?? heatRecoveryDefaults.heatingMonths,
     hotWaterMonths: input.hotWaterMonths ?? heatRecoveryDefaults.hotWaterMonths,
     hotWaterLoadFactor: input.hotWaterLoadFactor ?? heatRecoveryDefaults.hotWaterLoadFactor,

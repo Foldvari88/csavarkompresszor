@@ -55,7 +55,7 @@ describe("calculateSavings", () => {
     expect(result.selectedLegacy.category).toBe("Közép");
   });
 
-  it("calculates optional heat recovery payback with the attached Excel logic", () => {
+  it("calculates optional heat recovery gas savings with the attached Excel logic", () => {
     const result = calculateSavings({
       ...baseInput,
       nominalKw: 37,
@@ -63,7 +63,6 @@ describe("calculateSavings", () => {
       heatRecovery: {
         enabled: true,
         gasPriceHufPerM3: 300,
-        investmentCostHuf: 6000000,
         heatingMonths: 7,
         hotWaterMonths: 5
       }
@@ -80,10 +79,6 @@ describe("calculateSavings", () => {
     );
     expect(result.heatRecovery?.seasonalSavingsHuf).toBe(
       Math.round(((37 * 0.9 * 0.9 * 4000) / 9.44 / 0.9) * ((7 + 5 * 0.5) / 12) * 300)
-    );
-    expect(result.heatRecovery?.seasonalPaybackYears).toBeCloseTo(
-      6000000 / (result.heatRecovery?.seasonalSavingsHuf ?? 1),
-      1
     );
   });
 

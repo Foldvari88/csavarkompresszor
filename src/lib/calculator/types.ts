@@ -25,7 +25,6 @@ export type CampaignTracking = {
 export type HeatRecoveryInput = {
   enabled: boolean;
   gasPriceHufPerM3?: number;
-  investmentCostHuf?: number | null;
   heatingMonths?: number;
   hotWaterMonths?: number;
   hotWaterLoadFactor?: number;
@@ -158,9 +157,6 @@ export type HeatRecoveryResult = {
   hotWaterLoadFactor: number;
   seasonalGasSavedM3: number;
   seasonalSavingsHuf: number;
-  investmentCostHuf: number | null;
-  theoreticalPaybackYears: number | null;
-  seasonalPaybackYears: number | null;
 };
 
 export type LeadFormInput = CalculatorInput & {

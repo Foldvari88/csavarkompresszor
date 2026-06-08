@@ -337,9 +337,7 @@ function renderHeatRecoveryRows(result: CalculationResult) {
       <tr><td>Kiváltható földgáz fűtés/HMV kombinációval</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
       <tr><td>Kiváltható földgáz folyamatos HMV/ipari felhasználásnál</td><td>${formatNumber(heat.theoreticalGasSavedM3)} m3 / év</td></tr>
       <tr><td>Hasznosítható hőenergia</td><td>${formatNumber(heat.annualUsefulHeatKwh)} kWh / év</td></tr>
-      <tr><td>Beruházás költsége</td><td>${heat.investmentCostHuf ? formatHuf(heat.investmentCostHuf) : "nincs megadva"}</td></tr>
-      <tr><td>Megtérülés folyamatos felhasználás mellett</td><td>${formatHeatRecoveryPayback(heat.theoreticalPaybackYears)}</td></tr>
-      <tr><td>Megtérülés fűtés/HMV kombinációval</td><td>${formatHeatRecoveryPayback(heat.seasonalPaybackYears)}</td></tr>
+      <tr><td>Fűtés/HMV kombinációval kiváltható gázköltség</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
     `;
 }
 
@@ -360,11 +358,6 @@ function getAppointmentUrl() {
 
 function formatPayback(years: number | null) {
   if (years === null) return "gépár megadása után számolható";
-  return `${formatNumber(years, 1)} év`;
-}
-
-function formatHeatRecoveryPayback(years: number | null) {
-  if (years === null) return "beruházási költség megadása után számolható";
   return `${formatNumber(years, 1)} év`;
 }
 

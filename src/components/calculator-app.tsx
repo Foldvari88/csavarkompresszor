@@ -57,7 +57,6 @@ const initialCalculator: CalculatorInput = {
   heatRecovery: {
     enabled: false,
     gasPriceHufPerM3: 300,
-    investmentCostHuf: null,
     heatingMonths: 7,
     hotWaterMonths: 5,
     hotWaterLoadFactor: 0.5,
@@ -438,7 +437,7 @@ export function CalculatorApp() {
                   }))
                 }
               />
-              <span>Szeretne hővisszanyerési megtérülést is számolni?</span>
+              <span>Szeretne hővisszanyerési gázmegtakarítást is számolni?</span>
             </label>
 
             {calculator.heatRecovery?.enabled ? (
@@ -459,22 +458,6 @@ export function CalculatorApp() {
                         updateHeatRecovery((current) => ({
                           ...current,
                           gasPriceHufPerM3: Number(event.target.value)
-                        }))
-                      }
-                    />
-                  </OptionalField>
-
-                  <OptionalField label="Beruházás költsége Ft">
-                    <input
-                      inputMode="numeric"
-                      min={0}
-                      placeholder="pl. 6000000"
-                      type="number"
-                      value={calculator.heatRecovery.investmentCostHuf ?? ""}
-                      onChange={(event) =>
-                        updateHeatRecovery((current) => ({
-                          ...current,
-                          investmentCostHuf: event.target.value ? Number(event.target.value) : null
                         }))
                       }
                     />
@@ -742,7 +725,7 @@ export function CalculatorApp() {
 
             {result.heatRecovery ? (
               <div className="heat-recovery-result">
-                <span className="metric-label">Hővisszanyerési megtérülés</span>
+                <span className="metric-label">Hővisszanyerési gázkiváltás</span>
                 <strong>{formatHuf(result.heatRecovery.seasonalSavingsHuf)} / év</strong>
                 <p>
                   {result.heatRecovery.compressorModelName} ajánlott kompresszorral számolva.
@@ -757,12 +740,8 @@ export function CalculatorApp() {
                     <b>{formatHuf(result.heatRecovery.theoreticalSavingsHuf)}</b>
                   </span>
                   <span>
-                    Megtérülés
-                    <b>
-                      {result.heatRecovery.seasonalPaybackYears
-                        ? `${formatNumber(result.heatRecovery.seasonalPaybackYears, 1)} év`
-                        : "beruházási költség nélkül"}
-                    </b>
+                    Fűtés/HMV hatás
+                    <b>{formatHuf(result.heatRecovery.seasonalSavingsHuf)}</b>
                   </span>
                 </div>
                 <div className="heat-recovery-breakdown">
@@ -803,28 +782,8 @@ export function CalculatorApp() {
                     value={formatHuf(result.heatRecovery.seasonalSavingsHuf)}
                   />
                   <HeatRecoveryRow
-                    label="Beruházás költsége"
-                    value={
-                      result.heatRecovery.investmentCostHuf
-                        ? formatHuf(result.heatRecovery.investmentCostHuf)
-                        : "nincs megadva"
-                    }
-                  />
-                  <HeatRecoveryRow
-                    label="Megtérülés folyamatos felhasználás mellett"
-                    value={
-                      result.heatRecovery.theoreticalPaybackYears
-                        ? `${formatNumber(result.heatRecovery.theoreticalPaybackYears, 1)} év`
-                        : "beruházási költség nélkül"
-                    }
-                  />
-                  <HeatRecoveryRow
-                    label="Megtérülés fűtés/HMV kombinációval"
-                    value={
-                      result.heatRecovery.seasonalPaybackYears
-                        ? `${formatNumber(result.heatRecovery.seasonalPaybackYears, 1)} év`
-                        : "beruházási költség nélkül"
-                    }
+                    label="Fűtés/HMV kombinációval kiváltható gázköltség"
+                    value={formatHuf(result.heatRecovery.seasonalSavingsHuf)}
                   />
                 </div>
               </div>

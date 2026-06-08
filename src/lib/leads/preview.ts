@@ -15,7 +15,6 @@ export function createPreviewLead(): LeadRecord {
     heatRecovery: {
       enabled: true,
       gasPriceHufPerM3: 300,
-      investmentCostHuf: 6000000,
       heatingMonths: 7,
       hotWaterMonths: 5
     },

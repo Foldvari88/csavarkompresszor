@@ -19,7 +19,6 @@ const campaignTrackingSchema = z.object({
 const heatRecoverySchema = z.object({
   enabled: z.coerce.boolean().default(false),
   gasPriceHufPerM3: z.coerce.number().min(1).max(5000).optional(),
-  investmentCostHuf: z.coerce.number().positive().optional().nullable(),
   heatingMonths: z.coerce.number().min(1).max(12).optional(),
   hotWaterMonths: z.coerce.number().min(1).max(12).optional(),
   hotWaterLoadFactor: z.coerce.number().min(0).max(1).optional(),

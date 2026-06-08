@@ -187,9 +187,8 @@ export function AdminDashboard({
               <th>5 éves Ft</th>
               <th>kWh/év</th>
               <th>Hővisszanyerés</th>
-              <th>Hő Ft/év</th>
+              <th>Gázkiváltás Ft/év</th>
               <th>Gáz m3/év</th>
-              <th>Hő megtérülés</th>
               <th>Gázár</th>
               <th>Score</th>
               <th>Csillag</th>
@@ -206,7 +205,7 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={35}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={34}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -250,11 +249,6 @@ export function AdminDashboard({
                   <td>
                     {lead.result.heatRecovery
                       ? `${Math.round(lead.result.heatRecovery.seasonalGasSavedM3).toLocaleString("hu-HU")} m3`
-                      : "-"}
-                  </td>
-                  <td>
-                    {lead.result.heatRecovery?.seasonalPaybackYears
-                      ? `${lead.result.heatRecovery.seasonalPaybackYears.toLocaleString("hu-HU")} év`
                       : "-"}
                   </td>
                   <td>

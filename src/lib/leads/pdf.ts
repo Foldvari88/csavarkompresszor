@@ -93,19 +93,9 @@ function getHeatRecoveryReportLines(result: CalculationResult) {
     `Megtakarított földgáz fűtés/HMV kombinációval: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
     `Hasznosítható hőenergia: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
     `Hőenergia MJ-ban: ${formatNumber(heat.annualUsefulHeatMj)} MJ / év`,
-    `Beruházási költség: ${
-      heat.investmentCostHuf === null ? "nincs megadva" : formatHuf(heat.investmentCostHuf)
-    }`,
-    `Megtérülés folyamatos felhasználás mellett: ${
-      heat.theoreticalPaybackYears === null
-        ? "beruházási költség megadása után számolható"
-        : `${formatNumber(heat.theoreticalPaybackYears, 1)} év`
-    }`,
-    `Megtérülés fűtés/HMV kombinációval: ${
-      heat.seasonalPaybackYears === null
-        ? "beruházási költség megadása után számolható"
-        : `${formatNumber(heat.seasonalPaybackYears, 1)} év`
-    }`,
+    `Fűtés/HMV kombinációval kiváltható éves gázköltség: ${formatHuf(
+      heat.seasonalSavingsHuf
+    )}`,
     `Forráslogika: 90% visszanyerhető hőteljesítmény, 90% hasznosítás, 9,44 kWh/m3 földgáz, 90% kazánhatásfok.`
   ];
 }

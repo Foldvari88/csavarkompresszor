@@ -126,20 +126,8 @@ export default async function LeadDetailPage({
                   value="használati melegvíz"
                 />
                 <Kv
-                  label="Megtérülés fűtés/HMV"
-                  value={
-                    lead.result.heatRecovery.seasonalPaybackYears
-                      ? `${formatNumber(lead.result.heatRecovery.seasonalPaybackYears, 1)} év`
-                      : "beruházási költség nélkül"
-                  }
-                />
-                <Kv
-                  label="Megtérülés folyamatos felhasználásnál"
-                  value={
-                    lead.result.heatRecovery.theoreticalPaybackYears
-                      ? `${formatNumber(lead.result.heatRecovery.theoreticalPaybackYears, 1)} év`
-                      : "beruházási költség nélkül"
-                  }
+                  label="Kiváltható gázköltség fűtés/HMV"
+                  value={`${formatHuf(lead.result.heatRecovery.seasonalSavingsHuf)} / év`}
                 />
               </div>
             </section>
