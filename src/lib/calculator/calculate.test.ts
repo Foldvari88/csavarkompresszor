@@ -19,7 +19,9 @@ describe("calculateSavings", () => {
     expect(result.recommendedModel.model).toBe("L37RS");
     expect(result.selectedLegacy.inputKwBase).toBeCloseTo(45.15);
     expect(result.recommendedModel.inputKw).toBeCloseTo(27.594);
-    expect(result.annualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500);
+    expect(result.excelAnnualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500);
+    expect(result.categorySavingsVarianceMultiplier).toBeCloseTo(0.995);
+    expect(result.annualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500 * 0.995);
     expect(result.annualHufSaved).toBe(Math.round(result.annualKwhSaved * 35));
   });
 
@@ -52,7 +54,23 @@ describe("calculateSavings", () => {
     });
 
     expect(result.selectedLegacy.brand).toBe("Boge");
+    expect(result.categorySavingsVarianceMultiplier).toBeCloseTo(1.005);
     expect(result.selectedLegacy.category).toBe("Közép");
+  });
+
+  it("keeps category variance inside a 1 percent annual savings band", () => {
+    const premium = calculateSavings(baseInput);
+    const middle = calculateSavings({
+      ...baseInput,
+      brand: "Boge",
+      category: "KĂ¶zĂ©p"
+    });
+
+    expect(premium.categorySavingsVarianceMultiplier).toBe(0.995);
+    expect(middle.categorySavingsVarianceMultiplier).toBe(1.005);
+    expect(middle.categorySavingsVarianceMultiplier - premium.categorySavingsVarianceMultiplier).toBeCloseTo(
+      0.01
+    );
   });
 
   it("calculates optional heat recovery gas savings with the attached Excel logic", () => {

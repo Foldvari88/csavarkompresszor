@@ -85,6 +85,8 @@ export type UnitCalculationResult = {
   recommendedModel: CompressorModel;
   oldAnnualKwh: number;
   recommendedAnnualKwh: number;
+  excelAnnualKwhSaved: number;
+  categorySavingsVarianceMultiplier: number;
   annualKwhSaved: number;
   annualHufSaved: number;
   benchmark: {
@@ -102,6 +104,8 @@ export type CalculationResult = {
   nearestNominalKw: number;
   oldAnnualKwh: number;
   recommendedAnnualKwh: number;
+  excelAnnualKwhSaved: number;
+  categorySavingsVarianceMultiplier: number;
   annualKwhSaved: number;
   annualHufSaved: number;
   monthlyHufSaved: number;

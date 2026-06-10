@@ -21,6 +21,11 @@ const ageMultipliers: Record<AgeBand, number> = {
   "15+": (1 + ASSUMPTION_VERSION.ageDegradationStep) ** 2
 };
 
+const categorySavingsVarianceMultipliers: Record<string, number> = {
+  Prémium: 0.995,
+  Közép: 1.005
+};
+
 const heatRecoveryDefaults = {
   sourceVersionId: "heat-recovery-excel-v1-2026-06-08",
   gasPriceHufPerM3: 304,
@@ -40,8 +45,14 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const primary = units[0];
   const oldAnnualKwh = round(sum(units.map((unit) => unit.oldAnnualKwh)), 2);
   const recommendedAnnualKwh = round(sum(units.map((unit) => unit.recommendedAnnualKwh)), 2);
+  const excelAnnualKwhSaved = round(sum(units.map((unit) => unit.excelAnnualKwhSaved)), 2);
   const annualKwhSaved = round(sum(units.map((unit) => unit.annualKwhSaved)), 2);
-  const annualHufSaved = Math.round(annualKwhSaved * normalizedInput.energyPriceHufKwh);
+  const annualHufSaved = sum(units.map((unit) => unit.annualHufSaved));
+  const excelAnnualHufSaved = sum(
+    units.map((unit) => Math.round(unit.excelAnnualKwhSaved * unit.input.energyPriceHufKwh))
+  );
+  const categorySavingsVarianceMultiplier =
+    excelAnnualHufSaved > 0 ? round(annualHufSaved / excelAnnualHufSaved, 4) : 1;
   const monthlyHufSaved = Math.round(annualHufSaved / 12);
   const fiveYearHufSaved = annualHufSaved * 5;
   const heatRecovery = calculateHeatRecovery(normalizedInput, primary.recommendedModel);
@@ -55,6 +66,8 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     nearestNominalKw: primary.recommendedModel.nominalKw,
     oldAnnualKwh,
     recommendedAnnualKwh,
+    excelAnnualKwhSaved,
+    categorySavingsVarianceMultiplier,
     annualKwhSaved,
     annualHufSaved,
     monthlyHufSaved,
@@ -96,8 +109,13 @@ function calculateUnitSavings(input: CompressorUnitInput) {
   const profileMultiplier = getLoadProfileSavingsMultiplier(input, recommendedModel);
   const adjustedRecommendedInputKw = round(recommendedModel.inputKw * profileMultiplier, 4);
   const oldAnnualKwh = round(degradedInputKw * input.annualHours, 2);
-  const recommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
-  const annualKwhSaved = Math.max(0, round(oldAnnualKwh - recommendedAnnualKwh, 2));
+  const excelRecommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
+  const excelAnnualKwhSaved = Math.max(0, round(oldAnnualKwh - excelRecommendedAnnualKwh, 2));
+  const categorySavingsVarianceMultiplier = getCategorySavingsVarianceMultiplier(
+    selectedLegacy.category
+  );
+  const annualKwhSaved = round(excelAnnualKwhSaved * categorySavingsVarianceMultiplier, 2);
+  const recommendedAnnualKwh = Math.max(0, round(oldAnnualKwh - annualKwhSaved, 2));
   const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
 
   return {
@@ -109,6 +127,8 @@ function calculateUnitSavings(input: CompressorUnitInput) {
     },
     oldAnnualKwh,
     recommendedAnnualKwh,
+    excelAnnualKwhSaved,
+    categorySavingsVarianceMultiplier,
     annualKwhSaved,
     annualHufSaved,
     benchmark: buildBenchmark(degradedInputKw, input.nominalKw)
@@ -165,17 +185,26 @@ export function resolveLegacyRow(input: CalculatorInput): LegacyPerformanceRow {
   return anyNearest;
 }
 
+function getCategorySavingsVarianceMultiplier(category: string) {
+  return categorySavingsVarianceMultipliers[category] ?? 1;
+}
+
 function buildAssumptions(
   input: CalculatorInput,
   model: CompressorModel,
   row: CalculationResult["selectedLegacy"],
   units: CalculationResult["units"]
 ) {
+  const excelAnnualKwhSaved = sum(units.map((unit) => unit.excelAnnualKwhSaved));
+  const annualKwhSaved = sum(units.map((unit) => unit.annualKwhSaved));
+  const effectiveVariance = excelAnnualKwhSaved > 0 ? round(annualKwhSaved / excelAnnualKwhSaved, 4) : 1;
+
   return [
     `A számítás forrása: ${ASSUMPTION_VERSION.source}, verzió: ${ASSUMPTION_VERSION.id}.`,
     `A régi gép alap felvett teljesítménye ${row.inputKwBase} kW, a kor szerinti szorzó ${ageMultipliers[input.ageBand].toFixed(4)}.`,
     `Az ajánlott korszerű modell: ${model.model}, felvett teljesítmény: ${model.inputKw} kW.`,
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
+    `Az éves megtakarításnál az Excel kategória alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
     input.heatRecovery?.enabled
       ? `A hővisszanyerési modul az ajánlott ${model.brand} ${model.model} modell névleges ${model.nominalKw} kW teljesítményével számol. Forrás: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx.`
