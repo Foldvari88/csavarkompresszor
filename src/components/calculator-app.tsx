@@ -138,6 +138,13 @@ export function CalculatorApp() {
   const visibleLeadFieldErrors = hasTriedSubmit ? leadFieldErrors : {};
   const isLeadFormValid = Object.keys(leadFieldErrors).length === 0;
   const canSubmit = !isSubmitting;
+  const isCalculatorSectionReady =
+    Boolean(calculator.brand) &&
+    Boolean(calculator.ageBand) &&
+    calculator.nominalKw > 0 &&
+    calculator.annualHours > 0 &&
+    calculator.energyPriceHufKwh > 0 &&
+    Boolean(calculator.loadProfile);
   const completionItems = [
     Boolean(calculator.brand),
     Boolean(calculator.category),
@@ -533,21 +540,27 @@ export function CalculatorApp() {
             ) : null}
           </div>
 
-          <div className="section-title" style={{ marginTop: 28 }}>
-            <div>
-              <div className="panel-kicker">
-                <span>02</span>
-                Cégprofil-alapú kalkuláció
-              </div>
-              <h3>Kompresszor-kompatibilitási jelentés</h3>
+          <div className={`lead-gate-section ${isCalculatorSectionReady ? "is-ready" : ""}`}>
+            <div className="lead-gate-status">
+              <span />
+              Következő lépés: mérnöki riport adatok
             </div>
-            <span className="step-badge">
-              <ShieldCheck size={15} />
-              Profilozott riport
-            </span>
-          </div>
 
-          <div className="company-profile-card">
+            <div className="section-title">
+              <div>
+                <div className="panel-kicker">
+                  <span>02</span>
+                  Cégprofil-alapú kalkuláció
+                </div>
+                <h3>Kompresszor-kompatibilitási jelentés</h3>
+              </div>
+              <span className="step-badge">
+                <ShieldCheck size={15} />
+                Profilozott riport
+              </span>
+            </div>
+
+            <div className="company-profile-card">
             <div className="profile-card-head">
               <span>
                 <Factory size={18} />
@@ -747,6 +760,7 @@ export function CalculatorApp() {
               <ArrowRight size={18} />
             </button>
             {error ? <div className="error-note">{error}</div> : null}
+          </div>
           </div>
         </div>
 

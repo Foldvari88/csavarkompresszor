@@ -34,18 +34,36 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   return (
     <main className="admin-login-shell">
       <section className="admin-login-card" aria-label="Admin belépés">
-        <div className="admin-login-visual" aria-hidden="true">
-          <div className="admin-login-logo">
-            <MiniScrewCompressorLogo />
+        <div className="admin-login-visual">
+          <div className="admin-login-visual-head">
+            <div className="admin-login-logo" aria-hidden="true">
+              <MiniScrewCompressorLogo />
+            </div>
+            <div className="admin-login-status">
+              <span />
+              Védett admin zóna
+            </div>
           </div>
+
+          <div className="admin-login-visual-copy">
+            <span>Lead tracker</span>
+            <h2>Beküldött kalkulációk, riportok és státuszok egy helyen.</h2>
+            <p>
+              Itt követhetők a céges adatok, a PDF riportok, a kampányforrások és a
+              sales folyamat állapota.
+            </p>
+          </div>
+
+          <div className="admin-login-flow" aria-label="Admin folyamat">
+            <span>01 Belépés</span>
+            <span>02 Leadek áttekintése</span>
+            <span>03 Státusz és score</span>
+          </div>
+
           <div className="admin-login-machine">
             <span />
             <span />
             <span />
-          </div>
-          <div className="admin-login-status">
-            <span />
-            Admin cockpit
           </div>
         </div>
 
@@ -55,7 +73,7 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
             <LockKeyhole size={15} />
             Védett admin felület
           </span>
-          <h1>Lead cockpit belépés</h1>
+          <h1>Lead tracker belépés</h1>
           <p>
             Jelentkezz be az ipari csavarkompresszor kalkulátor admin felületéhez,
             ahol a beküldött leadek és riportok kezelhetők.
