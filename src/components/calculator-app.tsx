@@ -15,6 +15,7 @@ import {
   Zap
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import {
@@ -66,9 +67,6 @@ const initialCalculator: CalculatorInput = {
   }
 };
 
-const appointmentUrl =
-  "https://calendly.com/csavarkompresszor-kalkulator/15-perces-muszakiegyeztetes";
-
 const loadProfileOptions = [
   { value: "continuous", label: "Folyamatos", helper: "stabil levegőigény" },
   { value: "shift", label: "Műszakos", helper: "napi termelési ciklus" },
@@ -92,12 +90,12 @@ const initialLead: LeadFields = {
 };
 
 export function CalculatorApp() {
+  const router = useRouter();
   const [calculator, setCalculator] = useState<CalculatorInput>(initialCalculator);
   const [lead, setLead] = useState<LeadFields>(initialLead);
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const recalculationTimeout = useRef<number | null>(null);
 
@@ -152,7 +150,6 @@ export function CalculatorApp() {
   async function submitLead() {
     setHasTriedSubmit(true);
     setError(null);
-    setSuccess(null);
 
     if (!isLeadFormValid) {
       setError(
@@ -184,7 +181,7 @@ export function CalculatorApp() {
         throw new Error("A beküldés sikerült, de az azonosító nem érkezett meg.");
       }
 
-      setSuccess(`A részletes riport elkészült. Azonosító: ${payload.leadId.slice(0, 8)}.`);
+      router.push("/koszonjuk");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");
     } finally {
@@ -633,13 +630,6 @@ export function CalculatorApp() {
               {isSubmitting ? "Riport készítése..." : "Részletes riport küldése"}
               <ArrowRight size={18} />
             </button>
-            {success ? <div className="status-note">{success}</div> : null}
-            {success ? (
-              <a className="schedule-cta" href={appointmentUrl} rel="noreferrer" target="_blank">
-                Kérek 15 perces műszaki egyeztetést
-                <ArrowRight size={17} />
-              </a>
-            ) : null}
             {error ? <div className="error-note">{error}</div> : null}
           </div>
         </div>
