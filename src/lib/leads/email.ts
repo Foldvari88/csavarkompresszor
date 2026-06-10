@@ -127,6 +127,11 @@ export async function sendLeadEmails(lead: LeadRecord) {
   }
 
   const pdf = generateLeadPdf(lead);
+  const pdfAttachment = {
+    filename: `csavarkompresszor-riport-${lead.id.slice(0, 8)}.pdf`,
+    content: pdf,
+    contentType: "application/pdf"
+  };
   const customerEmail = await client.emails.send(
     {
       from,
@@ -134,13 +139,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
       to: lead.input.email,
       subject: "Az Ön csavarkompresszor energiahatékonysági kalkulációja",
       html: renderCustomerEmail(lead),
-      attachments: [
-        {
-          filename: `csavarkompresszor-riport-${lead.id.slice(0, 8)}.pdf`,
-          content: pdf,
-          contentType: "application/pdf"
-        }
-      ],
+      attachments: lead.result.companyProfile.engineeringPdfEligible ? [pdfAttachment] : [],
       tags: [
         { name: "category", value: "calculator-result" },
         { name: "leadId", value: lead.id }
@@ -163,13 +162,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
         to: notificationTo.split(",").map((email) => email.trim()),
         subject: `Új csavarkompresszor kalkuláció: ${lead.input.companyName}`,
         html: renderInternalNotificationEmail(lead, sequence),
-        attachments: [
-          {
-            filename: `csavarkompresszor-riport-${lead.id.slice(0, 8)}.pdf`,
-            content: pdf,
-            contentType: "application/pdf"
-          }
-        ],
+        attachments: [pdfAttachment],
         tags: [
           { name: "category", value: "lead-notification" },
           { name: "leadId", value: lead.id }
@@ -258,10 +251,14 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
   const { result, input } = lead;
   const appointmentUrl = getAppointmentUrl();
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
-  return emailShell(`
+  const engineeringPdfEligible = result.companyProfile.engineeringPdfEligible;
+  const engineeringPdfNotice = engineeringPdfEligible
+    ? "A mérnöki PDF riportot csatoltuk az emailhez."
+    : "Céges emaillel a rendszer mérnöki PDF-et, részletes géptípus-ajánlást és visszahívási opciót is ad.";
+  const html = emailShell(`
     <p>Köszönjük a kalkulációt. A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
     <div class="metric">${formatHuf(result.annualHufSaved)} / év</div>
-    ${renderRecommendedProductImage(result, options)}
+    ${engineeringPdfEligible ? renderRecommendedProductImage(result, options) : ""}
     <p>Ez körülbelül ${formatNumber(result.annualKwhSaved)} kWh villamosenergia-megtakarítás évente, ${formatNumber(input.annualHours)} üzemórával és ${formatHuf(input.energyPriceHufKwh)} / kWh áramárral számolva.</p>
     <table>
       <tr><td>Jelenlegi gép</td><td>${escapeHtml(input.brand)} - ${formatKw(input.nominalKw)}</td></tr>
@@ -271,10 +268,37 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
       ${renderHeatRecoveryRows(result)}
       <tr><td>Lead prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
     </table>
+    <p>${escapeHtml(engineeringPdfNotice)}</p>
     <p>${escapeHtml(result.priority.description)}</p>
     <p><a class="cta" href="${escapeHtml(appointmentUrl)}">15 perces műszaki egyeztetés foglalása</a></p>
     <p class="fine">${result.assumptions.map(escapeHtml).join("<br>")}</p>
   `);
+  return engineeringPdfEligible ? html : stripEngineeringDetailsFromCustomerEmail(html, result);
+}
+
+function stripEngineeringDetailsFromCustomerEmail(html: string, result: CalculationResult) {
+  const recommendedModelName = escapeRegExp(formatCompressorModel(result.recommendedModel));
+  const nominalKw = escapeRegExp(formatKw(result.recommendedModel.nominalKw));
+  const inputKw = escapeRegExp(formatNumber(result.recommendedModel.inputKw, 2));
+
+  return html
+    .replace(
+      new RegExp(`<p>[\\s\\S]*?${recommendedModelName}[\\s\\S]*?</p>`, "i"),
+      "<p>Koszonjuk a kalkulaciot. Az altalanos iparagi becsles alapjan a varhato eves megtakaritasi potencial:</p>"
+    )
+    .replace(new RegExp(`<tr><td>[^<]*modell</td><td>${recommendedModelName} - ${nominalKw}</td></tr>`, "i"), "")
+    .replace(
+      new RegExp(`<tr><td>[^<]*modell felvett teljes[^<]*</td><td>${inputKw} kW</td></tr>`, "i"),
+      `<tr><td>Pontossagi szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
+        result.companyProfile.expectedAccuracy
+      )}</td></tr>`
+    )
+    .replace(/<div class="product-photo">[\s\S]*?<\/div>\s*<\/div>/, "")
+    .replace(/<p><a class="cta"[\s\S]*?<\/a><\/p>/, "");
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[number]) {

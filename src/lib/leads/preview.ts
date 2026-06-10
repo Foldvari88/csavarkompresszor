@@ -19,6 +19,8 @@ export function createPreviewLead(): LeadRecord {
     },
     email: "minta@ceg.hu",
     companyName: "Minta Ipari Kft.",
+    companyWebsite: "mintaipar.hu",
+    companyActivity: "CNC / fémmegmunkálás",
     name: "Teszt Kapcsolattartó",
     phone: "+36701234567",
     consentMarketing: false,

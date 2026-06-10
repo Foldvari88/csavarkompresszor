@@ -6,9 +6,12 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  Factory,
   FileText,
   Gauge,
+  Globe2,
   Mail,
+  ShieldCheck,
   Sparkles,
   Target,
   TrendingDown,
@@ -40,7 +43,14 @@ const CompressorChat = dynamic(
 
 type LeadFields = Pick<
   LeadFormInput,
-  "companyName" | "name" | "email" | "phone" | "consentMarketing" | "consentPrivacy"
+  | "companyName"
+  | "companyWebsite"
+  | "companyActivity"
+  | "name"
+  | "email"
+  | "phone"
+  | "consentMarketing"
+  | "consentPrivacy"
 >;
 
 type LeadFieldErrors = Partial<Record<keyof LeadFields, string>>;
@@ -80,8 +90,21 @@ const publicLegacyBrands = LEGACY_BRANDS.filter(
 
 const monthOptions = Array.from({ length: 12 }, (_, index) => index + 1);
 
+const companyActivityOptions = [
+  "Gyártóüzem / termelés",
+  "CNC / fémmegmunkálás",
+  "Élelmiszeripari gyártás",
+  "Autóipar / autószerviz",
+  "Festőüzem / fényezés",
+  "Logisztika / csomagolás",
+  "Műhely / szerviz",
+  "Egyéb ipari tevékenység"
+];
+
 const initialLead: LeadFields = {
   companyName: "",
+  companyWebsite: "",
+  companyActivity: "",
   name: "",
   email: "",
   phone: "",
@@ -99,7 +122,16 @@ export function CalculatorApp() {
   const [error, setError] = useState<string | null>(null);
   const recalculationTimeout = useRef<number | null>(null);
 
-  const result = useMemo(() => calculateSavings(calculator), [calculator]);
+  const result = useMemo(
+    () =>
+      calculateSavings({
+        ...calculator,
+        companyWebsite: lead.companyWebsite,
+        companyActivity: lead.companyActivity,
+        email: lead.email
+      }),
+    [calculator, lead.companyWebsite, lead.companyActivity, lead.email]
+  );
   const oldInputKw = result.selectedLegacy.degradedInputKw;
   const recommendedInputKw = result.recommendedModel.inputKw;
   const recommendedBarWidth = Math.max(8, Math.min(100, (recommendedInputKw / oldInputKw) * 100));
@@ -116,6 +148,8 @@ export function CalculatorApp() {
     calculator.energyPriceHufKwh > 0,
     Boolean(calculator.loadProfile),
     lead.companyName.trim().length > 1,
+    lead.companyWebsite.trim().length > 2,
+    lead.companyActivity.trim().length > 1,
     lead.name.trim().length > 1,
     isValidEmail(lead.email),
     isValidHungarianPhone(lead.phone),
@@ -153,7 +187,7 @@ export function CalculatorApp() {
 
     if (!isLeadFormValid) {
       setError(
-        "Minden kötelező mezőt ki kell tölteni. Az email cím legyen érvényes, a telefonszám formátuma például: +36701234567."
+        "Minden kötelező mezőt ki kell tölteni. Add meg a céges weboldalt és tevékenységet is. Az email legyen érvényes, a telefonszám formátuma például: +36701234567."
       );
       window.requestAnimationFrame(() => {
         document.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
@@ -504,14 +538,51 @@ export function CalculatorApp() {
             <div>
               <div className="panel-kicker">
                 <span>02</span>
-                Riport küldése
+                Cégprofil-alapú kalkuláció
               </div>
-            <h3>Részletes riport emailben</h3>
+              <h3>Kompresszor-kompatibilitási jelentés</h3>
             </div>
             <span className="step-badge">
-              <Mail size={15} />
-              Email riport
+              <ShieldCheck size={15} />
+              Profilozott riport
             </span>
+          </div>
+
+          <div className="company-profile-card">
+            <div className="profile-card-head">
+              <span>
+                <Factory size={18} />
+                Cégprofil pontosság
+              </span>
+              <strong>{result.companyProfile.label}</strong>
+            </div>
+            <p>
+              Add meg a céges weboldalad, és a kalkulátor az iparágad, várható
+              üzemterhelésed és levegőminőségi igényed alapján pontosítja az eredményt.
+            </p>
+            <div className="profile-grid">
+              <div>
+                <span>Pontossági szint</span>
+                <strong>{result.companyProfile.expectedAccuracy}</strong>
+              </div>
+              <div>
+                <span>Mérnöki PDF</span>
+                <strong>{result.companyProfile.engineeringPdfEligible ? "elérhető" : "céges email szükséges"}</strong>
+              </div>
+            </div>
+            <div className="profile-compatibility">
+              <Globe2 size={17} />
+              <span>
+                {result.companyProfile.compatibilityLabel}.{" "}
+                {result.companyProfile.compatibilityDescription}
+              </span>
+            </div>
+            {!result.companyProfile.engineeringPdfEligible ? (
+              <p className="profile-warning">
+                A kalkuláció cégprofil alapján súlyozott. Pontos cégnév, weboldal és
+                céges email nélkül csak általános iparági becslést tudunk adni.
+              </p>
+            ) : null}
           </div>
 
           <div className="form-grid two">
@@ -531,6 +602,53 @@ export function CalculatorApp() {
               <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
             </Field>
 
+            <Field label="Céges weboldal">
+              <input
+                id="companyWebsite"
+                aria-describedby={
+                  visibleLeadFieldErrors.companyWebsite ? "companyWebsite-error" : undefined
+                }
+                aria-invalid={Boolean(visibleLeadFieldErrors.companyWebsite)}
+                required
+                value={lead.companyWebsite}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, companyWebsite: event.target.value }))
+                }
+                placeholder="ceg.hu"
+                type="text"
+              />
+              <FieldError
+                id="companyWebsite-error"
+                message={visibleLeadFieldErrors.companyWebsite}
+              />
+            </Field>
+
+            <Field label="Iparág / tevékenység">
+              <select
+                id="companyActivity"
+                aria-describedby={
+                  visibleLeadFieldErrors.companyActivity ? "companyActivity-error" : undefined
+                }
+                aria-invalid={Boolean(visibleLeadFieldErrors.companyActivity)}
+                required
+                value={lead.companyActivity}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, companyActivity: event.target.value }))
+                }
+              >
+                <option value="">Válassz tevékenységet</option>
+                {companyActivityOptions.map((activity) => (
+                  <option key={activity} value={activity}>
+                    {activity}
+                  </option>
+                ))}
+              </select>
+              <FieldError
+                id="companyActivity-error"
+                message={visibleLeadFieldErrors.companyActivity}
+              />
+            </Field>
+
             <Field label="Email cím">
               <input
                 id="email"
@@ -545,6 +663,12 @@ export function CalculatorApp() {
                 type="email"
               />
               <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
+              {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
+                <p className="field-hint is-warning">
+                  Gmail/ingyenes email esetén előzetes összefoglalót küldünk. Mérnöki PDF,
+                  részletes géptípus-ajánlás és visszahívási opció céges emaillel érhető el.
+                </p>
+              ) : null}
             </Field>
 
             <Field label="Kapcsolattartó">
@@ -917,6 +1041,16 @@ function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
     errors.companyName = "Add meg a cégnevet, legalább 2 karakterrel.";
   }
 
+  if (lead.companyWebsite.trim().length === 0) {
+    errors.companyWebsite = "Add meg a céges weboldalt. Példa: ceg.hu";
+  } else if (!isLikelyWebsite(lead.companyWebsite)) {
+    errors.companyWebsite = "A weboldal formátuma nem jó. Példa: ceg.hu";
+  }
+
+  if (lead.companyActivity.trim().length < 2) {
+    errors.companyActivity = "Válaszd ki vagy add meg a cég tevékenységét.";
+  }
+
   if (lead.email.trim().length === 0) {
     errors.email = "Add meg az email címet.";
   } else if (!isValidEmail(lead.email)) {
@@ -942,6 +1076,28 @@ function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+}
+
+function isBusinessEmail(email: string) {
+  const freeDomains = new Set([
+    "gmail.com",
+    "googlemail.com",
+    "yahoo.com",
+    "hotmail.com",
+    "outlook.com",
+    "live.com",
+    "icloud.com",
+    "freemail.hu",
+    "citromail.hu",
+    "indamail.hu"
+  ]);
+  const domain = email.trim().toLowerCase().split("@")[1];
+  return Boolean(domain && !freeDomains.has(domain));
+}
+
+function isLikelyWebsite(value: string) {
+  const normalized = value.trim().replace(/^https?:\/\//, "").replace(/^www\./, "");
+  return /^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(normalized);
 }
 
 function isValidHungarianPhone(phone: string) {

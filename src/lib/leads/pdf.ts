@@ -37,6 +37,8 @@ export function getLeadReportLines(lead: LeadRecord) {
     `Dátum: ${new Date(lead.createdAt).toLocaleString("hu-HU")}`,
     "",
     "Bemeneti adatok",
+    `Céges weboldal: ${input.companyWebsite || "-"}`,
+    `Tevékenység: ${input.companyActivity || "-"}`,
     `Cég: ${input.companyName}`,
     `Kapcsolattartó: ${input.name}`,
     `Email: ${input.email}`,

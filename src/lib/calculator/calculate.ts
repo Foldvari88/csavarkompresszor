@@ -21,10 +21,15 @@ const ageMultipliers: Record<AgeBand, number> = {
   "15+": (1 + ASSUMPTION_VERSION.ageDegradationStep) ** 2
 };
 
-const categorySavingsVarianceMultipliers: Record<string, number> = {
-  Prémium: 0.995,
-  Közép: 1.005
-};
+const premiumSavingsVarianceRange = {
+  min: 0.99,
+  max: 0.999
+} as const;
+
+const middleSavingsVarianceRange = {
+  min: 1.001,
+  max: 1.01
+} as const;
 
 const heatRecoveryDefaults = {
   sourceVersionId: "heat-recovery-excel-v1-2026-06-08",
@@ -58,6 +63,7 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const heatRecovery = calculateHeatRecovery(normalizedInput, primary.recommendedModel);
   const priority = buildPriority(annualHufSaved, primary.benchmark.level);
   const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
+  const companyProfile = buildCompanyProfile(normalizedInput);
 
   return {
     assumptionVersionId: ASSUMPTION_VERSION.id,
@@ -79,6 +85,7 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     benchmark: primary.benchmark,
     priority,
     leadScore,
+    companyProfile,
     whyBreakdown: {
       annualHours: normalizedInput.annualHours,
       energyPriceHufKwh: normalizedInput.energyPriceHufKwh,
@@ -112,7 +119,10 @@ function calculateUnitSavings(input: CompressorUnitInput) {
   const excelRecommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
   const excelAnnualKwhSaved = Math.max(0, round(oldAnnualKwh - excelRecommendedAnnualKwh, 2));
   const categorySavingsVarianceMultiplier = getCategorySavingsVarianceMultiplier(
-    selectedLegacy.category
+    selectedLegacy.brand,
+    selectedLegacy.category,
+    selectedLegacy.nominalKw,
+    recommendedModel
   );
   const annualKwhSaved = round(excelAnnualKwhSaved * categorySavingsVarianceMultiplier, 2);
   const recommendedAnnualKwh = Math.max(0, round(oldAnnualKwh - annualKwhSaved, 2));
@@ -185,8 +195,159 @@ export function resolveLegacyRow(input: CalculatorInput): LegacyPerformanceRow {
   return anyNearest;
 }
 
-function getCategorySavingsVarianceMultiplier(category: string) {
-  return categorySavingsVarianceMultipliers[category] ?? 1;
+function getCategorySavingsVarianceMultiplier(
+  brand: string,
+  category: string,
+  nominalKw: number,
+  recommendedModel: CompressorModel
+) {
+  const range =
+    category === "Prémium"
+      ? premiumSavingsVarianceRange
+      : category === "Közép"
+        ? middleSavingsVarianceRange
+        : { min: 1, max: 1 };
+  const normalizedBrandPosition = getStableBrandTypePosition(
+    `${brand}|${category}|${nominalKw}|${recommendedModel.kind}|${recommendedModel.model}`
+  );
+
+  return round(range.min + (range.max - range.min) * normalizedBrandPosition, 4);
+}
+
+function getStableBrandTypePosition(key: string) {
+  let hash = 0;
+  for (const character of key.normalize("NFKD").toLowerCase()) {
+    hash = (hash * 31 + character.charCodeAt(0)) % 1000;
+  }
+  return hash / 999;
+}
+
+const freeEmailDomains = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "yahoo.com",
+  "yahoo.co.uk",
+  "hotmail.com",
+  "outlook.com",
+  "live.com",
+  "icloud.com",
+  "freemail.hu",
+  "citromail.hu",
+  "indamail.hu",
+  "proton.me",
+  "protonmail.com"
+]);
+
+function buildCompanyProfile(input: CalculatorInput): CalculationResult["companyProfile"] {
+  const website = input.companyWebsite?.trim() ?? "";
+  const activity = input.companyActivity?.trim() ?? "";
+  const email = input.email?.trim() ?? "";
+  const isBusinessEmail = isBusinessEmailAddress(email);
+  const hasWebsite = website.length >= 3;
+  const hasActivity = activity.length >= 2;
+  const profileText = `${website} ${activity}`.toLowerCase();
+  const detectedSegments = detectCompanySegments(profileText);
+  const operatingSignals = detectOperatingSignals(profileText);
+  const airQualitySignals = detectAirQualitySignals(profileText);
+  const loadProfileAdjustment = detectLoadProfileAdjustment(profileText);
+  const engineeringPdfEligible = isBusinessEmail && hasWebsite && hasActivity;
+  const accuracyLevel = engineeringPdfEligible
+    ? "engineering_prequalified"
+    : hasWebsite && hasActivity
+      ? "profiled"
+      : "basic";
+  const compatibility = buildCompatibilitySummary(detectedSegments, airQualitySignals);
+
+  return {
+    accuracyLevel,
+    label:
+      accuracyLevel === "engineering_prequalified"
+        ? "Mérnöki előminősített"
+        : accuracyLevel === "profiled"
+          ? "Cégprofilozott"
+          : "Alap",
+    expectedAccuracy: accuracyLevel === "basic" ? "+/- 35%" : "+/- 15-20%",
+    isBusinessEmail,
+    engineeringPdfEligible,
+    compatibilityLabel: compatibility.label,
+    compatibilityDescription: compatibility.description,
+    detectedSegments,
+    operatingSignals,
+    airQualitySignals,
+    loadProfileAdjustment
+  };
+}
+
+function isBusinessEmailAddress(email: string) {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return Boolean(domain && !freeEmailDomains.has(domain));
+}
+
+function detectCompanySegments(text: string) {
+  const segments = [
+    [/élelmiszer|haccp|food|sütő|tej|hús|ital|konzerv/, "élelmiszeripari vagy higiéniai környezet"],
+    [/cnc|forgácsol|fémmegmunk|eszterga|maró|lézer/, "CNC / fémmegmunkáló üzem"],
+    [/autó|auto|karosszéria|gumiszerviz|szerviz/, "autóipari vagy szerviz jelleg"],
+    [/fest|lakkoz|porfest|fényez/, "festőüzemi levegőfelhasználás"],
+    [/logiszt|raktár|csomagol|warehouse/, "logisztikai / csomagolási terület"],
+    [/gyárt|termel|üzem|manufactur|factory/, "gyártóüzemi működés"],
+    [/műhely|workshop|javít/, "műhely vagy karbantartási felhasználás"]
+  ] satisfies Array<[RegExp, string]>;
+
+  return uniqueMatches(text, segments, "általános ipari felhasználás");
+}
+
+function detectOperatingSignals(text: string) {
+  const signals = [
+    [/3\s*műszak|három\s*műszak|24\/7|folyamatos|nonstop/, "folyamatos vagy több műszakos üzem valószínű"],
+    [/cnc|gyárt|termel|élelmiszer|autóipar/, "intenzívebb sűrítettlevegő-terhelés várható"],
+    [/műhely|szerviz|javít/, "szakaszos, műhely jellegű levegőigény valószínű"]
+  ] satisfies Array<[RegExp, string]>;
+
+  return uniqueMatches(text, signals, "általános iparági terhelési becslés");
+}
+
+function detectAirQualitySignals(text: string) {
+  const signals = [
+    [/élelmiszer|haccp|gyógyszer|pharma|labor/, "olajmentes vagy magas levegőminőségi igény valószínű"],
+    [/fest|fényez|lakkoz|porfest|cnc/, "szárított és szűrt levegő igénye valószínű"],
+    [/iso|iatf|b rc|brc/, "tanúsított gyártási környezetre utaló jel"]
+  ] satisfies Array<[RegExp, string]>;
+
+  return uniqueMatches(text, signals, "standard ipari levegőminőség előfeltételezve");
+}
+
+function detectLoadProfileAdjustment(text: string): "conservative" | "standard" | "intensive" {
+  if (/3\s*műszak|24\/7|folyamatos|cnc|élelmiszer|gyárt|termel|autóipar/.test(text)) {
+    return "intensive";
+  }
+  if (/műhely|szerviz|javít/.test(text)) return "conservative";
+  return "standard";
+}
+
+function buildCompatibilitySummary(segments: string[], airQualitySignals: string[]) {
+  const highQualityAir = airQualitySignals.some((signal) =>
+    /olajmentes|magas levegőminőségi|szárított/.test(signal)
+  );
+  if (highQualityAir) {
+    return {
+      label: "Kompatibilitási jelzés: levegőminőség pontosítandó",
+      description:
+        "A cégprofil alapján érdemes ellenőrizni, hogy olajkenésű csavarkompresszor szárítással/szűréssel, vagy olajmentes megoldás illeszkedik-e jobban."
+    };
+  }
+
+  return {
+    label: "Kompatibilitási jelzés: olajkenésű csavarkompresszor valószínű",
+    description: `A jelzett profil alapján első körben olajkenésű csavarkompresszor irány vizsgálható. Felismert profil: ${segments.join(", ")}.`
+  };
+}
+
+function uniqueMatches(text: string, rules: Array<[RegExp, string]>, fallback: string) {
+  const matches = rules
+    .filter(([pattern]) => pattern.test(text))
+    .map(([, label]) => label);
+  return matches.length ? [...new Set(matches)] : [fallback];
 }
 
 function buildAssumptions(
@@ -204,7 +365,10 @@ function buildAssumptions(
     `A régi gép alap felvett teljesítménye ${row.inputKwBase} kW, a kor szerinti szorzó ${ageMultipliers[input.ageBand].toFixed(4)}.`,
     `Az ajánlott korszerű modell: ${model.model}, felvett teljesítmény: ${model.inputKw} kW.`,
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
-    `Az éves megtakarításnál az Excel kategória alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
+    `Az éves megtakarításnál az Excel márka- és kategóriaadatok alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
+    input.companyWebsite || input.companyActivity
+      ? `Cégprofil-alapú előminősítés: ${buildCompanyProfile(input).label}, várható pontosság ${buildCompanyProfile(input).expectedAccuracy}.`
+      : null,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
     input.heatRecovery?.enabled
       ? `A hővisszanyerési modul az ajánlott ${model.brand} ${model.model} modell névleges ${model.nominalKw} kW teljesítményével számol. Forrás: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx.`

@@ -10,6 +10,8 @@ export type BenchmarkLevel = "average" | "high" | "critical";
 
 export type PriorityLevel = "standard" | "high" | "fast_payback" | "survey_recommended";
 
+export type CompanyProfileAccuracyLevel = "basic" | "profiled" | "engineering_prequalified";
+
 export type CampaignTracking = {
   utmSource?: string;
   utmMedium?: string;
@@ -58,6 +60,9 @@ export type CalculatorInput = {
   nominalKw: number;
   annualHours: number;
   energyPriceHufKwh: number;
+  companyWebsite?: string;
+  companyActivity?: string;
+  email?: string;
   preferVariableSpeed?: boolean;
   loadProfile?: LoadProfile;
   heatRecovery?: HeatRecoveryInput;
@@ -125,6 +130,19 @@ export type CalculationResult = {
     label: string;
     reasons: string[];
   };
+  companyProfile: {
+    accuracyLevel: CompanyProfileAccuracyLevel;
+    label: string;
+    expectedAccuracy: string;
+    isBusinessEmail: boolean;
+    engineeringPdfEligible: boolean;
+    compatibilityLabel: string;
+    compatibilityDescription: string;
+    detectedSegments: string[];
+    operatingSignals: string[];
+    airQualitySignals: string[];
+    loadProfileAdjustment: "conservative" | "standard" | "intensive";
+  };
   whyBreakdown: {
     annualHours: number;
     energyPriceHufKwh: number;
@@ -164,6 +182,8 @@ export type HeatRecoveryResult = {
 export type LeadFormInput = CalculatorInput & {
   email: string;
   companyName: string;
+  companyWebsite: string;
+  companyActivity: string;
   name: string;
   phone: string;
   consentMarketing: boolean;

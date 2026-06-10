@@ -35,6 +35,9 @@ const calculatorInputBaseSchema = z.object({
   nominalKw: z.coerce.number().positive(),
   annualHours: z.coerce.number().min(100).max(8760),
   energyPriceHufKwh: z.coerce.number().min(1).max(500),
+  companyWebsite: z.string().trim().max(220).optional(),
+  companyActivity: z.string().trim().max(180).optional(),
+  email: z.string().email().optional(),
   preferVariableSpeed: z.coerce.boolean().optional().default(true),
   loadProfile: loadProfileSchema.optional().default("continuous"),
   heatRecovery: heatRecoverySchema.optional(),
@@ -60,6 +63,10 @@ export const extendedCalculatorInputSchema = extendedCalculatorInputBaseSchema.t
 export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   email: z.string().email(),
   companyName: z.string().min(2).max(120),
+  companyWebsite: z.string().trim().min(3).max(220).refine(isLikelyWebsite, {
+    message: "Adj meg valós céges weboldalt. Példa: ceg.hu"
+  }),
+  companyActivity: z.string().trim().min(2).max(180),
   name: z.string().min(2).max(120),
   phone: z.string().regex(/^\+36\d{9}$/),
   consentMarketing: z.coerce.boolean().default(false),
@@ -71,4 +78,9 @@ function withExcelCategory<T extends { brand: string; category?: string }>(input
     ...input,
     category: getBrandCategory(input.brand)
   };
+}
+
+function isLikelyWebsite(value: string) {
+  const normalized = value.trim().replace(/^https?:\/\//, "").replace(/^www\./, "");
+  return /^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(normalized);
 }

@@ -153,12 +153,14 @@ a {
 
 .hero {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: end;
   padding: 22px 0 18px;
 }
 
 .hero-copy {
+  min-width: 0;
   max-width: 760px;
 }
 
@@ -333,6 +335,7 @@ a {
   display: grid;
   gap: 10px;
   min-width: 0;
+  width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-top: 4px solid var(--red);
   border-radius: 8px;
@@ -579,6 +582,101 @@ a {
   gap: 14px;
 }
 
+.company-profile-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(48, 49, 132, 0.16);
+  border-top: 4px solid #303184;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(48, 49, 132, 0.08), rgba(255, 255, 255, 0.94)),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.025) 0 1px, transparent 1px 16px),
+    #fff;
+  padding: 14px;
+}
+
+.company-profile-card p {
+  margin: 0;
+  color: #526173;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.profile-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-card-head span,
+.profile-compatibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #272a73;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.profile-card-head strong {
+  border-radius: 999px;
+  background: rgba(48, 49, 132, 0.12);
+  color: #272a73;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.profile-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-grid div {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 10px;
+}
+
+.profile-grid span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.profile-grid strong {
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.profile-compatibility {
+  align-items: flex-start;
+  border-left: 3px solid rgba(48, 49, 132, 0.3);
+  background: rgba(255, 255, 255, 0.62);
+  padding: 10px 12px;
+}
+
+.profile-compatibility span {
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.profile-warning,
+.field-hint.is-warning {
+  border: 1px solid rgba(255, 176, 32, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 176, 32, 0.11);
+  color: #7c4a03;
+  padding: 10px;
+  font-weight: 720;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -665,6 +763,12 @@ a {
   font-size: 12px;
   font-weight: 760;
   line-height: 1.35;
+}
+
+.field-hint {
+  margin: -2px 0 0;
+  font-size: 12px;
+  line-height: 1.42;
 }
 
 .checkbox-line.is-invalid {
@@ -2662,6 +2766,10 @@ a {
 
   .top-cta {
     display: inline-flex;
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .thank-you-panel {
