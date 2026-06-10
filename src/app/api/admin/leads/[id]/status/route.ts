@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { updateLeadStatus } from "@/lib/leads/store";
+import { leadStatusOptions } from "@/lib/status-label";
 
 export const runtime = "nodejs";
 
 const statusSchema = z.object({
-  status: z.enum(["new", "contacted", "quoted", "closed", "lost"])
+  status: z.enum(leadStatusOptions)
 });
 
 export async function PATCH(

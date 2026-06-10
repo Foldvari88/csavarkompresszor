@@ -129,6 +129,27 @@ describe("calculateSavings", () => {
     expect(result.companyProfile.engineeringPdfEligible).toBe(false);
   });
 
+  it("scores leads from measurable savings, company profile, size and utilization data", () => {
+    const basic = calculateSavings({
+      ...baseInput,
+      nominalKw: 22,
+      annualHours: 3000,
+      email: "teszt@gmail.com"
+    });
+    const qualified = calculateSavings({
+      ...baseInput,
+      nominalKw: 75,
+      annualHours: 7000,
+      companyWebsite: "mintaipar.hu",
+      companyActivity: "Gyártóüzem / termelés",
+      email: "mernok@mintaipar.hu"
+    });
+
+    expect(qualified.leadScore.score).toBeGreaterThan(basic.leadScore.score);
+    expect(qualified.leadScore.reasons.join(" ")).toContain("Éves megtakarítási potenciál");
+    expect(qualified.leadScore.reasons.join(" ")).toContain("Cégprofil teljessége");
+  });
+
   it("keeps Atlas and Kaeser visibly different in the live fluctuating profile scenario", () => {
     const liveAtlas = calculateSavings({
       ...baseInput,

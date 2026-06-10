@@ -1,30 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/lib/admin-auth";
 
-export function proxy(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith("/admin")) {
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const isAdminPage = pathname.startsWith("/admin");
+  const isAdminApi = pathname.startsWith("/api/admin");
+
+  if (!isAdminPage && !isAdminApi) {
     return NextResponse.next();
   }
 
-  const username = process.env.ADMIN_USERNAME ?? "admin";
-  const password = process.env.ADMIN_PASSWORD ?? "admin";
-  const authorization = request.headers.get("authorization");
+  const isLoginPage = pathname === "/admin/login";
+  const isLogoutRoute = pathname === "/admin/logout";
+  const isAuthenticated = await verifyAdminSessionToken(
+    request.cookies.get(ADMIN_SESSION_COOKIE)?.value
+  );
 
-  if (authorization?.startsWith("Basic ")) {
-    const decoded = atob(authorization.slice(6));
-    const [suppliedUsername, suppliedPassword] = decoded.split(":");
-    if (suppliedUsername === username && suppliedPassword === password) {
-      return NextResponse.next();
+  if (isLoginPage) {
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/admin", request.url));
     }
+    return NextResponse.next();
   }
 
-  return new NextResponse("Admin hozzáférés szükséges.", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Kalkulator admin"'
-    }
-  });
+  if (isLogoutRoute) {
+    return NextResponse.next();
+  }
+
+  if (isAuthenticated) {
+    return NextResponse.next();
+  }
+
+  if (isAdminApi) {
+    return NextResponse.json({ error: "Admin bejelentkezés szükséges." }, { status: 401 });
+  }
+
+  const loginUrl = new URL("/admin/login", request.url);
+  loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {
-  matcher: ["/admin/:path*"]
+  matcher: ["/admin/:path*", "/api/admin/:path*"]
 };

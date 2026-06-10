@@ -40,6 +40,8 @@ export default async function LeadDetailPage({
             <div className="kv-grid">
               <Kv label="Email" value={lead.input.email} icon={<Mail size={15} />} />
               <Kv label="Telefon" value={lead.input.phone || "-"} icon={<Phone size={15} />} />
+              <Kv label="Céges weboldal" value={lead.input.companyWebsite || "-"} />
+              <Kv label="Iparág / tevékenység" value={lead.input.companyActivity || "-"} />
               <Kv label="Név" value={lead.input.name || "-"} />
               <Kv label="Beküldve" value={new Date(lead.createdAt).toLocaleString("hu-HU")} />
             </div>

@@ -9,7 +9,6 @@ import {
   Factory,
   FileText,
   Gauge,
-  Globe2,
   Mail,
   ShieldCheck,
   Sparkles,
@@ -569,13 +568,6 @@ export function CalculatorApp() {
                 <span>Mérnöki PDF</span>
                 <strong>{result.companyProfile.engineeringPdfEligible ? "elérhető" : "céges email szükséges"}</strong>
               </div>
-            </div>
-            <div className="profile-compatibility">
-              <Globe2 size={17} />
-              <span>
-                {result.companyProfile.compatibilityLabel}.{" "}
-                {result.companyProfile.compatibilityDescription}
-              </span>
             </div>
             {!result.companyProfile.engineeringPdfEligible ? (
               <p className="profile-warning">

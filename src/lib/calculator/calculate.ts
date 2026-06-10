@@ -62,7 +62,12 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
   const fiveYearHufSaved = annualHufSaved * 5;
   const heatRecovery = calculateHeatRecovery(normalizedInput, primary.recommendedModel);
   const priority = buildPriority(annualHufSaved, primary.benchmark.level);
-  const leadScore = buildLeadScore(normalizedInput, annualHufSaved, units.length, primary.benchmark.level);
+  const leadScore = calculateLeadScore(normalizedInput, {
+    annualHufSaved,
+    benchmark: primary.benchmark,
+    heatRecovery,
+    totalMachineCount: units.length
+  });
   const companyProfile = buildCompanyProfile(normalizedInput);
 
   return {
@@ -545,51 +550,74 @@ function buildPriority(annualHufSaved: number, benchmarkLevel: BenchmarkLevel) {
   };
 }
 
-function buildLeadScore(
+export function calculateLeadScore(
   input: CalculatorInput,
-  annualHufSaved: number,
-  machineCount: number,
-  benchmarkLevel: BenchmarkLevel
+  result: Pick<CalculationResult, "annualHufSaved" | "benchmark" | "heatRecovery" | "totalMachineCount">
 ) {
   const reasons: string[] = [];
-  let score = 0;
+  const totalNominalKw = input.units?.length ? sum(input.units.map((unit) => unit.nominalKw)) : input.nominalKw;
+  const maxAnnualHours = input.units?.length
+    ? Math.max(...input.units.map((unit) => unit.annualHours))
+    : input.annualHours;
+  const businessEmail = isBusinessEmailAddress(input.email ?? "");
+  const hasWebsite = Boolean(input.companyWebsite?.trim());
+  const hasActivity = Boolean(input.companyActivity?.trim());
+  const machineCount = result.totalMachineCount ?? input.units?.length ?? 1;
 
-  if (annualHufSaved >= 3_000_000) {
-    score += 35;
-    reasons.push("3M Ft feletti éves megtakarítás");
-  } else if (annualHufSaved >= 1_500_000) {
-    score += 25;
-    reasons.push("1.5M Ft feletti éves megtakarítás");
-  } else if (annualHufSaved > 0) {
-    score += 12;
-    reasons.push("pozitív megtakarítási előnézet");
+  const savingsScore = scaledScore(result.annualHufSaved, 5_000_000, 32);
+  const sizeScore = scaledScore(totalNominalKw, 160, 16);
+  const hoursScore = scaledScore(Math.max(0, maxAnnualHours - 1000), 7000, 16);
+  const benchmarkScore =
+    result.benchmark.level === "critical" ? 12 : result.benchmark.level === "high" ? 8 : 3;
+  const profileScore = clampScore(
+    (businessEmail ? 6 : 0) + (hasWebsite ? 4 : 0) + (hasActivity ? 4 : 0),
+    14
+  );
+  const fleetScore = clampScore(Math.max(0, (machineCount - 1) * 3), 5);
+  const heatRecoveryScore = result.heatRecovery
+    ? scaledScore(result.heatRecovery.seasonalSavingsHuf, 1_000_000, 5)
+    : 0;
+
+  reasons.push(
+    `Éves megtakarítási potenciál: ${formatScoreHuf(result.annualHufSaved)} / év (${savingsScore}/32 pont)`,
+    `Kompresszor méret: ${formatScoreNumber(totalNominalKw)} kW összesített névleges teljesítmény (${sizeScore}/16 pont)`,
+    `Üzemóra intenzitás: ${formatScoreNumber(maxAnnualHours)} óra/év (${hoursScore}/16 pont)`,
+    `Benchmark sáv: ${result.benchmark.label} (${benchmarkScore}/12 pont)`,
+    `Cégprofil teljessége: ${profileScore}/14 pont`
+  );
+
+  if (fleetScore > 0) {
+    reasons.push(`Több gépes üzem: ${machineCount} gép (${fleetScore}/5 pont)`);
   }
 
-  if (input.nominalKw >= 37) {
-    score += 20;
-    reasons.push("nagyobb, ipari teljesítmény");
+  if (heatRecoveryScore > 0 && result.heatRecovery) {
+    reasons.push(
+      `Hővisszanyerési potenciál: ${formatScoreHuf(result.heatRecovery.seasonalSavingsHuf)} / év (${heatRecoveryScore}/5 pont)`
+    );
   }
 
-  if (input.annualHours >= 5500) {
-    score += 18;
-    reasons.push("magas éves üzemóra");
-  }
+  const score = Math.min(
+    100,
+    savingsScore + sizeScore + hoursScore + benchmarkScore + profileScore + fleetScore + heatRecoveryScore
+  );
+  const label = score >= 75 ? "Forró" : score >= 55 ? "Erős" : score >= 35 ? "Közepes" : "Alap";
+  return { score, label, reasons };
+}
 
-  if (machineCount > 1) {
-    score += 12;
-    reasons.push("több gépes üzem");
-  }
+function scaledScore(value: number, cap: number, maxPoints: number) {
+  return clampScore(Math.round((Math.max(0, value) / cap) * maxPoints), maxPoints);
+}
 
-  if (benchmarkLevel === "critical") {
-    score += 15;
-    reasons.push("kritikus energiaigény benchmark");
-  } else if (benchmarkLevel === "high") {
-    score += 8;
-    reasons.push("magas energiaigény benchmark");
-  }
+function clampScore(value: number, maxPoints: number) {
+  return Math.max(0, Math.min(maxPoints, value));
+}
 
-  const label = score >= 70 ? "Forró" : score >= 45 ? "Erős" : score >= 25 ? "Közepes" : "Alap";
-  return { score: Math.min(100, score), label, reasons };
+function formatScoreHuf(value: number) {
+  return `${Math.round(value).toLocaleString("hu-HU")} Ft`;
+}
+
+function formatScoreNumber(value: number) {
+  return value.toLocaleString("hu-HU", { maximumFractionDigits: 1 });
 }
 
 function sum(values: number[]) {

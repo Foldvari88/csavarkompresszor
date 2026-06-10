@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { desc, eq, sql } from "drizzle-orm";
+import { calculateLeadScore } from "@/lib/calculator/calculate";
 import { getDb } from "./db";
 import { leads } from "./schema";
 import type { CalculationResult, LeadFormInput, LeadRecord, LeadStatus } from "@/lib/calculator/types";
@@ -76,14 +77,16 @@ export async function listLeads(): Promise<LeadRecord[]> {
   if (db) {
     await ensureLeadTable();
     const rows = await db.select().from(leads).orderBy(desc(leads.createdAt));
-    return rows.map((row) => ({
-      id: row.id,
-      createdAt: row.createdAt.toISOString(),
-      status: row.status as LeadStatus,
-      customerRating: row.customerRating ?? null,
-      input: row.input as LeadFormInput,
-      result: row.result as CalculationResult
-    }));
+    return rows.map((row) =>
+      normalizeLeadRecord({
+        id: row.id,
+        createdAt: row.createdAt.toISOString(),
+        status: row.status as LeadStatus,
+        customerRating: row.customerRating ?? null,
+        input: row.input as LeadFormInput,
+        result: row.result as CalculationResult
+      })
+    );
   }
 
   return readLocalLeads();
@@ -95,14 +98,14 @@ export async function getLead(id: string): Promise<LeadRecord | null> {
     await ensureLeadTable();
     const [row] = await db.select().from(leads).where(eq(leads.id, id)).limit(1);
     if (!row) return null;
-    return {
+    return normalizeLeadRecord({
       id: row.id,
       createdAt: row.createdAt.toISOString(),
       status: row.status as LeadStatus,
       customerRating: row.customerRating ?? null,
       input: row.input as LeadFormInput,
       result: row.result as CalculationResult
-    };
+    });
   }
 
   const records = await readLocalLeads();
@@ -161,10 +164,12 @@ async function readLocalLeads(): Promise<LeadRecord[]> {
     const records = JSON.parse(raw.replace(/^\uFEFF/, "")) as Array<
       LeadRecord & { customerRating?: number | null }
     >;
-    return records.map((lead) => ({
-      ...lead,
-      customerRating: lead.customerRating ?? null
-    }));
+    return records.map((lead) =>
+      normalizeLeadRecord({
+        ...lead,
+        customerRating: lead.customerRating ?? null
+      })
+    );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return [];
@@ -179,4 +184,14 @@ async function writeLocalLeads(records: LeadRecord[]) {
 
 function isVercelWithoutDatabase() {
   return process.env.VERCEL === "1" && !getLeadStorageInfo().isPersistent;
+}
+
+function normalizeLeadRecord(lead: LeadRecord): LeadRecord {
+  return {
+    ...lead,
+    result: {
+      ...lead.result,
+      leadScore: calculateLeadScore(lead.input, lead.result)
+    }
+  };
 }

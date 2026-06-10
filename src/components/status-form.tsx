@@ -3,9 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { LeadStatus } from "@/lib/calculator/types";
-import { formatStatus } from "@/lib/status-label";
-
-const statuses: LeadStatus[] = ["new", "contacted", "quoted", "closed", "lost"];
+import { formatStatus, leadStatusOptions } from "@/lib/status-label";
 
 export function StatusForm({
   id,
@@ -15,7 +13,9 @@ export function StatusForm({
   currentStatus: LeadStatus;
 }) {
   const router = useRouter();
-  const [status, setStatus] = useState<LeadStatus>(currentStatus);
+  const [status, setStatus] = useState<LeadStatus>(
+    currentStatus === "quoted" ? "contacted" : currentStatus
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   async function save() {
@@ -36,7 +36,7 @@ export function StatusForm({
         value={status}
         onChange={(event) => setStatus(event.target.value as LeadStatus)}
       >
-        {statuses.map((item) => (
+        {leadStatusOptions.map((item) => (
           <option key={item} value={item}>
             {formatStatus(item)}
           </option>

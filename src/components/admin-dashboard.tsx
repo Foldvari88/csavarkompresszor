@@ -5,15 +5,16 @@ import {
   Activity,
   Download,
   Filter,
+  LogOut,
   Mail,
   Search,
   Star
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
-import { formatStatus } from "@/lib/status-label";
+import { formatStatus, leadStatusOptions } from "@/lib/status-label";
 
-const statuses: Array<LeadStatus | "all"> = ["all", "new", "contacted", "quoted", "closed", "lost"];
+const statuses: Array<LeadStatus | "all"> = ["all", ...leadStatusOptions];
 
 type StorageInfo = {
   mode: "database" | "local";
@@ -41,6 +42,8 @@ export function AdminDashboard({
 
       return [
         lead.input.companyName,
+        lead.input.companyWebsite,
+        lead.input.companyActivity,
         lead.input.name,
         lead.input.email,
         lead.input.phone,
@@ -68,7 +71,7 @@ export function AdminDashboard({
             <Activity size={16} />
             Admin dashboard
           </span>
-          <h1>Lead cockpit</h1>
+          <h1>Lead tracker</h1>
           <p>Beküldött leadek, kapcsolati adatok és kampányazonosítók egy helyen.</p>
         </div>
         <div className="admin-actions">
@@ -83,6 +86,10 @@ export function AdminDashboard({
           <a className="secondary-button" href="/admin/export">
             <Download size={17} />
             CSV export
+          </a>
+          <a className="secondary-button" href="/admin/logout">
+            <LogOut size={17} />
+            Kijelentkezés
           </a>
         </div>
       </div>
@@ -99,7 +106,7 @@ export function AdminDashboard({
           <Search size={17} />
           <input
             aria-label="Lead keresése"
-            placeholder="Keresés: cég, email, telefon, kampány..."
+            placeholder="Keresés: cég, weboldal, iparág, email, telefon, kampány..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -130,6 +137,8 @@ export function AdminDashboard({
             <tr>
               <th>Dátum</th>
               <th>Cégnév</th>
+              <th>Céges weboldal</th>
+              <th>Iparág / tevékenység</th>
               <th>Kapcsolattartó</th>
               <th>Email</th>
               <th>Telefon</th>
@@ -148,7 +157,7 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={15}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={17}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -157,6 +166,21 @@ export function AdminDashboard({
                   <td>
                     <strong>{lead.input.companyName}</strong>
                   </td>
+                  <td>
+                    {lead.input.companyWebsite ? (
+                      <a
+                        className="admin-table-link"
+                        href={formatWebsiteHref(lead.input.companyWebsite)}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {lead.input.companyWebsite}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td>{lead.input.companyActivity ?? "-"}</td>
                   <td>
                     <strong>{lead.input.name || "-"}</strong>
                   </td>
@@ -184,7 +208,7 @@ export function AdminDashboard({
                     </a>
                   </td>
                   <td>
-                    <span className={`admin-status ${lead.status}`}>{formatStatus(lead.status)}</span>
+                    <LeadStatusSelect leadId={lead.id} initialStatus={normalizeVisibleStatus(lead.status)} />
                   </td>
                 </tr>
               ))
@@ -194,6 +218,65 @@ export function AdminDashboard({
       </div>
     </>
   );
+}
+
+function formatWebsiteHref(value: string) {
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+
+function LeadStatusSelect({
+  leadId,
+  initialStatus
+}: {
+  leadId: string;
+  initialStatus: LeadStatus;
+}) {
+  const [status, setStatus] = useState<LeadStatus>(initialStatus);
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function updateStatus(nextStatus: LeadStatus) {
+    const previousStatus = status;
+    setStatus(nextStatus);
+    setIsSaving(true);
+
+    try {
+      const response = await fetch(`/api/admin/leads/${leadId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus })
+      });
+
+      if (!response.ok) {
+        setStatus(previousStatus);
+      }
+    } catch {
+      setStatus(previousStatus);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <label className={`admin-status-select ${isSaving ? "is-saving" : ""}`}>
+      <span className="sr-only">Lead státusz</span>
+      <select
+        aria-label="Lead státusz módosítása"
+        disabled={isSaving}
+        value={status}
+        onChange={(event) => updateStatus(event.target.value as LeadStatus)}
+      >
+        {leadStatusOptions.map((item) => (
+          <option key={item} value={item}>
+            {formatStatus(item)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function normalizeVisibleStatus(status: LeadStatus) {
+  return status === "quoted" ? "contacted" : status;
 }
 
 function StarRating({
