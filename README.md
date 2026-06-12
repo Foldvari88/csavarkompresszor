@@ -14,7 +14,7 @@ Masold a `.env.example` ertekeit Vercel project environment variable-kent:
 - `EMAIL_REPLY_TO`: valasz email cim, ha mas legyen mint a felado
 - `EMAIL_SEQUENCE_ENABLED`: `true` vagy `false`; kikapcsolja a follow-up sorozat idoziteset
 - `APPOINTMENT_URL`: a CTA link az eredmeny es follow-up emailekben
-- `REPORT_NOTIFICATION_TO`: belso kalkulacios ertesitesek cimzettje
+- `REPORT_NOTIFICATION_TO`: belso kalkulacios, aktivitasi es konzultacios visszahivas ertesitesek cimzettje
 
 ## Neon adatbazis
 
@@ -40,6 +40,8 @@ Lead bekuldes utan az app Resenddel azonnal kikuldi a kalkulacios eredmenyt PDF 
 - 18 nap: vegso egyeztetesi CTA
 
 Az idozites Resend `scheduledAt` mezovel tortenik, minden kuldes idempotency kulcsot es Resend taget kap a lead azonositojaval.
+
+Az eredmeny es follow-up emailek konzultacios CTA-ja eloszor sajat tracking route-ra megy. Kattintas utan az app elkuldi a belso visszahivas-keres ertesitest a `REPORT_NOTIFICATION_TO` cimre, majd tovabbiranyit az `APPOINTMENT_URL` oldalra.
 
 ## Deploy
 

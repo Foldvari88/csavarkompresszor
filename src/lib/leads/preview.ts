@@ -37,6 +37,16 @@ export function createPreviewLead(): LeadRecord {
     createdAt: new Date("2026-06-04T10:00:00+02:00").toISOString(),
     status: "new",
     customerRating: 4,
+    engagement: {
+      emailOpenedAt: new Date("2026-06-04T10:12:00+02:00").toISOString(),
+      emailOpenCount: 2,
+      emailClickedAt: new Date("2026-06-04T10:14:00+02:00").toISOString(),
+      emailClickCount: 1,
+      reportDownloadedAt: new Date("2026-06-04T10:15:00+02:00").toISOString(),
+      reportDownloadCount: 1,
+      lastEmailEventAt: new Date("2026-06-04T10:15:00+02:00").toISOString(),
+      lastEmailEventType: "report.downloaded"
+    },
     input,
     result: calculateSavings(input)
   };

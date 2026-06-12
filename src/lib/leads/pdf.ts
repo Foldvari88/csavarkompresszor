@@ -36,6 +36,16 @@ export function getLeadReportLines(lead: LeadRecord) {
     `Azonosító: ${lead.id.slice(0, 8)}`,
     `Dátum: ${new Date(lead.createdAt).toLocaleString("hu-HU")}`,
     "",
+    "Cégprofil alapú személyre szabás",
+    `${input.companyName} részére készített előkalkuláció.`,
+    `Céges weboldal: ${input.companyWebsite || "-"}`,
+    `Tevékenység: ${input.companyActivity || "-"}`,
+    `Pontossági szint: ${result.companyProfile.label} - ${result.companyProfile.expectedAccuracy}`,
+    `Kompatibilitási jelzés: ${result.companyProfile.compatibilityLabel}`,
+    `${result.companyProfile.compatibilityDescription}`,
+    `Terhelési súlyozás: ${formatLoadProfileAdjustment(result.companyProfile.loadProfileAdjustment)}`,
+    ...getCompanyProfileSignalLines(result),
+    "",
     "Bemeneti adatok",
     `Céges weboldal: ${input.companyWebsite || "-"}`,
     `Tevékenység: ${input.companyActivity || "-"}`,
@@ -69,8 +79,40 @@ export function getLeadReportLines(lead: LeadRecord) {
     `${result.benchmark.label}: ${result.benchmark.description}`,
     "",
     "Következő lépés",
-    "A részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani."
+    getPersonalizedPdfNextStep(lead)
   ];
+}
+
+function getCompanyProfileSignalLines(result: CalculationResult) {
+  const signals = [
+    ...result.companyProfile.detectedSegments,
+    ...result.companyProfile.operatingSignals,
+    ...result.companyProfile.airQualitySignals
+  ].slice(0, 6);
+
+  if (signals.length === 0) return ["Cégprofil jelzések: általános ipari felhasználás."];
+  return [`Cégprofil jelzések: ${signals.join(", ")}.`];
+}
+
+function getPersonalizedPdfNextStep(lead: LeadRecord) {
+  const { input, result } = lead;
+  const activity = input.companyActivity ? `${input.companyActivity} környezetben` : "az üzemi környezetben";
+
+  if (result.heatRecovery) {
+    return `${input.companyName} esetében a következő lépés a hővisszanyerés valós felhasználási arányának pontosítása ${activity}, külön fűtési és HMV igényekkel.`;
+  }
+
+  if (result.companyProfile.loadProfileAdjustment === "intensive") {
+    return `${input.companyName} esetében a következő lépés a terhelési profil és részterhelési üzem ellenőrzése, mert intenzívebb felhasználásnál az RS/VSD megtakarítási hatás különösen fontos lehet.`;
+  }
+
+  return `${input.companyName} esetében a részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani.`;
+}
+
+function formatLoadProfileAdjustment(value: CalculationResult["companyProfile"]["loadProfileAdjustment"]) {
+  if (value === "intensive") return "intenzívebb üzemi súlyozás";
+  if (value === "conservative") return "konzervatívabb üzemi súlyozás";
+  return "standard üzemi súlyozás";
 }
 
 function getHeatRecoveryReportLines(result: CalculationResult) {
@@ -292,6 +334,7 @@ function isHeading(line: string, index: number) {
     index === 0 ||
     [
       "Bemeneti adatok",
+      "Cégprofil alapú személyre szabás",
       "Eredmény",
       "Hővisszanyerés",
       "Ajánlott modell",

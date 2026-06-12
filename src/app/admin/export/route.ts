@@ -15,6 +15,12 @@ export async function GET() {
       "companyActivity",
       "contactName",
       "email",
+      "emailOpenedAt",
+      "emailOpenCount",
+      "emailClickedAt",
+      "emailClickCount",
+      "reportDownloadedAt",
+      "reportDownloadCount",
       "phone",
       "brand",
       "category",
@@ -60,6 +66,7 @@ export async function GET() {
       "gclid",
       "gbraid",
       "wbraid",
+      "liFatId",
       "referrer"
     ],
     ...leads.map((lead) => [
@@ -71,6 +78,12 @@ export async function GET() {
       lead.input.companyActivity ?? "",
       lead.input.name ?? "",
       lead.input.email,
+      lead.engagement.emailOpenedAt ?? "",
+      String(lead.engagement.emailOpenCount),
+      lead.engagement.emailClickedAt ?? "",
+      String(lead.engagement.emailClickCount),
+      lead.engagement.reportDownloadedAt ?? "",
+      String(lead.engagement.reportDownloadCount),
       lead.input.phone ?? "",
       lead.input.brand,
       lead.input.category,
@@ -116,6 +129,7 @@ export async function GET() {
       lead.input.tracking?.gclid ?? "",
       lead.input.tracking?.gbraid ?? "",
       lead.input.tracking?.wbraid ?? "",
+      lead.input.tracking?.liFatId ?? "",
       lead.input.tracking?.referrer ?? ""
     ])
   ];

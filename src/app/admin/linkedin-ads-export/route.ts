@@ -1,7 +1,7 @@
 import {
   adConversionCurrency,
   getLeadAdQuality,
-  googleAdsQualifiedLeadConversionName,
+  linkedinAdsQualifiedLeadConversionName,
   normalizeEmail,
   normalizePhone,
   sha256
@@ -15,7 +15,7 @@ export async function GET() {
   const rows = [
     [
       "leadId",
-      "readyForGoogleAds",
+      "readyForLinkedInAds",
       "conversionName",
       "conversionDateTime",
       "conversionValue",
@@ -25,25 +25,24 @@ export async function GET() {
       "statusLabel",
       "customerRating",
       "leadScore",
-      "googleClickIdType",
-      "gclid",
-      "gbraid",
-      "wbraid",
+      "liFatId",
       "hashedEmailSha256",
       "hashedPhoneSha256",
       "companyName",
+      "companyWebsite",
       "annualHufSaved",
       "utmSource",
-      "utmCampaign"
+      "utmCampaign",
+      "referrer"
     ],
     ...leads.map((lead) => {
       const quality = getLeadAdQuality(lead);
 
       return [
         lead.id,
-        quality.readyForGoogleAds ? "true" : "false",
-        googleAdsQualifiedLeadConversionName,
-        toGoogleAdsDateTime(new Date(lead.createdAt)),
+        quality.readyForLinkedInAds ? "true" : "false",
+        linkedinAdsQualifiedLeadConversionName,
+        new Date(lead.createdAt).toISOString(),
         String(quality.conversionValueHuf),
         adConversionCurrency,
         quality.stage,
@@ -51,16 +50,15 @@ export async function GET() {
         quality.statusLabel,
         quality.rating ? String(quality.rating) : "",
         String(quality.score),
-        quality.googleClickIdType,
-        lead.input.tracking?.gclid ?? "",
-        lead.input.tracking?.gbraid ?? "",
-        lead.input.tracking?.wbraid ?? "",
+        quality.linkedInClickId,
         sha256(normalizeEmail(lead.input.email)),
         sha256(normalizePhone(lead.input.phone)),
         lead.input.companyName,
+        lead.input.companyWebsite ?? "",
         String(quality.annualPotential),
         lead.input.tracking?.utmSource ?? "",
-        lead.input.tracking?.utmCampaign ?? ""
+        lead.input.tracking?.utmCampaign ?? "",
+        lead.input.tracking?.referrer ?? ""
       ];
     })
   ];
@@ -70,35 +68,9 @@ export async function GET() {
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": "attachment; filename=google-ads-lead-quality-export.csv"
+      "Content-Disposition": "attachment; filename=linkedin-ads-lead-quality-export.csv"
     }
   });
-}
-
-function toGoogleAdsDateTime(date: Date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Budapest",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    timeZoneName: "shortOffset"
-  }).formatToParts(date);
-
-  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
-  const offset = normalizeOffset(get("timeZoneName"));
-
-  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}${offset}`;
-}
-
-function normalizeOffset(value: string) {
-  const match = value.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
-  if (!match) return "+00:00";
-  const [, sign, hour, minute = "00"] = match;
-  return `${sign}${hour.padStart(2, "0")}:${minute}`;
 }
 
 function csvCell(value: string) {

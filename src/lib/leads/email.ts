@@ -99,7 +99,7 @@ const sequenceSteps = [
       "Ha nincs elég potenciál, azt is gyorsan ki lehet mondani.",
       "Ha van, a beszerzés már pontosabb gép- és ROI-iránnyal indulhat."
     ],
-    cta: "Foglalok egy 15 perces egyeztetést"
+    cta: "Konzultációs visszahívás kérése"
   }
 ] as const;
 
@@ -137,7 +137,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
       from,
       replyTo,
       to: lead.input.email,
-      subject: "Az Ön csavarkompresszor energiahatékonysági kalkulációja",
+      subject: `Személyre szabott csavarkompresszor riport: ${lead.input.companyName}`,
       html: renderCustomerEmail(lead),
       attachments: lead.result.companyProfile.engineeringPdfEligible ? [pdfAttachment] : [],
       tags: [
@@ -181,6 +181,93 @@ export async function sendLeadEmails(lead: LeadRecord) {
     customerEmailId: customerEmail.data?.id ?? null,
     sequence
   };
+}
+
+export async function sendLeadEngagementNotification({
+  lead,
+  type,
+  occurredAt,
+  detail
+}: {
+  lead: LeadRecord;
+  type: "email.opened" | "email.clicked" | "report.downloaded";
+  occurredAt: Date;
+  detail?: string;
+}) {
+  const client = getResend();
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO;
+
+  if (!client || !notificationTo) {
+    return { mode: "skipped" as const };
+  }
+
+  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulator <onboarding@resend.dev>";
+  const replyTo = process.env.EMAIL_REPLY_TO;
+  const eventLabel = formatEngagementEventType(type);
+
+  await client.emails.send(
+    {
+      from,
+      replyTo,
+      to: notificationTo.split(",").map((email) => email.trim()),
+      subject: `${eventLabel}: ${lead.input.companyName}`,
+      html: renderLeadEngagementNotificationEmail({ lead, type, occurredAt, detail }),
+      tags: [
+        { name: "category", value: "lead-engagement-notification" },
+        { name: "leadId", value: lead.id },
+        { name: "eventType", value: type.replace(".", "-") }
+      ]
+    },
+    {
+      headers: {
+        "Idempotency-Key": `lead-engagement-${lead.id}-${type}-${occurredAt.toISOString()}`
+      }
+    }
+  );
+
+  return { mode: "sent" as const };
+}
+
+export async function sendConsultationRequestNotification({
+  lead,
+  occurredAt,
+  source
+}: {
+  lead: LeadRecord;
+  occurredAt: Date;
+  source: string;
+}) {
+  const client = getResend();
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO;
+
+  if (!client || !notificationTo) {
+    return { mode: "skipped" as const };
+  }
+
+  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulator <onboarding@resend.dev>";
+  const replyTo = process.env.EMAIL_REPLY_TO;
+
+  await client.emails.send(
+    {
+      from,
+      replyTo,
+      to: notificationTo.split(",").map((email) => email.trim()),
+      subject: `Konzultacios visszahivas keres: ${lead.input.companyName}`,
+      html: renderConsultationRequestNotificationEmail({ lead, occurredAt, source }),
+      tags: [
+        { name: "category", value: "consultation-request-notification" },
+        { name: "leadId", value: lead.id },
+        { name: "source", value: source.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 64) }
+      ]
+    },
+    {
+      headers: {
+        "Idempotency-Key": `consultation-request-${lead.id}-${source}-${occurredAt.toISOString()}`
+      }
+    }
+  );
+
+  return { mode: "sent" as const };
 }
 
 async function scheduleLeadSequence({
@@ -249,14 +336,21 @@ async function scheduleLeadSequence({
 
 export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOptions = {}) {
   const { result, input } = lead;
-  const appointmentUrl = getAppointmentUrl();
+  const appointmentUrl = getTrackedAppointmentUrl(lead, "result-email");
+  const reportDownloadUrl = getTrackedReportDownloadUrl(lead);
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
+  const personalizedIntro = getPersonalizedIntro(lead);
+  const personalizedNextStep = getPersonalizedNextStep(lead);
   const engineeringPdfEligible = result.companyProfile.engineeringPdfEligible;
   const engineeringPdfNotice = engineeringPdfEligible
     ? "A mérnöki PDF riportot csatoltuk az emailhez."
     : "Céges emaillel a rendszer mérnöki PDF-et, részletes géptípus-ajánlást és visszahívási opciót is ad.";
   const html = emailShell(`
-    <p>Köszönjük a kalkulációt. A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
+    <p>Tisztelt ${escapeHtml(input.name)}!</p>
+    <p>Köszönjük, hogy elküldte részünkre a csavarkompresszor energiahatékonysági kalkulációhoz szükséges adatokat.</p>
+    <p>${escapeHtml(personalizedIntro)}</p>
+    ${renderCompanyProfileEmailBlock(lead)}
+    <p>A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
     <div class="metric">${formatHuf(result.annualHufSaved)} / év</div>
     ${engineeringPdfEligible ? renderRecommendedProductImage(result, options) : ""}
     <p>Ez körülbelül ${formatNumber(result.annualKwhSaved)} kWh villamosenergia-megtakarítás évente, ${formatNumber(input.annualHours)} üzemórával és ${formatHuf(input.energyPriceHufKwh)} / kWh áramárral számolva.</p>
@@ -269,8 +363,15 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
       <tr><td>Lead prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
     </table>
     <p>${escapeHtml(engineeringPdfNotice)}</p>
+    ${
+      engineeringPdfEligible
+        ? `<p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">Mernoki PDF riport letoltese</a></p>`
+        : ""
+    }
     <p>${escapeHtml(result.priority.description)}</p>
-    <p><a class="cta" href="${escapeHtml(appointmentUrl)}">15 perces műszaki egyeztetés foglalása</a></p>
+    <p>${escapeHtml(personalizedNextStep)}</p>
+    <p><a class="cta" href="${escapeHtml(appointmentUrl)}">Konzultációs visszahívás kérése</a></p>
+    ${renderCustomerEmailSignature()}
     <p class="fine">${result.assumptions.map(escapeHtml).join("<br>")}</p>
   `);
   return engineeringPdfEligible ? html : stripEngineeringDetailsFromCustomerEmail(html, result);
@@ -302,13 +403,13 @@ function escapeRegExp(value: string) {
 }
 
 function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[number]) {
-  const appointmentUrl = getAppointmentUrl();
+  const appointmentUrl = getTrackedAppointmentUrl(lead, step.id);
   const { result, input } = lead;
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
   return emailShell(`
     <div class="preheader">${escapeHtml(step.preview)}</div>
     <h1>${escapeHtml(step.heading)}</h1>
-    <p>Kedves ${escapeHtml(input.name)}!</p>
+    <p>Tisztelt ${escapeHtml(input.name)}!</p>
     <p>${escapeHtml(step.intro)}</p>
     <div class="summary-box">
       <strong>${escapeHtml(input.companyName)} kalkulációs összefoglaló</strong>
@@ -356,6 +457,71 @@ export function renderInternalNotificationEmail(
   `);
 }
 
+export function renderLeadEngagementNotificationEmail({
+  lead,
+  type,
+  occurredAt,
+  detail
+}: {
+  lead: LeadRecord;
+  type: "email.opened" | "email.clicked" | "report.downloaded";
+  occurredAt: Date;
+  detail?: string;
+}) {
+  return emailShell(`
+    <p>${escapeHtml(formatEngagementEventType(type))} tortent egy kalkulator leadnel.</p>
+    <table>
+      <tr><td>Ceg</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Kapcsolattarto</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
+      <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
+      <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
+      <tr><td>Esemeny</td><td>${escapeHtml(formatEngagementEventType(type))}</td></tr>
+      <tr><td>Idopont</td><td>${escapeHtml(
+        occurredAt.toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })
+      )}</td></tr>
+      <tr><td>Email megnyitas</td><td>${formatEngagementSummary(
+        lead.engagement.emailOpenedAt,
+        lead.engagement.emailOpenCount
+      )}</td></tr>
+      <tr><td>Riport letoltes</td><td>${formatEngagementSummary(
+        lead.engagement.reportDownloadedAt,
+        lead.engagement.reportDownloadCount
+      )}</td></tr>
+      ${detail ? `<tr><td>Reszlet</td><td>${escapeHtml(detail)}</td></tr>` : ""}
+    </table>
+  `);
+}
+
+export function renderConsultationRequestNotificationEmail({
+  lead,
+  occurredAt,
+  source
+}: {
+  lead: LeadRecord;
+  occurredAt: Date;
+  source: string;
+}) {
+  return emailShell(`
+    <p>Konzultacios visszahivas kerest inditott egy kalkulator lead.</p>
+    <table>
+      <tr><td>Ceg</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Kapcsolattarto</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
+      <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
+      <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
+      <tr><td>Forras CTA</td><td>${escapeHtml(source)}</td></tr>
+      <tr><td>Idopont</td><td>${escapeHtml(
+        occurredAt.toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })
+      )}</td></tr>
+      <tr><td>Prioritas</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
+      <tr><td>Eves megtakaritas</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
+      <tr><td>Ajanlott modell</td><td>${escapeHtml(
+        formatCompressorModel(lead.result.recommendedModel)
+      )}</td></tr>
+    </table>
+    <p>Erre a leadre erdemes gyorsan visszatelefonalni, mert aktiv egyeztetesi szandekot jelzett.</p>
+  `);
+}
+
 function renderRecommendedProductImage(
   result: CalculationResult,
   options: RenderEmailOptions = {}
@@ -398,6 +564,76 @@ function renderHeatRecoveryRows(result: CalculationResult) {
     `;
 }
 
+function renderCompanyProfileEmailBlock(lead: LeadRecord) {
+  const { input, result } = lead;
+  const detectedContext = [
+    ...result.companyProfile.detectedSegments,
+    ...result.companyProfile.operatingSignals,
+    ...result.companyProfile.airQualitySignals
+  ].slice(0, 5);
+
+  return `
+    <div class="profile-box">
+      <strong>${escapeHtml(input.companyName)} cégprofil alapján súlyozott kalkuláció</strong>
+      <p>A megadott weboldal és tevékenység alapján a riport nem általános sablonként, hanem a várható felhasználási környezethez igazítva készült.</p>
+      <table>
+        <tr><td>Céges weboldal</td><td>${escapeHtml(input.companyWebsite || "-")}</td></tr>
+        <tr><td>Tevékenység</td><td>${escapeHtml(input.companyActivity || "-")}</td></tr>
+        <tr><td>Pontossági szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
+          result.companyProfile.expectedAccuracy
+        )}</td></tr>
+        <tr><td>Kompatibilitási jelzés</td><td>${escapeHtml(result.companyProfile.compatibilityLabel)}</td></tr>
+        <tr><td>Terhelési súlyozás</td><td>${escapeHtml(formatLoadProfileAdjustment(result.companyProfile.loadProfileAdjustment))}</td></tr>
+      </table>
+      ${
+        detectedContext.length
+          ? `<p class="profile-tags">${detectedContext.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</p>`
+          : ""
+      }
+    </div>
+  `;
+}
+
+function renderCustomerEmailSignature() {
+  return `
+    <div class="signature">
+      <p>Tisztelettel,</p>
+      <strong>az IpariKalkulator.hu csapata</strong>
+    </div>
+  `;
+}
+
+function getPersonalizedIntro(lead: LeadRecord) {
+  const { input, result } = lead;
+  const websitePart = input.companyWebsite ? ` (${input.companyWebsite})` : "";
+  const activityPart = input.companyActivity
+    ? `, ${input.companyActivity.toLowerCase()} jellegű felhasználás mellett`
+    : "";
+
+  return `${input.companyName}${websitePart} részére elkészítettük a csavarkompresszor energiahatékonysági előkalkulációt${activityPart}. A számítás a megadott üzemórát, áramdíjat, jelenlegi gépadatokat és a cégprofil alapján becsült felhasználási környezetet veszi figyelembe. Pontossági szint: ${result.companyProfile.label}, várható pontosság: ${result.companyProfile.expectedAccuracy}.`;
+}
+
+function getPersonalizedNextStep(lead: LeadRecord) {
+  const { input, result } = lead;
+  const activity = input.companyActivity ? `${input.companyActivity} környezetben` : "az Ön üzemében";
+
+  if (result.heatRecovery) {
+    return `${input.companyName} esetében a következő szakmai lépés annak ellenőrzése, hogy ${activity} a hővisszanyerés milyen arányban használható fűtésre vagy HMV célra, és mekkora gázköltség váltható ki valós üzemi adatokkal.`;
+  }
+
+  if (result.companyProfile.loadProfileAdjustment === "intensive") {
+    return `${input.companyName} esetében érdemes a terhelési profilt és a részterhelési üzemet külön pontosítani, mert intenzívebb felhasználásnál az RS/VSD technológia megtakarítási hatása erősebben jelentkezhet.`;
+  }
+
+  return `${input.companyName} esetében a következő lépés a tényleges levegőigény, üzemi nyomás és tartalékkapacitás rövid pontosítása, hogy az ajánlott géptartomány üzemi oldalról is illeszkedjen.`;
+}
+
+function formatLoadProfileAdjustment(value: CalculationResult["companyProfile"]["loadProfileAdjustment"]) {
+  if (value === "intensive") return "intenzívebb üzemi súlyozás";
+  if (value === "conservative") return "konzervatívabb üzemi súlyozás";
+  return "standard üzemi súlyozás";
+}
+
 function formatSequenceStatus(sequence?: SequenceScheduleResult) {
   if (!sequence) return "nem futott";
   if (sequence.mode === "scheduled") {
@@ -409,8 +645,36 @@ function formatSequenceStatus(sequence?: SequenceScheduleResult) {
   return `kihagyva: ${sequence.reason}`;
 }
 
-function getAppointmentUrl() {
+export function getAppointmentUrl() {
   return process.env.APPOINTMENT_URL ?? defaultAppointmentUrl;
+}
+
+function getTrackedReportDownloadUrl(lead: LeadRecord) {
+  return `${getPublicBaseUrl()}/api/reports/${lead.id}/download`;
+}
+
+function getTrackedAppointmentUrl(lead: LeadRecord, source: string) {
+  return `${getPublicBaseUrl()}/api/leads/${lead.id}/appointment?source=${encodeURIComponent(source)}`;
+}
+
+function getPublicBaseUrl() {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
+  return (configured ?? "https://csavarkompresszor.hu").replace(/\/+$/, "");
+}
+
+function formatEngagementEventType(type: "email.opened" | "email.clicked" | "report.downloaded") {
+  if (type === "email.opened") return "Email megnyitva";
+  if (type === "email.clicked") return "Email link kattintas";
+  return "Riport letoltve";
+}
+
+function formatEngagementSummary(firstAt: string | null, count: number) {
+  if (!firstAt) return "meg nem tortent";
+  return `${new Date(firstAt).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })} (${count}x)`;
 }
 
 function emailShell(content: string) {
@@ -434,10 +698,20 @@ function emailShell(content: string) {
           .product-photo strong { color:#17202a; display:block; font-size:20px; line-height:1.25; }
           .product-photo small { color:#64748b; display:block; font-size:13px; margin-top:5px; }
           .summary-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin:18px 0; }
+          .profile-box { background:#f8fafc; border:1px solid #d7dee8; border-left:4px solid #303184; border-radius:10px; padding:16px; margin:18px 0; }
+          .profile-box strong { color:#17202a; display:block; font-size:16px; margin-bottom:8px; }
+          .profile-box table { margin:12px 0; }
+          .profile-tags { margin:10px 0 0; }
+          .profile-tags span { background:#eef2ff; border:1px solid #dbe3ff; border-radius:999px; color:#303184; display:inline-block; font-size:12px; font-weight:700; margin:0 6px 6px 0; padding:6px 9px; }
+          .signature { border-top:1px solid #d7dee8; margin-top:24px; padding-top:18px; }
+          .signature p { margin:0 0 6px; }
+          .signature strong { color:#17202a; display:block; font-size:16px; margin-bottom:4px; }
+          .signature span { color:#64748b; display:block; font-size:13px; line-height:1.5; }
           table { width:100%; border-collapse:collapse; margin:18px 0; }
           td { border-bottom:1px solid #e2e8f0; padding:12px 0; vertical-align:top; }
           td:first-child { color:#64748b; width:44%; }
           .cta { background:#d92d20; border-radius:8px; color:#ffffff !important; display:inline-block; font-weight:700; padding:12px 16px; text-decoration:none; }
+          .secondary-cta { background:#17202a; border-radius:8px; color:#ffffff !important; display:inline-block; font-weight:700; padding:12px 16px; text-decoration:none; }
           .fine { color:#64748b; font-size:13px; line-height:1.6; }
         </style>
       </head>

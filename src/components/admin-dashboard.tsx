@@ -4,12 +4,17 @@ import Link from "next/link";
 import {
   Activity,
   Download,
+  Eye,
+  FileCheck,
   Filter,
+  Linkedin,
   LogOut,
   Mail,
   Search,
-  Star
+  Star,
+  Trash2
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
 import { formatStatus, leadStatusOptions } from "@/lib/status-label";
@@ -30,12 +35,13 @@ export function AdminDashboard({
   leads: LeadRecord[];
   storageInfo: StorageInfo;
 }) {
+  const [leadRows, setLeadRows] = useState(leads);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<LeadStatus | "all">("all");
 
   const filteredLeads = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return leads.filter((lead) => {
+    return leadRows.filter((lead) => {
       const statusMatches = status === "all" || lead.status === status;
       if (!statusMatches) return false;
       if (!normalizedQuery) return true;
@@ -53,6 +59,7 @@ export function AdminDashboard({
         lead.input.tracking?.gclid,
         lead.input.tracking?.gbraid,
         lead.input.tracking?.wbraid,
+        lead.input.tracking?.liFatId,
         lead.input.tracking?.referrer,
         lead.status
       ]
@@ -61,7 +68,7 @@ export function AdminDashboard({
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [leads, query, status]);
+  }, [leadRows, query, status]);
 
   return (
     <>
@@ -82,6 +89,10 @@ export function AdminDashboard({
           <a className="secondary-button" href="/admin/google-ads-export">
             <Download size={17} />
             Google Ads export
+          </a>
+          <a className="secondary-button" href="/admin/linkedin-ads-export">
+            <Linkedin size={17} />
+            LinkedIn Ads export
           </a>
           <a className="secondary-button" href="/admin/export">
             <Download size={17} />
@@ -141,6 +152,8 @@ export function AdminDashboard({
               <th>Iparág / tevékenység</th>
               <th>Kapcsolattartó</th>
               <th>Email</th>
+              <th>Email megnyitas</th>
+              <th>Riport letoltes</th>
               <th>Telefon</th>
               <th>Score</th>
               <th>Csillag</th>
@@ -149,15 +162,17 @@ export function AdminDashboard({
               <th>GCLID</th>
               <th>GBRAID</th>
               <th>WBRAID</th>
+              <th>LI FAT ID</th>
               <th>Referrer</th>
               <th>PDF</th>
               <th>Státusz</th>
+              <th>Törlés</th>
             </tr>
           </thead>
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={17}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={21}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -185,6 +200,20 @@ export function AdminDashboard({
                     <strong>{lead.input.name || "-"}</strong>
                   </td>
                   <td>{lead.input.email}</td>
+                  <td>
+                    <EngagementBadge
+                      count={lead.engagement.emailOpenCount}
+                      icon={<Eye size={15} />}
+                      timestamp={lead.engagement.emailOpenedAt}
+                    />
+                  </td>
+                  <td>
+                    <EngagementBadge
+                      count={lead.engagement.reportDownloadCount}
+                      icon={<FileCheck size={15} />}
+                      timestamp={lead.engagement.reportDownloadedAt}
+                    />
+                  </td>
                   <td>{lead.input.phone || "-"}</td>
                   <td>
                     <span className={`admin-score ${getScoreLevel(lead.result.leadScore?.score ?? 0)}`}>
@@ -200,6 +229,7 @@ export function AdminDashboard({
                   <td className="tracking-cell">{lead.input.tracking?.gclid ?? "-"}</td>
                   <td className="tracking-cell">{lead.input.tracking?.gbraid ?? "-"}</td>
                   <td className="tracking-cell">{lead.input.tracking?.wbraid ?? "-"}</td>
+                  <td className="tracking-cell">{lead.input.tracking?.liFatId ?? "-"}</td>
                   <td className="tracking-cell">{lead.input.tracking?.referrer ?? "-"}</td>
                   <td>
                     <a className="admin-button compact" href={`/admin/leads/${lead.id}/report`}>
@@ -209,6 +239,15 @@ export function AdminDashboard({
                   </td>
                   <td>
                     <LeadStatusSelect leadId={lead.id} initialStatus={normalizeVisibleStatus(lead.status)} />
+                  </td>
+                  <td>
+                    <DeleteLeadButton
+                      companyName={lead.input.companyName}
+                      leadId={lead.id}
+                      onDeleted={() =>
+                        setLeadRows((currentRows) => currentRows.filter((item) => item.id !== lead.id))
+                      }
+                    />
                   </td>
                 </tr>
               ))
@@ -222,6 +261,35 @@ export function AdminDashboard({
 
 function formatWebsiteHref(value: string) {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+
+function EngagementBadge({
+  count,
+  icon,
+  timestamp
+}: {
+  count: number;
+  icon: ReactNode;
+  timestamp: string | null;
+}) {
+  if (!timestamp) {
+    return <span className="engagement-badge empty">nem</span>;
+  }
+
+  return (
+    <span className="engagement-badge active">
+      {icon}
+      <strong>{formatDateTime(timestamp)}</strong>
+      <small>{count}x</small>
+    </span>
+  );
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("hu-HU", {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
 }
 
 function LeadStatusSelect({
@@ -324,6 +392,55 @@ function StarRating({
         </button>
       ))}
     </div>
+  );
+}
+
+function DeleteLeadButton({
+  companyName,
+  leadId,
+  onDeleted
+}: {
+  companyName: string;
+  leadId: string;
+  onDeleted: () => void;
+}) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function deleteRow() {
+    const confirmed = window.confirm(
+      `Biztosan törlöd ezt a leadet?\n\n${companyName}\n\nA törlés az adminból és az adatbázisból is eltávolítja a sort.`
+    );
+
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        throw new Error("delete_failed");
+      }
+
+      onDeleted();
+    } catch {
+      window.alert("A lead törlése nem sikerült. Próbáld újra.");
+      setIsDeleting(false);
+    }
+  }
+
+  return (
+    <button
+      aria-label={`${companyName} lead törlése`}
+      className="admin-delete-button"
+      disabled={isDeleting}
+      type="button"
+      onClick={deleteRow}
+    >
+      <Trash2 size={15} />
+      {isDeleting ? "Törlés..." : "Törlés"}
+    </button>
   );
 }
 

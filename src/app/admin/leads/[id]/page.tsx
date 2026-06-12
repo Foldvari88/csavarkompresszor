@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Mail, Phone, Zap } from "lucide-react";
+import { ArrowLeft, Eye, FileCheck, Mail, MousePointerClick, Phone, Zap } from "lucide-react";
 import { StatusForm } from "@/components/status-form";
 import { getLead } from "@/lib/leads/store";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
@@ -44,6 +44,34 @@ export default async function LeadDetailPage({
               <Kv label="Iparág / tevékenység" value={lead.input.companyActivity || "-"} />
               <Kv label="Név" value={lead.input.name || "-"} />
               <Kv label="Beküldve" value={new Date(lead.createdAt).toLocaleString("hu-HU")} />
+            </div>
+          </section>
+
+          <section className="lead-card">
+            <h2>Email aktivitás</h2>
+            <div className="kv-grid">
+              <Kv
+                label="Email megnyitva"
+                value={formatEngagementDate(lead.engagement.emailOpenedAt, lead.engagement.emailOpenCount)}
+                icon={<Eye size={15} />}
+              />
+              <Kv
+                label="Email link kattintas"
+                value={formatEngagementDate(lead.engagement.emailClickedAt, lead.engagement.emailClickCount)}
+                icon={<MousePointerClick size={15} />}
+              />
+              <Kv
+                label="Riport letoltve"
+                value={formatEngagementDate(
+                  lead.engagement.reportDownloadedAt,
+                  lead.engagement.reportDownloadCount
+                )}
+                icon={<FileCheck size={15} />}
+              />
+              <Kv
+                label="Utolso email esemeny"
+                value={lead.engagement.lastEmailEventAt ? formatDateTime(lead.engagement.lastEmailEventAt) : "-"}
+              />
             </div>
           </section>
 
@@ -147,6 +175,15 @@ export default async function LeadDetailPage({
       </div>
     </main>
   );
+}
+
+function formatEngagementDate(value: string | null, count: number) {
+  if (!value) return "nem tortent meg";
+  return `${formatDateTime(value)} (${count}x)`;
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("hu-HU");
 }
 
 function Kv({

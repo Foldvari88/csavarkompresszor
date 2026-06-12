@@ -13,6 +13,7 @@ const campaignTrackingSchema = z.object({
   gclid: z.string().max(300).optional(),
   gbraid: z.string().max(300).optional(),
   wbraid: z.string().max(300).optional(),
+  liFatId: z.string().max(300).optional(),
   referrer: z.string().max(500).optional()
 });
 

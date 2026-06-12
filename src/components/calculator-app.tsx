@@ -1163,6 +1163,7 @@ function getCampaignTracking(): CampaignTracking {
     gclid: params.get("gclid") ?? undefined,
     gbraid: params.get("gbraid") ?? undefined,
     wbraid: params.get("wbraid") ?? undefined,
+    liFatId: params.get("li_fat_id") ?? params.get("liFatId") ?? undefined,
     referrer: document.referrer || undefined
   };
 }

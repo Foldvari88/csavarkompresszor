@@ -21,6 +21,7 @@ export type CampaignTracking = {
   gclid?: string;
   gbraid?: string;
   wbraid?: string;
+  liFatId?: string;
   referrer?: string;
 };
 
@@ -195,6 +196,18 @@ export type LeadRecord = {
   createdAt: string;
   status: LeadStatus;
   customerRating: number | null;
+  engagement: LeadEmailEngagement;
   input: LeadFormInput;
   result: CalculationResult;
+};
+
+export type LeadEmailEngagement = {
+  emailOpenedAt: string | null;
+  emailOpenCount: number;
+  emailClickedAt: string | null;
+  emailClickCount: number;
+  reportDownloadedAt: string | null;
+  reportDownloadCount: number;
+  lastEmailEventAt: string | null;
+  lastEmailEventType: string | null;
 };
