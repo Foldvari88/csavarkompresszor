@@ -1,6 +1,6 @@
-export const siteUrl = "https://csavarkompresszorkalkulator.hu";
+export const siteUrl = "https://iparikalkulator.hu";
 
-export const siteName = "CsavarkompresszorKalkulator.hu";
+export const siteName = "IpariKalkulator.hu";
 
 export const defaultDescription =
   "Ipari csavarkompresszor megtakarítás kalkulátor éves energiafogyasztás, kWh-különbség és becsült villamosenergia-költség számításához.";
@@ -53,4 +53,3 @@ export const legalRoutes = [
 export function absoluteUrl(path = "/") {
   return new URL(path, siteUrl).toString();
 }
-

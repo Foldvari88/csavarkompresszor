@@ -146,7 +146,7 @@ function getSiteUrl() {
   const rawUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.APP_URL ??
-    "https://csavarkompresszorkalkulator.hu";
+    "https://iparikalkulator.hu";
 
   return rawUrl.replace(/\/$/, "");
 }
