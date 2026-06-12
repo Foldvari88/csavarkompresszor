@@ -22,8 +22,8 @@ type SequenceScheduleResult =
 
 let resend: Resend | null = null;
 
-const defaultAppointmentUrl =
-  "https://calendly.com/csavarkompresszor-kalkulator/15-perces-muszakiegyeztetes";
+const defaultConsultationNotificationTo = "info@iparikalkulator.hu";
+const consultationNotificationTo = "info@iparikalkulator.hu";
 
 const sequenceSteps = [
   {
@@ -112,11 +112,27 @@ function getResend() {
   return resend;
 }
 
+function getReplyTo() {
+  return normalizeOptionalEmail(process.env.EMAIL_REPLY_TO) ?? defaultConsultationNotificationTo;
+}
+
+function normalizeOptionalEmail(value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function getEmailRecipients(value: string) {
+  return value
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+}
+
 export async function sendLeadEmails(lead: LeadRecord) {
   const client = getResend();
   const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
-  const replyTo = process.env.EMAIL_REPLY_TO;
-  const notificationTo = process.env.REPORT_NOTIFICATION_TO;
+  const replyTo = getReplyTo();
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultConsultationNotificationTo;
 
   if (!client) {
     console.info("RESEND_API_KEY is not configured; lead emails were skipped.", {
@@ -132,13 +148,15 @@ export async function sendLeadEmails(lead: LeadRecord) {
     content: pdf,
     contentType: "application/pdf"
   };
+  const customerHtml = renderCustomerEmail(lead);
   const customerEmail = await client.emails.send(
     {
       from,
       replyTo,
       to: lead.input.email,
       subject: `Személyre szabott csavarkompresszor riport: ${lead.input.companyName}`,
-      html: renderCustomerEmail(lead),
+      html: customerHtml,
+      text: renderPlainTextFromHtml(customerHtml),
       attachments: lead.result.companyProfile.engineeringPdfEligible ? [pdfAttachment] : [],
       tags: [
         { name: "category", value: "calculator-result" },
@@ -152,16 +170,18 @@ export async function sendLeadEmails(lead: LeadRecord) {
     }
   );
 
-  const sequence = await scheduleLeadSequence({ client, from, lead, replyTo });
+  let notificationEmailId: string | null = null;
 
   if (notificationTo) {
-    await client.emails.send(
+    const notificationHtml = renderInternalNotificationEmail(lead);
+    const notificationEmail = await client.emails.send(
       {
         from,
         replyTo,
-        to: notificationTo.split(",").map((email) => email.trim()),
+        to: getEmailRecipients(notificationTo),
         subject: `Új csavarkompresszor kalkuláció: ${lead.input.companyName}`,
-        html: renderInternalNotificationEmail(lead, sequence),
+        html: notificationHtml,
+        text: renderPlainTextFromHtml(notificationHtml),
         attachments: [pdfAttachment],
         tags: [
           { name: "category", value: "lead-notification" },
@@ -174,11 +194,16 @@ export async function sendLeadEmails(lead: LeadRecord) {
         }
       }
     );
+
+    notificationEmailId = notificationEmail.data?.id ?? null;
   }
+
+  const sequence = await scheduleLeadSequence({ client, from, lead, replyTo });
 
   return {
     mode: "sent" as const,
     customerEmailId: customerEmail.data?.id ?? null,
+    notificationEmailId,
     sequence
   };
 }
@@ -195,23 +220,25 @@ export async function sendLeadEngagementNotification({
   detail?: string;
 }) {
   const client = getResend();
-  const notificationTo = process.env.REPORT_NOTIFICATION_TO;
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultConsultationNotificationTo;
 
-  if (!client || !notificationTo) {
+  if (!client) {
     return { mode: "skipped" as const };
   }
 
-  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulator <onboarding@resend.dev>";
-  const replyTo = process.env.EMAIL_REPLY_TO;
+  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
+  const replyTo = getReplyTo();
   const eventLabel = formatEngagementEventType(type);
+  const html = renderLeadEngagementNotificationEmail({ lead, type, occurredAt, detail });
 
   await client.emails.send(
     {
       from,
       replyTo,
-      to: notificationTo.split(",").map((email) => email.trim()),
+      to: getEmailRecipients(notificationTo),
       subject: `${eventLabel}: ${lead.input.companyName}`,
-      html: renderLeadEngagementNotificationEmail({ lead, type, occurredAt, detail }),
+      html,
+      text: renderPlainTextFromHtml(html),
       tags: [
         { name: "category", value: "lead-engagement-notification" },
         { name: "leadId", value: lead.id },
@@ -238,22 +265,24 @@ export async function sendConsultationRequestNotification({
   source: string;
 }) {
   const client = getResend();
-  const notificationTo = process.env.REPORT_NOTIFICATION_TO;
+  const notificationTo = consultationNotificationTo;
 
-  if (!client || !notificationTo) {
+  if (!client) {
     return { mode: "skipped" as const };
   }
 
-  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulator <onboarding@resend.dev>";
-  const replyTo = process.env.EMAIL_REPLY_TO;
+  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
+  const replyTo = getReplyTo();
+  const html = renderConsultationRequestNotificationEmail({ lead, occurredAt, source });
 
   await client.emails.send(
     {
       from,
       replyTo,
-      to: notificationTo.split(",").map((email) => email.trim()),
-      subject: `Konzultacios visszahivas keres: ${lead.input.companyName}`,
-      html: renderConsultationRequestNotificationEmail({ lead, occurredAt, source }),
+      to: getEmailRecipients(notificationTo),
+      subject: "visszahívást kértek",
+      html,
+      text: renderPlainTextFromHtml(html),
       tags: [
         { name: "category", value: "consultation-request-notification" },
         { name: "leadId", value: lead.id },
@@ -293,13 +322,15 @@ async function scheduleLeadSequence({
     const scheduled = [];
 
     for (const step of sequenceSteps) {
+      const html = renderSequenceEmail(lead, step);
       const response = await client.emails.send(
         {
           from,
           replyTo,
           to: lead.input.email,
           subject: step.subject,
-          html: renderSequenceEmail(lead, step),
+          html,
+          text: renderPlainTextFromHtml(html),
           scheduledAt: step.delay,
           tags: [
             { name: "category", value: "lead-sequence" },
@@ -365,7 +396,7 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
     <p>${escapeHtml(engineeringPdfNotice)}</p>
     ${
       engineeringPdfEligible
-        ? `<p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">Mernoki PDF riport letoltese</a></p>`
+        ? `<p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">Mérnöki PDF riport letöltése</a></p>`
         : ""
     }
     <p>${escapeHtml(result.priority.description)}</p>
@@ -385,12 +416,12 @@ function stripEngineeringDetailsFromCustomerEmail(html: string, result: Calculat
   return html
     .replace(
       new RegExp(`<p>[\\s\\S]*?${recommendedModelName}[\\s\\S]*?</p>`, "i"),
-      "<p>Koszonjuk a kalkulaciot. Az altalanos iparagi becsles alapjan a varhato eves megtakaritasi potencial:</p>"
+      "<p>Köszönjük a kalkulációt. Az általános iparági becslés alapján a várható éves megtakarítási potenciál:</p>"
     )
     .replace(new RegExp(`<tr><td>[^<]*modell</td><td>${recommendedModelName} - ${nominalKw}</td></tr>`, "i"), "")
     .replace(
       new RegExp(`<tr><td>[^<]*modell felvett teljes[^<]*</td><td>${inputKw} kW</td></tr>`, "i"),
-      `<tr><td>Pontossagi szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
+      `<tr><td>Pontossági szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
         result.companyProfile.expectedAccuracy
       )}</td></tr>`
     )
@@ -469,25 +500,25 @@ export function renderLeadEngagementNotificationEmail({
   detail?: string;
 }) {
   return emailShell(`
-    <p>${escapeHtml(formatEngagementEventType(type))} tortent egy kalkulator leadnel.</p>
+    <p>${escapeHtml(formatEngagementEventType(type))} történt egy kalkulátor leadnél.</p>
     <table>
-      <tr><td>Ceg</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
-      <tr><td>Kapcsolattarto</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
+      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
       <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
       <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
-      <tr><td>Esemeny</td><td>${escapeHtml(formatEngagementEventType(type))}</td></tr>
-      <tr><td>Idopont</td><td>${escapeHtml(
+      <tr><td>Esemény</td><td>${escapeHtml(formatEngagementEventType(type))}</td></tr>
+      <tr><td>Időpont</td><td>${escapeHtml(
         occurredAt.toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })
       )}</td></tr>
-      <tr><td>Email megnyitas</td><td>${formatEngagementSummary(
+      <tr><td>Email megnyitás</td><td>${formatEngagementSummary(
         lead.engagement.emailOpenedAt,
         lead.engagement.emailOpenCount
       )}</td></tr>
-      <tr><td>Riport letoltes</td><td>${formatEngagementSummary(
+      <tr><td>Riport letöltés</td><td>${formatEngagementSummary(
         lead.engagement.reportDownloadedAt,
         lead.engagement.reportDownloadCount
       )}</td></tr>
-      ${detail ? `<tr><td>Reszlet</td><td>${escapeHtml(detail)}</td></tr>` : ""}
+      ${detail ? `<tr><td>Részlet</td><td>${escapeHtml(detail)}</td></tr>` : ""}
     </table>
   `);
 }
@@ -502,23 +533,31 @@ export function renderConsultationRequestNotificationEmail({
   source: string;
 }) {
   return emailShell(`
-    <p>Konzultacios visszahivas kerest inditott egy kalkulator lead.</p>
+    <p>Konzultációs visszahívás kérést indított egy kalkulátor lead.</p>
     <table>
-      <tr><td>Ceg</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
-      <tr><td>Kapcsolattarto</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
+      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
       <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
       <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
-      <tr><td>Forras CTA</td><td>${escapeHtml(source)}</td></tr>
-      <tr><td>Idopont</td><td>${escapeHtml(
+      <tr><td>Céges weboldal</td><td>${escapeHtml(lead.input.companyWebsite || "-")}</td></tr>
+      <tr><td>Tevékenység</td><td>${escapeHtml(lead.input.companyActivity || "-")}</td></tr>
+      <tr><td>Forrás CTA</td><td>${escapeHtml(source)}</td></tr>
+      <tr><td>Időpont</td><td>${escapeHtml(
         occurredAt.toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })
       )}</td></tr>
-      <tr><td>Prioritas</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
-      <tr><td>Eves megtakaritas</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
-      <tr><td>Ajanlott modell</td><td>${escapeHtml(
+      <tr><td>Prioritás</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
+      <tr><td>Lead score</td><td>${lead.result.leadScore.score}/100 - ${escapeHtml(lead.result.leadScore.label)}</td></tr>
+      <tr><td>Éves megtakarítás</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
+      <tr><td>5 éves potenciál</td><td>${formatHuf(lead.result.fiveYearHufSaved)}</td></tr>
+      <tr><td>Jelenlegi gép</td><td>${escapeHtml(lead.input.brand)} - ${formatKw(lead.input.nominalKw)}</td></tr>
+      <tr><td>Üzemóra</td><td>${formatNumber(lead.input.annualHours)} óra/év</td></tr>
+      <tr><td>Áramár</td><td>${formatHuf(lead.input.energyPriceHufKwh)} / kWh</td></tr>
+      <tr><td>Ajánlott modell</td><td>${escapeHtml(
         formatCompressorModel(lead.result.recommendedModel)
       )}</td></tr>
+      <tr><td>Lead azonosító</td><td>${escapeHtml(lead.id)}</td></tr>
     </table>
-    <p>Erre a leadre erdemes gyorsan visszatelefonalni, mert aktiv egyeztetesi szandekot jelzett.</p>
+    <p>Erre a leadre érdemes gyorsan visszatelefonálni, mert aktív telefonos konzultációs szándékot jelzett.</p>
   `);
 }
 
@@ -645,10 +684,6 @@ function formatSequenceStatus(sequence?: SequenceScheduleResult) {
   return `kihagyva: ${sequence.reason}`;
 }
 
-export function getAppointmentUrl() {
-  return process.env.APPOINTMENT_URL ?? defaultAppointmentUrl;
-}
-
 function getTrackedReportDownloadUrl(lead: LeadRecord) {
   return `${getPublicBaseUrl()}/api/reports/${lead.id}/download`;
 }
@@ -668,12 +703,12 @@ function getPublicBaseUrl() {
 
 function formatEngagementEventType(type: "email.opened" | "email.clicked" | "report.downloaded") {
   if (type === "email.opened") return "Email megnyitva";
-  if (type === "email.clicked") return "Email link kattintas";
-  return "Riport letoltve";
+  if (type === "email.clicked") return "Email link kattintás";
+  return "Riport letöltve";
 }
 
 function formatEngagementSummary(firstAt: string | null, count: number) {
-  if (!firstAt) return "meg nem tortent";
+  if (!firstAt) return "még nem történt";
   return `${new Date(firstAt).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })} (${count}x)`;
 }
 
@@ -723,6 +758,30 @@ function emailShell(content: string) {
       </body>
     </html>
   `;
+}
+
+function renderPlainTextFromHtml(html: string) {
+  return decodeHtmlEntities(
+    html
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|h1|h2|h3|tr|table|ul|li)>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
+}
+
+function decodeHtmlEntities(value: string) {
+  return value
+    .replaceAll("&nbsp;", " ")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#039;", "'");
 }
 
 function escapeHtml(value: string) {

@@ -15,31 +15,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     notFound();
   }
 
+  const pdf = generateLeadPdf(lead);
   const occurredAt = new Date();
-  const event = await recordLeadEngagementEvent({
-    id: `report-download:${lead.id}:${occurredAt.toISOString()}:${randomUUID()}`,
-    leadId: lead.id,
-    type: "report.downloaded",
-    occurredAt,
-    metadata: {
-      userAgent: request.headers.get("user-agent"),
-      referer: request.headers.get("referer")
-    }
-  });
 
-  if (event.recorded && event.lead) {
-    try {
+  try {
+    const event = await recordLeadEngagementEvent({
+      id: `report-download:${lead.id}:${occurredAt.toISOString()}:${randomUUID()}`,
+      leadId: lead.id,
+      type: "report.downloaded",
+      occurredAt,
+      metadata: {
+        userAgent: request.headers.get("user-agent"),
+        referer: request.headers.get("referer")
+      }
+    });
+
+    if (event.recorded && event.lead) {
       await sendLeadEngagementNotification({
         lead: event.lead,
         type: "report.downloaded",
         occurredAt
       });
-    } catch (error) {
-      console.error("Lead report download notification failed.", { leadId: lead.id, error });
     }
+  } catch (error) {
+    console.error("Lead report download tracking failed.", { leadId: lead.id, error });
   }
 
-  const pdf = generateLeadPdf(event.lead ?? lead);
   const safeCompanyName = lead.input.companyName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -50,9 +51,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   return new Response(pdf, {
     headers: {
       "Content-Type": "application/pdf",
+      "Content-Length": String(pdf.byteLength),
       "Content-Disposition": `attachment; filename="csavarkompresszor-riport-${
         safeCompanyName || lead.id.slice(0, 8)
-      }.pdf"`
+      }.pdf"`,
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff"
     }
   });
 }

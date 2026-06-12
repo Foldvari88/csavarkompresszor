@@ -1022,7 +1022,36 @@ a {
   width: 100%;
   background: linear-gradient(180deg, var(--red-strong), #24266d);
   color: #fff;
-  box-shadow: 0 18px 38px rgba(48, 49, 132, 0.28);
+  box-shadow:
+    0 18px 38px rgba(48, 49, 132, 0.28),
+    0 0 0 0 rgba(48, 49, 132, 0.28);
+  animation: submit-cta-pulse 2.8s ease-in-out infinite;
+}
+
+.submit-button:not(:disabled)::before {
+  opacity: 0.86;
+  animation: submit-cta-sweep 3.4s ease-in-out infinite;
+}
+
+.submit-button:not(:disabled)::after {
+  opacity: 0.34;
+  transform: scaleX(1) scaleY(1);
+  animation: submit-cta-border 2.8s ease-in-out infinite;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #3f42b8, #20225f);
+  animation-duration: 1.7s;
+}
+
+.submit-button:hover:not(:disabled)::before {
+  animation: industrial-cta-scan 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 1;
+}
+
+.submit-button:hover:not(:disabled)::after {
+  opacity: 1;
+  animation: industrial-cta-lock 480ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .schedule-cta {
@@ -1041,7 +1070,14 @@ a {
 .submit-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+  animation: none;
   box-shadow: none;
+}
+
+.submit-button:disabled::before,
+.submit-button:disabled::after {
+  animation: none;
+  opacity: 0;
 }
 
 .secondary-button,
@@ -3602,6 +3638,43 @@ a {
   100% {
     opacity: 1;
     transform: scaleX(1) scaleY(1);
+  }
+}
+
+@keyframes submit-cta-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 18px 38px rgba(48, 49, 132, 0.28),
+      0 0 0 0 rgba(48, 49, 132, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 26px 56px rgba(48, 49, 132, 0.38),
+      0 0 0 5px rgba(48, 49, 132, 0.1);
+  }
+}
+
+@keyframes submit-cta-sweep {
+  0%,
+  34% {
+    transform: skewX(-18deg) translateX(0);
+  }
+  58% {
+    transform: skewX(-18deg) translateX(330%);
+  }
+  100% {
+    transform: skewX(-18deg) translateX(330%);
+  }
+}
+
+@keyframes submit-cta-border {
+  0%,
+  100% {
+    opacity: 0.26;
+  }
+  50% {
+    opacity: 0.56;
   }
 }
 

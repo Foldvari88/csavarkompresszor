@@ -56,12 +56,12 @@ export default async function LeadDetailPage({
                 icon={<Eye size={15} />}
               />
               <Kv
-                label="Email link kattintas"
+                label="Email link kattintás"
                 value={formatEngagementDate(lead.engagement.emailClickedAt, lead.engagement.emailClickCount)}
                 icon={<MousePointerClick size={15} />}
               />
               <Kv
-                label="Riport letoltve"
+                label="Riport letöltve"
                 value={formatEngagementDate(
                   lead.engagement.reportDownloadedAt,
                   lead.engagement.reportDownloadCount
@@ -69,7 +69,7 @@ export default async function LeadDetailPage({
                 icon={<FileCheck size={15} />}
               />
               <Kv
-                label="Utolso email esemeny"
+                label="Utolsó email esemény"
                 value={lead.engagement.lastEmailEventAt ? formatDateTime(lead.engagement.lastEmailEventAt) : "-"}
               />
             </div>
@@ -178,7 +178,7 @@ export default async function LeadDetailPage({
 }
 
 function formatEngagementDate(value: string | null, count: number) {
-  if (!value) return "nem tortent meg";
+  if (!value) return "nem történt még";
   return `${formatDateTime(value)} (${count}x)`;
 }
 

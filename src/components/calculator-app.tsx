@@ -9,7 +9,6 @@ import {
   Factory,
   FileText,
   Gauge,
-  Mail,
   ShieldCheck,
   Sparkles,
   Target,
@@ -908,11 +907,6 @@ export function CalculatorApp() {
                 </div>
               </div>
             ) : null}
-
-            <a className="result-cta" href="#kalkulator">
-              Kérem a részletes riportot
-              <ArrowRight size={17} />
-            </a>
 
             <ul className="assumption-list">
               {getPublicAssumptions(result.assumptions).map((assumption) => (

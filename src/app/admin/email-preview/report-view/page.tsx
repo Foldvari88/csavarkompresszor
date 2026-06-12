@@ -53,10 +53,10 @@ function isHeading(line: string, index: number) {
     index === 0 ||
     [
       "Bemeneti adatok",
-      "Eredmeny",
-      "Ajanlott modell",
-      "Minosites",
-      "Kovetkezo lepes"
+      "Eredmény",
+      "Ajánlott modell",
+      "Minősítés",
+      "Következő lépés"
     ].includes(line)
   );
 }

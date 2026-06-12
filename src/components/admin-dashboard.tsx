@@ -152,8 +152,8 @@ export function AdminDashboard({
               <th>Iparág / tevékenység</th>
               <th>Kapcsolattartó</th>
               <th>Email</th>
-              <th>Email megnyitas</th>
-              <th>Riport letoltes</th>
+              <th>Email megnyitás</th>
+              <th>Riport letöltés</th>
               <th>Telefon</th>
               <th>Score</th>
               <th>Csillag</th>

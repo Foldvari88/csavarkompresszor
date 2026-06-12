@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getAppointmentUrl,
-  sendConsultationRequestNotification
-} from "@/lib/leads/email";
+import { sendConsultationRequestNotification } from "@/lib/leads/email";
 import { getLead } from "@/lib/leads/store";
 
 export const runtime = "nodejs";
@@ -11,7 +8,6 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const lead = await getLead(id);
-  const appointmentUrl = getAppointmentUrl();
 
   if (lead) {
     const occurredAt = new Date();
@@ -28,5 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
   }
 
-  return NextResponse.redirect(appointmentUrl, { status: 302 });
+  return NextResponse.redirect(new URL("/koszonjuk?visszahivas=1", request.nextUrl), {
+    status: 302
+  });
 }
