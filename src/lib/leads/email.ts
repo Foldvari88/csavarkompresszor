@@ -390,6 +390,114 @@ async function scheduleLeadSequence({
   }
 }
 
+function getEmailSequenceMode() {
+  return process.env.EMAIL_SEQUENCE_MODE === "broadcast" ? "broadcast" : "scheduled";
+}
+
+async function enrollLeadInBroadcastSequence({
+  client,
+  lead
+}: {
+  client: Resend;
+  lead: LeadRecord;
+}): Promise<SequenceScheduleResult> {
+  const segmentId = process.env.RESEND_MARKETING_SEGMENT_ID?.trim();
+
+  if (!segmentId) {
+    return { mode: "skipped", reason: "broadcast-segment-missing" };
+  }
+
+  try {
+    const contact = getLeadBroadcastContact(lead, segmentId);
+    const createResponse = await client.contacts.create(contact, {
+      headers: {
+        "Idempotency-Key": `marketing-contact-${lead.id}`
+      }
+    });
+
+    if (!createResponse.error) {
+      return {
+        mode: "broadcast",
+        segmentId,
+        contactId: createResponse.data?.id ?? null
+      };
+    }
+
+    const updateResponse = await client.contacts.update({
+      email: contact.email,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      unsubscribed: false,
+      properties: contact.properties
+    });
+
+    if (updateResponse.error) {
+      throw new Error(getResendErrorMessage(updateResponse.error));
+    }
+
+    const segmentResponse = await client.contacts.segments.add({
+      email: contact.email,
+      segmentId
+    });
+
+    if (segmentResponse.error && !isAlreadyInSegmentError(segmentResponse.error)) {
+      throw new Error(getResendErrorMessage(segmentResponse.error));
+    }
+
+    return {
+      mode: "broadcast",
+      segmentId,
+      contactId: updateResponse.data?.id ?? null
+    };
+  } catch (error) {
+    console.error("Lead broadcast enrollment failed.", {
+      leadId: lead.id,
+      error
+    });
+    return {
+      mode: "failed",
+      reason: error instanceof Error ? error.message : "unknown-error"
+    };
+  }
+}
+
+function getLeadBroadcastContact(lead: LeadRecord, segmentId: string) {
+  const nameParts = lead.input.name.trim().split(/\s+/).filter(Boolean);
+  const reportSavings = getReportSavings(lead);
+
+  return {
+    email: lead.input.email,
+    firstName: nameParts[0] ?? lead.input.name,
+    lastName: nameParts.slice(1).join(" ") || undefined,
+    unsubscribed: false,
+    segments: [{ id: segmentId }],
+    properties: {
+      lead_id: lead.id,
+      company_name: lead.input.companyName || "-",
+      phone: lead.input.phone || "-",
+      lead_score: lead.result.leadScore.score,
+      lead_priority: lead.result.priority.label,
+      annual_savings_huf: reportSavings.totalAnnualHuf,
+      annual_kwh_saved: Math.round(lead.result.annualKwhSaved),
+      five_year_savings_huf: reportSavings.totalAnnualHuf * 5,
+      recommended_model: formatCompressorModel(lead.result.recommendedModel),
+      total_machine_count: lead.result.totalMachineCount
+    }
+  };
+}
+
+function getResendErrorMessage(error: unknown) {
+  if (typeof error === "object" && error && "message" in error) {
+    return String((error as { message?: unknown }).message);
+  }
+
+  return String(error);
+}
+
+function isAlreadyInSegmentError(error: unknown) {
+  return getResendErrorMessage(error).toLowerCase().includes("already");
+}
+
 export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOptions = {}) {
   const { result, input } = lead;
   const appointmentUrl = getTrackedAppointmentUrl(lead, "result-email");
@@ -688,6 +796,9 @@ function formatSequenceStatus(sequence?: SequenceScheduleResult) {
   }
   if (sequence.mode === "failed") {
     return `sikertelen időzítés: ${sequence.reason}`;
+  }
+  if (sequence.mode === "broadcast") {
+    return `Resend broadcast segmentbe feliratkoztatva: ${sequence.segmentId}`;
   }
   return `kihagyva: ${sequence.reason}`;
 }
