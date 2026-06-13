@@ -1,4 +1,4 @@
-# Csavarkompresszor kalkulátor
+# iparikalkulator.hu
 
 Next.js alapú, mobile-first ipari csavarkompresszor energiahatékonysági kalkulátor lead riporttal, admin felülettel, PDF riporttal és Neon Postgres tárolással.
 
@@ -13,7 +13,8 @@ Másold a `.env.example` értékeit Vercel project environment variable-ként:
 - `EMAIL_FROM`: feladó email
 - `EMAIL_REPLY_TO`: válasz email cím, ha más legyen mint a feladó
 - `EMAIL_SEQUENCE_ENABLED`: `true` vagy `false`; kikapcsolja a follow-up sorozat időzítését
-- `EMAIL_SEQUENCE_MODE`: `broadcast` esetben Resend Segmentbe menti a leadet, és Resend Broadcast draftokból kezelhető a szekvencia
+- `EMAIL_SEQUENCE_MODE`: `automation` esetben Resend Automation eventet küld, és Resend Automation kezeli a szekvenciát
+- `RESEND_AUTOMATION_EVENT_NAME`: Resend Automation trigger event neve
 - `RESEND_MARKETING_SEGMENT_ID`: Resend Segment ID a broadcast szekvencia kontaktjaihoz
 - `RESEND_MARKETING_SEGMENT_NAME`: opcionális Segment név a broadcast setup scripthez
 - `REPORT_NOTIFICATION_TO`: belső kalkulációs és aktivitási értesítések címzettje
@@ -34,7 +35,7 @@ Az admin lead cockpit innen olvas:
 
 ## Resend email flow
 
-Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, `broadcast` módban az app Resend Contactként a `RESEND_MARKETING_SEGMENT_ID` Segmentbe menti a leadet. A szekvencia emailjei Resend Broadcast draftok, így a Resend felületen szerkeszthetők:
+Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, `automation` módban az app Resend eventet küld. A szekvencia emailjei publikált Resend Template-ek, a sorrendet és delayeket pedig egy Resend Automation kezeli, így a Resend felületen szerkeszthetők:
 
 - 1 nap: műszaki adatpontosítás
 - 3 nap: vezetői/ROI döntési anyag
@@ -45,13 +46,14 @@ Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredmén
 Első beállítás teljes jogosultságú Resend API kulccsal:
 
 ```bash
-pnpm resend:setup-broadcasts
+pnpm resend:setup-automation
 ```
 
-A script létrehozza a Segmentet, a contact property-ket és az 5 Broadcast draftot. Send-only Resend API kulccsal ez nem fut le, mert a Segment, Contact Property és Broadcast létrehozáshoz bővebb jogosultság kell. A parancs kiírja a `RESEND_MARKETING_SEGMENT_ID` értéket; ezt Vercelben Production és Preview környezetre is add hozzá, majd állítsd:
+A script létrehozza az event schemát, az 5 publikált Template-et és a disabled állapotú Automation workflow-t. Send-only Resend API kulccsal ez nem fut le, mert az Event, Template és Automation létrehozáshoz bővebb jogosultság kell. A Resend felületen szerkeszd át a Template-eket és az Automation sorrendet/delayeket, majd te aktiváld az Automationt.
 
 ```env
-EMAIL_SEQUENCE_MODE=broadcast
+EMAIL_SEQUENCE_MODE=automation
+RESEND_AUTOMATION_EVENT_NAME=lead.calculator.marketing_opt_in
 ```
 
 Az eredmény és follow-up emailek konzultációs CTA-ja saját tracking route-ra megy. Kattintás után az app elküldi a belső visszahívás-kérés értesítést a `CONSULTATION_NOTIFICATION_TO` címre, majd a saját köszönő oldalra irányít.
@@ -62,9 +64,9 @@ A Gmail spam mappa elkerüléséhez a `EMAIL_FROM` domainjét Resendben verifik�
 
 Javasolt production értékek:
 
-- `EMAIL_FROM=IpariKalkulator.hu <riport@iparikalkulator.hu>`
+- `EMAIL_FROM=iparikalkulator.hu <riport@iparikalkulator.hu>`
 - `EMAIL_REPLY_TO=info@iparikalkulator.hu`
-- `EMAIL_SEQUENCE_MODE=broadcast`
+- `EMAIL_SEQUENCE_MODE=automation`
 - `REPORT_NOTIFICATION_TO=info@iparikalkulator.hu`
 - `CONSULTATION_NOTIFICATION_TO=info@iparikalkulator.hu`
 

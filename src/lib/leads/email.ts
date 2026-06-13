@@ -23,6 +23,10 @@ type SequenceScheduleResult =
       segmentId: string;
       contactId: string | null;
     }
+  | {
+      mode: "automation";
+      eventName: string;
+    }
   | { mode: "skipped"; reason: string }
   | { mode: "failed"; reason: string };
 
@@ -137,7 +141,7 @@ function getEmailRecipients(value: string) {
 
 export async function sendLeadEmails(lead: LeadRecord) {
   const client = getResend();
-  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "iparikalkulator.hu <onboarding@resend.dev>";
   const replyTo = getReplyTo();
   const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultConsultationNotificationTo;
 
@@ -242,7 +246,7 @@ export async function sendLeadEngagementNotification({
     return { mode: "skipped" as const };
   }
 
-  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "iparikalkulator.hu <onboarding@resend.dev>";
   const replyTo = getReplyTo();
   const eventLabel = formatEngagementEventType(type);
   const html = renderLeadEngagementNotificationEmail({ lead, type, occurredAt, detail });
@@ -287,7 +291,7 @@ export async function sendConsultationRequestNotification({
     return { mode: "skipped" as const };
   }
 
-  const from = process.env.EMAIL_FROM ?? "Csavarkompresszor kalkulátor <onboarding@resend.dev>";
+  const from = process.env.EMAIL_FROM ?? "iparikalkulator.hu <onboarding@resend.dev>";
   const replyTo = getReplyTo();
   const html = renderConsultationRequestNotificationEmail({ lead, occurredAt, source });
 
@@ -332,6 +336,10 @@ async function scheduleLeadSequence({
 
   if (!lead.input.consentMarketing) {
     return { mode: "skipped", reason: "marketing-consent-missing" };
+  }
+
+  if (getEmailSequenceMode() === "automation") {
+    return triggerLeadAutomationSequence({ client, lead });
   }
 
   if (getEmailSequenceMode() === "broadcast") {
@@ -391,7 +399,45 @@ async function scheduleLeadSequence({
 }
 
 function getEmailSequenceMode() {
-  return process.env.EMAIL_SEQUENCE_MODE === "broadcast" ? "broadcast" : "scheduled";
+  if (process.env.EMAIL_SEQUENCE_MODE === "automation") return "automation";
+  if (process.env.EMAIL_SEQUENCE_MODE === "broadcast") return "broadcast";
+  return "scheduled";
+}
+
+async function triggerLeadAutomationSequence({
+  client,
+  lead
+}: {
+  client: Resend;
+  lead: LeadRecord;
+}): Promise<SequenceScheduleResult> {
+  const eventName = process.env.RESEND_AUTOMATION_EVENT_NAME ?? "lead.calculator.marketing_opt_in";
+
+  try {
+    const response = await client.events.send({
+      event: eventName,
+      email: lead.input.email,
+      payload: getLeadAutomationPayload(lead)
+    });
+
+    if (response.error) {
+      throw new Error(getResendErrorMessage(response.error));
+    }
+
+    return {
+      mode: "automation",
+      eventName
+    };
+  } catch (error) {
+    console.error("Lead automation event failed.", {
+      leadId: lead.id,
+      error
+    });
+    return {
+      mode: "failed",
+      reason: error instanceof Error ? error.message : "unknown-error"
+    };
+  }
 }
 
 async function enrollLeadInBroadcastSequence({
@@ -483,6 +529,25 @@ function getLeadBroadcastContact(lead: LeadRecord, segmentId: string) {
       recommended_model: formatCompressorModel(lead.result.recommendedModel),
       total_machine_count: lead.result.totalMachineCount
     }
+  };
+}
+
+function getLeadAutomationPayload(lead: LeadRecord) {
+  const nameParts = lead.input.name.trim().split(/\s+/).filter(Boolean);
+  const reportSavings = getReportSavings(lead);
+
+  return {
+    firstName: nameParts[0] ?? lead.input.name,
+    companyName: lead.input.companyName || "az Ön cége",
+    leadId: lead.id,
+    phone: lead.input.phone || "",
+    annualSavingsHuf: reportSavings.totalAnnualHuf,
+    annualKwhSaved: Math.round(lead.result.annualKwhSaved),
+    fiveYearSavingsHuf: reportSavings.totalAnnualHuf * 5,
+    recommendedModel: formatCompressorModel(lead.result.recommendedModel),
+    leadPriority: lead.result.priority.label,
+    callbackUrl: getTrackedAppointmentUrl(lead, "resend-automation"),
+    reportUrl: getTrackedReportDownloadUrl(lead)
   };
 }
 
@@ -753,7 +818,7 @@ function renderCustomerEmailSignature() {
   return `
     <div class="signature">
       <p>Tisztelettel,</p>
-      <strong>az IpariKalkulator.hu csapata</strong>
+      <strong>az iparikalkulator.hu csapata</strong>
     </div>
   `;
 }
@@ -799,6 +864,9 @@ function formatSequenceStatus(sequence?: SequenceScheduleResult) {
   }
   if (sequence.mode === "broadcast") {
     return `Resend broadcast segmentbe feliratkoztatva: ${sequence.segmentId}`;
+  }
+  if (sequence.mode === "automation") {
+    return `Resend automation event elküldve: ${sequence.eventName}`;
   }
   return `kihagyva: ${sequence.reason}`;
 }
@@ -866,7 +934,7 @@ function emailShell(content: string) {
       </head>
       <body>
         <div class="wrap">
-          <div class="brand">Csavarkompresszor kalkulátor</div>
+          <div class="brand">iparikalkulator.hu</div>
           ${content}
         </div>
       </body>

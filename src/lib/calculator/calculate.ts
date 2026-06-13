@@ -118,10 +118,11 @@ function calculateUnitSavings(input: CompressorUnitInput) {
     degradedInputKw
   };
   const oldAnnualKwh = round(degradedInputKw * input.annualHours, 2);
-  const modelOutcome = applyContinuousVariableSpeedCap(
+  const modelOutcome = applyVariableSpeedSavingsCaps(
     input,
     selectedLegacy,
     oldAnnualKwh,
+    recommendedModel,
     calculateModelOutcome(input, selectedLegacy, oldAnnualKwh, recommendedModel)
   );
 
@@ -172,6 +173,37 @@ function calculateModelOutcome(
   };
 }
 
+function applyVariableSpeedSavingsCaps(
+  input: CompressorUnitInput,
+  selectedLegacy: CalculationResult["selectedLegacy"],
+  oldAnnualKwh: number,
+  recommendedModel: CompressorModel,
+  outcome: ReturnType<typeof calculateModelOutcome>
+) {
+  const profile = input.loadProfile ?? "continuous";
+  const isVariableSpeed = input.preferVariableSpeed === true && recommendedModel.kind === "rs";
+  if (!isVariableSpeed) return outcome;
+
+  const continuousOutcome = applyContinuousVariableSpeedCap(
+    { ...input, loadProfile: "continuous" },
+    selectedLegacy,
+    oldAnnualKwh,
+    calculateModelOutcome({ ...input, loadProfile: "continuous" }, selectedLegacy, oldAnnualKwh, recommendedModel)
+  );
+
+  if (profile === "fluctuating") {
+    return capModelOutcomeSavings({
+      input,
+      oldAnnualKwh,
+      outcome,
+      cappedAnnualKwhSaved: round(continuousOutcome.annualKwhSaved * 1.01, 2),
+      cappedExcelAnnualKwhSaved: round(continuousOutcome.excelAnnualKwhSaved * 1.01, 2)
+    });
+  }
+
+  return applyContinuousVariableSpeedCap(input, selectedLegacy, oldAnnualKwh, outcome);
+}
+
 function applyContinuousVariableSpeedCap(
   input: CompressorUnitInput,
   selectedLegacy: CalculationResult["selectedLegacy"],
@@ -190,6 +222,30 @@ function applyContinuousVariableSpeedCap(
   if (outcome.annualKwhSaved <= cappedAnnualKwhSaved) return outcome;
 
   const cappedExcelAnnualKwhSaved = round(fixedOutcome.excelAnnualKwhSaved * 1.05, 2);
+  return capModelOutcomeSavings({
+    input,
+    oldAnnualKwh,
+    outcome,
+    cappedAnnualKwhSaved,
+    cappedExcelAnnualKwhSaved
+  });
+}
+
+function capModelOutcomeSavings({
+  input,
+  oldAnnualKwh,
+  outcome,
+  cappedAnnualKwhSaved,
+  cappedExcelAnnualKwhSaved
+}: {
+  input: CompressorUnitInput;
+  oldAnnualKwh: number;
+  outcome: ReturnType<typeof calculateModelOutcome>;
+  cappedAnnualKwhSaved: number;
+  cappedExcelAnnualKwhSaved: number;
+}) {
+  if (outcome.annualKwhSaved <= cappedAnnualKwhSaved) return outcome;
+
   const excelAnnualKwhSaved =
     cappedExcelAnnualKwhSaved > 0
       ? Math.min(outcome.excelAnnualKwhSaved, cappedExcelAnnualKwhSaved)
@@ -306,6 +362,12 @@ function buildAssumptions(
       unit.input.preferVariableSpeed === true &&
       unit.recommendedModel.kind === "rs"
   );
+  const hasFluctuatingVariableSpeedCap = units.some(
+    (unit) =>
+      unit.input.loadProfile === "fluctuating" &&
+      unit.input.preferVariableSpeed === true &&
+      unit.recommendedModel.kind === "rs"
+  );
 
   return [
     `A számítás forrása: ${ASSUMPTION_VERSION.source}, verzió: ${ASSUMPTION_VERSION.id}.`,
@@ -314,6 +376,9 @@ function buildAssumptions(
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
     hasContinuousVariableSpeedCap
       ? `Folyamatos felhasználásnál a fordulatszám-szabályzós technológia számított megtakarítási előnyét a fix fordulatszámú alternatívához képest legfeljebb 5%-ra korlátozzuk.`
+      : null,
+    hasFluctuatingVariableSpeedCap
+      ? `Bekapcsolt fordulatszám-szabályzásnál az ingadozó és a folyamatos terhelési profil közötti megtakarítási különbség legfeljebb 1%, az ingadozó profil javára.`
       : null,
     `Az éves megtakarításnál az Excel márka- és kategóriaadatok alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,

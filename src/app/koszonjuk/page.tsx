@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, MailCheck, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Kalkuláció rögzítve | Ipari csavarkompresszor kalkulátor",
+  title: "Kalkuláció rögzítve | iparikalkulator.hu",
   description:
     "A részletes csavarkompresszor riport kiküldése elindult, vagy a visszahívási kérés rögzítésre került.",
   alternates: {

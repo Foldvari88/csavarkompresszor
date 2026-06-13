@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
 export const metadata: Metadata = {
-  title: "Adatkezelési tájékoztató | CsavarkompresszorKalkulator.hu"
+  title: "Adatkezelési tájékoztató | iparikalkulator.hu"
 };
 
 export default function PrivacyPage() {

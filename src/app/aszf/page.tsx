@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
 export const metadata: Metadata = {
-  title: "ÁSZF | CsavarkompresszorKalkulator.hu"
+  title: "ÁSZF | iparikalkulator.hu"
 };
 
 export default function TermsPage() {

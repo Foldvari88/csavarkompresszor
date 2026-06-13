@@ -40,7 +40,6 @@ const CompressorChat = dynamic(
 type LeadFields = Pick<
   LeadFormInput,
   | "companyName"
-  | "companyWebsite"
   | "companyActivity"
   | "name"
   | "email"
@@ -103,7 +102,6 @@ const companyActivityOptions = [
 
 const initialLead: LeadFields = {
   companyName: "",
-  companyWebsite: "",
   companyActivity: "",
   name: "",
   email: "",
@@ -126,11 +124,11 @@ export function CalculatorApp() {
     () =>
       calculateSavings({
         ...calculator,
-        companyWebsite: lead.companyWebsite,
+        companyWebsite: "",
         companyActivity: lead.companyActivity,
         email: lead.email
       }),
-    [calculator, lead.companyWebsite, lead.companyActivity, lead.email]
+    [calculator, lead.companyActivity, lead.email]
   );
   const oldInputKw = result.selectedLegacy.degradedInputKw;
   const recommendedInputKw = result.recommendedModel.inputKw;
@@ -192,7 +190,7 @@ export function CalculatorApp() {
 
     if (!isLeadFormValid) {
       setError(
-        "Minden kötelező mezőt ki kell tölteni. Add meg a céges weboldalt és tevékenységet is. Az email legyen érvényes, a telefonszám formátuma például: +36701234567."
+        "Minden kötelező mezőt ki kell tölteni. Add meg a tevékenységet is. Az email legyen érvényes, a telefonszám formátuma például: +36701234567."
       );
       window.requestAnimationFrame(() => {
         document.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
@@ -206,7 +204,12 @@ export function CalculatorApp() {
       const response = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...calculator, tracking: getCampaignTracking(), ...lead })
+                body: JSON.stringify({
+                  ...calculator,
+                  tracking: getCampaignTracking(),
+                  ...lead,
+                  companyWebsite: ""
+                })
       });
       const payload = (await response.json().catch(() => null)) as
         | { leadId?: string; error?: string }
@@ -236,7 +239,7 @@ export function CalculatorApp() {
             <span className="brand-blade">
               <MiniScrewCompressorLogo />
             </span>
-            <span>Ipari csavarkompresszor kalkulátor</span>
+            <span>iparikalkulator.hu</span>
           </div>
           <a className="top-cta" href="#kalkulator">
             Megtakarítás számítása
@@ -251,7 +254,11 @@ export function CalculatorApp() {
             <Zap size={16} />
             Csavarkompresszor csere előkalkuláció
           </span>
-          <h1>Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél</h1>
+          <h1>
+            Energiamegtakarítás kalkulátor{" "}
+            <span className="industrial-word-mark">csavarkompresszorok</span> esetén,
+            sűrített levegő rendszereknél
+          </h1>
           <p>
             Számolja ki, mennyit csökkenthet az éves villamosenergia-költségen egy
             korszerű csavarkompresszorral. A részletes eredményt emailben küldjük ki,
@@ -584,38 +591,60 @@ export function CalculatorApp() {
             </div>
 
           <div className="form-grid two">
-            <Field label="Cégnév (opcionális)">
+            <Field label="Kapcsolattartó név">
               <input
-                id="companyName"
-                aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
-                value={lead.companyName}
+                id="name"
+                aria-describedby={visibleLeadFieldErrors.name ? "name-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.name)}
+                required
+                minLength={2}
+                value={lead.name}
                 onChange={(event) =>
-                  setLead((current) => ({ ...current, companyName: event.target.value }))
+                  setLead((current) => ({ ...current, name: event.target.value }))
                 }
-                placeholder="Példa Kft."
+                placeholder="Név"
               />
-              <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
+              <FieldError id="name-error" message={visibleLeadFieldErrors.name} />
             </Field>
 
-            <Field label="Céges weboldal (opcionális)">
+            <Field label="Email cím">
               <input
-                id="companyWebsite"
-                aria-describedby={
-                  visibleLeadFieldErrors.companyWebsite ? "companyWebsite-error" : undefined
-                }
-                aria-invalid={Boolean(visibleLeadFieldErrors.companyWebsite)}
-                value={lead.companyWebsite}
+                id="email"
+                aria-describedby={visibleLeadFieldErrors.email ? "email-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.email)}
+                required
+                value={lead.email}
                 onChange={(event) =>
-                  setLead((current) => ({ ...current, companyWebsite: event.target.value }))
+                  setLead((current) => ({ ...current, email: event.target.value }))
                 }
-                placeholder="ceg.hu"
-                type="text"
+                placeholder="email@ceg.hu"
+                type="email"
               />
-              <FieldError
-                id="companyWebsite-error"
-                message={visibleLeadFieldErrors.companyWebsite}
+              <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
+              {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
+                <p className="field-hint is-warning">
+                  Céges email előnyös, de nem kötelező. A részletes riportot erre az email címre küldjük.
+                </p>
+              ) : null}
+            </Field>
+
+            <Field label="Telefonszám">
+              <input
+                id="phone"
+                aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
+                inputMode="tel"
+                pattern="[+]36[0-9]{9}"
+                required
+                title="Formátum: +36701234567"
+                value={lead.phone}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, phone: event.target.value }))
+                }
+                placeholder="+36701234567"
+                type="tel"
               />
+              <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
             </Field>
 
             <Field label="Iparág / tevékenység">
@@ -644,61 +673,20 @@ export function CalculatorApp() {
               />
             </Field>
 
-            <Field label="Email cím">
+            <OptionalField label="Cégnév">
               <input
-                id="email"
-                aria-describedby={visibleLeadFieldErrors.email ? "email-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.email)}
-                required
-                value={lead.email}
+                id="companyName"
+                aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
+                value={lead.companyName}
                 onChange={(event) =>
-                  setLead((current) => ({ ...current, email: event.target.value }))
+                  setLead((current) => ({ ...current, companyName: event.target.value }))
                 }
-                placeholder="email@ceg.hu"
-                type="email"
+                placeholder="Példa Kft."
               />
-              <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
-              {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
-                <p className="field-hint is-warning">
-                  Céges email előnyös, de nem kötelező. A részletes riportot erre az email címre küldjük.
-                </p>
-              ) : null}
-            </Field>
-
-            <Field label="Kapcsolattartó">
-              <input
-                id="name"
-                aria-describedby={visibleLeadFieldErrors.name ? "name-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.name)}
-                required
-                minLength={2}
-                value={lead.name}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Név"
-              />
-              <FieldError id="name-error" message={visibleLeadFieldErrors.name} />
-            </Field>
-
-            <Field label="Telefon">
-              <input
-                id="phone"
-                aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
-                inputMode="tel"
-                pattern="[+]36[0-9]{9}"
-                required
-                title="Formátum: +36701234567"
-                value={lead.phone}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, phone: event.target.value }))
-                }
-                placeholder="+36701234567"
-                type="tel"
-              />
-              <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
-            </Field>
+              <p className="field-hint">Opcionálisan töltendő.</p>
+              <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
+            </OptionalField>
           </div>
 
           <div className="form-grid" style={{ marginTop: 16 }}>
@@ -1039,10 +1027,6 @@ function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
     errors.companyName = "Ha megadod a cégnevet, legalább 2 karakter legyen.";
   }
 
-  if (lead.companyWebsite.trim().length > 0 && !isLikelyWebsite(lead.companyWebsite)) {
-    errors.companyWebsite = "A weboldal formátuma nem jó. Példa: ceg.hu";
-  }
-
   if (lead.companyActivity.trim().length < 2) {
     errors.companyActivity = "Válaszd ki vagy add meg a cég tevékenységét.";
   }
@@ -1089,11 +1073,6 @@ function isBusinessEmail(email: string) {
   ]);
   const domain = email.trim().toLowerCase().split("@")[1];
   return Boolean(domain && !freeDomains.has(domain));
-}
-
-function isLikelyWebsite(value: string) {
-  const normalized = value.trim().replace(/^https?:\/\//, "").replace(/^www\./, "");
-  return /^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(normalized);
 }
 
 function isValidHungarianPhone(phone: string) {
@@ -1171,7 +1150,7 @@ function LegalFooterClean() {
     <footer className="legal-footer">
       <div className="container legal-footer-inner">
         <div>
-          <strong>CsavarkompresszorKalkulator.hu</strong>
+          <strong>iparikalkulator.hu</strong>
           <p>
             Független ipari energiahatékonysági előkalkuláció. Az eredmény
             tájékoztató jellegű.

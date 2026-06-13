@@ -191,6 +191,52 @@ a {
   text-wrap: balance;
 }
 
+.industrial-word-mark {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  padding: 0 0.08em 0.04em;
+  color: #303184;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: #303184;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.11em;
+}
+
+.industrial-word-mark::after {
+  position: absolute;
+  right: 0;
+  bottom: -0.02em;
+  left: 0;
+  z-index: -1;
+  height: 0.42em;
+  border-bottom: 3px solid #303184;
+  border-left: 2px solid rgba(48, 49, 132, 0.55);
+  border-radius: 0 0 4px 4px;
+  background:
+    linear-gradient(180deg, rgba(48, 49, 132, 0), rgba(48, 49, 132, 0.16)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(48, 49, 132, 0.2) 0,
+      rgba(48, 49, 132, 0.2) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  content: "";
+}
+
+.industrial-word-mark::before {
+  position: absolute;
+  top: 0.08em;
+  right: -0.08em;
+  bottom: 0.13em;
+  width: 0.08em;
+  border-radius: 2px;
+  background: #303184;
+  content: "";
+}
+
 .hero p {
   max-width: 690px;
   margin: 14px 0 0;

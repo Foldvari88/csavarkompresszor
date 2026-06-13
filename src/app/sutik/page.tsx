@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
 export const metadata: Metadata = {
-  title: "Süti tájékoztató | CsavarkompresszorKalkulator.hu",
+  title: "Süti tájékoztató | iparikalkulator.hu",
   description:
-    "A CsavarkompresszorKalkulator.hu sütikezelési tájékoztatója ipari energiahatékonysági kalkulációkhoz."
+    "Az iparikalkulator.hu sütikezelési tájékoztatója ipari energiahatékonysági kalkulációkhoz."
 };
 
 export default function CookiesPage() {
