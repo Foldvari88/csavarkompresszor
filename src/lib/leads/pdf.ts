@@ -82,7 +82,7 @@ function getReportSavings(lead: LeadRecord) {
 }
 
 function getPersonalizedPdfNextStep(lead: LeadRecord) {
-  const { input, result } = lead;
+  const { input } = lead;
   const displayName = getLeadDisplayName(lead);
   const activity = input.companyActivity ? `${input.companyActivity} környezetben` : "az üzemi környezetben";
 

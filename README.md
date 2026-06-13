@@ -13,6 +13,9 @@ Másold a `.env.example` értékeit Vercel project environment variable-ként:
 - `EMAIL_FROM`: feladó email
 - `EMAIL_REPLY_TO`: válasz email cím, ha más legyen mint a feladó
 - `EMAIL_SEQUENCE_ENABLED`: `true` vagy `false`; kikapcsolja a follow-up sorozat időzítését
+- `EMAIL_SEQUENCE_MODE`: `broadcast` esetben Resend Segmentbe menti a leadet, és Resend Broadcast draftokból kezelhető a szekvencia
+- `RESEND_MARKETING_SEGMENT_ID`: Resend Segment ID a broadcast szekvencia kontaktjaihoz
+- `RESEND_MARKETING_SEGMENT_NAME`: opcionális Segment név a broadcast setup scripthez
 - `REPORT_NOTIFICATION_TO`: belső kalkulációs és aktivitási értesítések címzettje
 - `CONSULTATION_NOTIFICATION_TO`: konzultációs visszahívás kattintások értesítési címe, alapértelmezetten `info@iparikalkulator.hu`
 
@@ -31,7 +34,7 @@ Az admin lead cockpit innen olvas:
 
 ## Resend email flow
 
-Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, az app további 5 Resend emailt időzít:
+Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, `broadcast` módban az app Resend Contactként a `RESEND_MARKETING_SEGMENT_ID` Segmentbe menti a leadet. A szekvencia emailjei Resend Broadcast draftok, így a Resend felületen szerkeszthetők:
 
 - 1 nap: műszaki adatpontosítás
 - 3 nap: vezetői/ROI döntési anyag
@@ -39,7 +42,17 @@ Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredmén
 - 10 nap: ajánlott modell ellenőrzése
 - 18 nap: végső egyeztetési CTA
 
-Az időzítés Resend `scheduledAt` mezővel történik, minden küldés idempotency kulcsot és Resend taget kap a lead azonosítójával.
+Első beállítás teljes jogosultságú Resend API kulccsal:
+
+```bash
+pnpm resend:setup-broadcasts
+```
+
+A script létrehozza a Segmentet, a contact property-ket és az 5 Broadcast draftot. Send-only Resend API kulccsal ez nem fut le, mert a Segment, Contact Property és Broadcast létrehozáshoz bővebb jogosultság kell. A parancs kiírja a `RESEND_MARKETING_SEGMENT_ID` értéket; ezt Vercelben Production és Preview környezetre is add hozzá, majd állítsd:
+
+```env
+EMAIL_SEQUENCE_MODE=broadcast
+```
 
 Az eredmény és follow-up emailek konzultációs CTA-ja saját tracking route-ra megy. Kattintás után az app elküldi a belső visszahívás-kérés értesítést a `CONSULTATION_NOTIFICATION_TO` címre, majd a saját köszönő oldalra irányít.
 
@@ -51,6 +64,7 @@ Javasolt production értékek:
 
 - `EMAIL_FROM=IpariKalkulator.hu <riport@iparikalkulator.hu>`
 - `EMAIL_REPLY_TO=info@iparikalkulator.hu`
+- `EMAIL_SEQUENCE_MODE=broadcast`
 - `REPORT_NOTIFICATION_TO=info@iparikalkulator.hu`
 - `CONSULTATION_NOTIFICATION_TO=info@iparikalkulator.hu`
 

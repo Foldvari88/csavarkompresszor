@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "resend:setup-broadcasts": "node scripts/setup-resend-broadcast-sequence.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
