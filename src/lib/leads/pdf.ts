@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { getCompressorProductImage } from "@/lib/product-images";
-import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
+import type { LeadRecord } from "@/lib/calculator/types";
 
 type ParsedFont = {
   buffer: Buffer;
@@ -30,26 +30,17 @@ export function generateLeadPdf(lead: LeadRecord) {
 
 export function getLeadReportLines(lead: LeadRecord) {
   const { input, result } = lead;
+  const reportSavings = getReportSavings(lead);
 
   return [
     "Csavarkompresszor energiahatékonysági riport",
     `Azonosító: ${lead.id.slice(0, 8)}`,
     `Dátum: ${new Date(lead.createdAt).toLocaleString("hu-HU")}`,
     "",
-    "Cégprofil alapú személyre szabás",
-    `${input.companyName} részére készített előkalkuláció.`,
-    `Céges weboldal: ${input.companyWebsite || "-"}`,
-    `Tevékenység: ${input.companyActivity || "-"}`,
-    `Pontossági szint: ${result.companyProfile.label} - ${result.companyProfile.expectedAccuracy}`,
-    `Kompatibilitási jelzés: ${result.companyProfile.compatibilityLabel}`,
-    `${result.companyProfile.compatibilityDescription}`,
-    `Terhelési súlyozás: ${formatLoadProfileAdjustment(result.companyProfile.loadProfileAdjustment)}`,
-    ...getCompanyProfileSignalLines(result),
-    "",
     "Bemeneti adatok",
     `Céges weboldal: ${input.companyWebsite || "-"}`,
     `Tevékenység: ${input.companyActivity || "-"}`,
-    `Cég: ${input.companyName}`,
+    `Cég: ${input.companyName || "-"}`,
     `Kapcsolattartó: ${input.name}`,
     `Email: ${input.email}`,
     `Telefon: ${input.phone}`,
@@ -60,11 +51,15 @@ export function getLeadReportLines(lead: LeadRecord) {
     `Gépek száma: ${result.totalMachineCount}`,
     "",
     "Eredmény",
-    `Éves megtakarítás: ${formatHuf(result.annualHufSaved)}`,
-    `Havi megtakarítás: ${formatHuf(result.monthlyHufSaved)}`,
-    `5 éves potenciál: ${formatHuf(result.fiveYearHufSaved)}`,
+    `Összesített éves megtakarítás: ${formatHuf(reportSavings.totalAnnualHuf)}`,
+    `Villamosenergia-megtakarítás: ${formatHuf(result.annualHufSaved)} / év`,
+    ...(reportSavings.heatRecoveryAnnualHuf > 0
+      ? [`Hővisszanyerési gázkiváltás: ${formatHuf(reportSavings.heatRecoveryAnnualHuf)} / év`]
+      : []),
+    `Havi összesített hatás: ${formatHuf(Math.round(reportSavings.totalAnnualHuf / 12))}`,
+    `5 éves összesített potenciál: ${formatHuf(reportSavings.totalAnnualHuf * 5)}`,
     `Éves kWh megtakarítás: ${formatNumber(result.annualKwhSaved)} kWh`,
-    ...getHeatRecoveryReportLines(result),
+    ...getHeatRecoveryReportLines(lead),
     "",
     "Ajánlott modell",
     `${formatCompressorModel(result.recommendedModel)} (${formatKw(
@@ -73,51 +68,47 @@ export function getLeadReportLines(lead: LeadRecord) {
     `Felvett teljesítmény: ${formatNumber(result.recommendedModel.inputKw, 2)} kW`,
     productImageMarker,
     "",
-    "Minősítés",
-    `${result.priority.label}`,
-    `${result.priority.description}`,
-    `${result.benchmark.label}: ${result.benchmark.description}`,
-    "",
     "Következő lépés",
     getPersonalizedPdfNextStep(lead)
   ];
 }
 
-function getCompanyProfileSignalLines(result: CalculationResult) {
-  const signals = [
-    ...result.companyProfile.detectedSegments,
-    ...result.companyProfile.operatingSignals,
-    ...result.companyProfile.airQualitySignals
-  ].slice(0, 6);
-
-  if (signals.length === 0) return ["Cégprofil jelzések: általános ipari felhasználás."];
-  return [`Cégprofil jelzések: ${signals.join(", ")}.`];
+function getReportSavings(lead: LeadRecord) {
+  const heatRecoveryAnnualHuf = getEnabledHeatRecovery(lead)?.seasonalSavingsHuf ?? 0;
+  return {
+    heatRecoveryAnnualHuf,
+    totalAnnualHuf: lead.result.annualHufSaved + heatRecoveryAnnualHuf
+  };
 }
 
 function getPersonalizedPdfNextStep(lead: LeadRecord) {
   const { input, result } = lead;
+  const displayName = getLeadDisplayName(lead);
   const activity = input.companyActivity ? `${input.companyActivity} környezetben` : "az üzemi környezetben";
 
-  if (result.heatRecovery) {
-    return `${input.companyName} esetében a következő lépés a hővisszanyerés valós felhasználási arányának pontosítása ${activity}, külön fűtési és HMV igényekkel.`;
+  if (getEnabledHeatRecovery(lead)) {
+    return `${displayName} esetében a következő lépés a hővisszanyerés valós felhasználási arányának pontosítása ${activity}, külön fűtési és HMV igényekkel.`;
   }
 
-  if (result.companyProfile.loadProfileAdjustment === "intensive") {
-    return `${input.companyName} esetében a következő lépés a terhelési profil és részterhelési üzem ellenőrzése, mert intenzívebb felhasználásnál az RS/VSD megtakarítási hatás különösen fontos lehet.`;
-  }
-
-  return `${input.companyName} esetében a részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani.`;
+  return `${displayName} esetében a részletes döntéshez érdemes a tényleges levegőigényt, üzemi nyomást, szivárgást és termelési profilt műszaki felméréssel pontosítani.`;
 }
 
-function formatLoadProfileAdjustment(value: CalculationResult["companyProfile"]["loadProfileAdjustment"]) {
-  if (value === "intensive") return "intenzívebb üzemi súlyozás";
-  if (value === "conservative") return "konzervatívabb üzemi súlyozás";
-  return "standard üzemi súlyozás";
+function getLeadDisplayName(lead: LeadRecord) {
+  return lead.input.companyName?.trim() || lead.input.name?.trim() || "Az Ön üzeme";
 }
 
-function getHeatRecoveryReportLines(result: CalculationResult) {
-  const heat = result.heatRecovery;
+function getHeatRecoveryReportLines(lead: LeadRecord) {
+  const heat = getEnabledHeatRecovery(lead);
   if (!heat) return [];
+  const seasonalLabel = heat.canUseRecoveredHeatOutsideHeatingSeason
+    ? `Megtakarítás ${heat.heatingMonths} hónap fűtés, ${heat.hotWaterMonths} hónap csak HMV előállítás mellett`
+    : `Megtakarítás ${heat.heatingMonths} hónap fűtési célú hőhasznosítás mellett`;
+  const gasLabel = heat.canUseRecoveredHeatOutsideHeatingSeason
+    ? "Megtakarított földgáz fűtés/HMV kombinációval"
+    : "Megtakarított földgáz fűtési időszakban";
+  const costLabel = heat.canUseRecoveredHeatOutsideHeatingSeason
+    ? "Fűtés/HMV kombinációval kiváltható éves gázköltség"
+    : "Fűtési időszakban kiváltható éves gázköltség";
 
   return [
     "",
@@ -127,19 +118,20 @@ function getHeatRecoveryReportLines(result: CalculationResult) {
     `Visszanyerhető hőteljesítmény: ${formatNumber(heat.recoverableHeatKw, 2)} kW`,
     `Visszanyerhető hőteljesítmény veszteséggel: ${formatNumber(heat.usefulHeatKw, 2)} kW`,
     `Földgáz ára: ${formatHuf(heat.gasPriceHufPerM3)} / m3`,
-    `HMV jelentése: használati melegvíz.`,
     `Elméleti megtakarítás 1 év alatt, vagy ipari folyamatos HMV felhasználás: ${formatHuf(heat.theoreticalSavingsHuf)} / év`,
     `Visszanyerhető összes hőmennyiség: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
     `Megtakarított földgáz folyamatos HMV/ipari felhasználásnál: ${formatNumber(heat.theoreticalGasSavedM3)} m3 / év`,
-    `Megtakarítás ${heat.heatingMonths} hónap fűtés, ${heat.hotWaterMonths} hónap csak HMV előállítás mellett: ${formatHuf(heat.seasonalSavingsHuf)} / év`,
-    `Megtakarított földgáz fűtés/HMV kombinációval: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
+    `${seasonalLabel}: ${formatHuf(heat.seasonalSavingsHuf)} / év`,
+    `${gasLabel}: ${formatNumber(heat.seasonalGasSavedM3)} m3 / év`,
     `Hasznosítható hőenergia: ${formatNumber(heat.annualUsefulHeatKwh)} kWh / év`,
     `Hőenergia MJ-ban: ${formatNumber(heat.annualUsefulHeatMj)} MJ / év`,
-    `Fűtés/HMV kombinációval kiváltható éves gázköltség: ${formatHuf(
-      heat.seasonalSavingsHuf
-    )}`,
+    `${costLabel}: ${formatHuf(heat.seasonalSavingsHuf)}`,
     `Forráslogika: 90% visszanyerhető hőteljesítmény, 90% hasznosítás, 9,44 kWh/m3 földgáz, 90% kazánhatásfok.`
   ];
+}
+
+function getEnabledHeatRecovery(lead: LeadRecord) {
+  return lead.input.heatRecovery?.enabled ? lead.result.heatRecovery : null;
 }
 
 function createUnicodePdf(lines: string[], productImage?: ReturnType<typeof getCompressorProductImage>) {
@@ -334,11 +326,9 @@ function isHeading(line: string, index: number) {
     index === 0 ||
     [
       "Bemeneti adatok",
-      "Cégprofil alapú személyre szabás",
       "Eredmény",
       "Hővisszanyerés",
       "Ajánlott modell",
-      "Minősítés",
       "Következő lépés"
     ].includes(
       line

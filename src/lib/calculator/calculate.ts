@@ -35,6 +35,7 @@ const heatRecoveryDefaults = {
   sourceVersionId: "heat-recovery-excel-v1-2026-06-08",
   gasPriceHufPerM3: 304,
   heatingMonths: 7,
+  canUseRecoveredHeatOutsideHeatingSeason: false,
   hotWaterMonths: 5,
   hotWaterLoadFactor: 0.5,
   recoverablePowerRatio: 0.9,
@@ -68,7 +69,6 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     heatRecovery,
     totalMachineCount: units.length
   });
-  const companyProfile = buildCompanyProfile(normalizedInput);
 
   return {
     assumptionVersionId: ASSUMPTION_VERSION.id,
@@ -90,7 +90,6 @@ export function calculateSavings(input: CalculatorInput): CalculationResult {
     benchmark: primary.benchmark,
     priority,
     leadScore,
-    companyProfile,
     whyBreakdown: {
       annualHours: normalizedInput.annualHours,
       energyPriceHufKwh: normalizedInput.energyPriceHufKwh,
@@ -118,35 +117,100 @@ function calculateUnitSavings(input: CompressorUnitInput) {
     degradationMultiplier,
     degradedInputKw
   };
-  const profileMultiplier = getLoadProfileSavingsMultiplier(input, recommendedModel);
-  const adjustedRecommendedInputKw = round(recommendedModel.inputKw * profileMultiplier, 4);
   const oldAnnualKwh = round(degradedInputKw * input.annualHours, 2);
-  const excelRecommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
-  const excelAnnualKwhSaved = Math.max(0, round(oldAnnualKwh - excelRecommendedAnnualKwh, 2));
-  const categorySavingsVarianceMultiplier = getCategorySavingsVarianceMultiplier(
-    selectedLegacy.brand,
-    selectedLegacy.category,
-    selectedLegacy.nominalKw,
-    recommendedModel
+  const modelOutcome = applyContinuousVariableSpeedCap(
+    input,
+    selectedLegacy,
+    oldAnnualKwh,
+    calculateModelOutcome(input, selectedLegacy, oldAnnualKwh, recommendedModel)
   );
-  const annualKwhSaved = round(excelAnnualKwhSaved * categorySavingsVarianceMultiplier, 2);
-  const recommendedAnnualKwh = Math.max(0, round(oldAnnualKwh - annualKwhSaved, 2));
-  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
 
   return {
     input,
     selectedLegacy,
     recommendedModel: {
       ...recommendedModel,
-      inputKw: adjustedRecommendedInputKw
+      inputKw: modelOutcome.adjustedRecommendedInputKw
     },
     oldAnnualKwh,
+    recommendedAnnualKwh: modelOutcome.recommendedAnnualKwh,
+    excelAnnualKwhSaved: modelOutcome.excelAnnualKwhSaved,
+    categorySavingsVarianceMultiplier: modelOutcome.categorySavingsVarianceMultiplier,
+    annualKwhSaved: modelOutcome.annualKwhSaved,
+    annualHufSaved: modelOutcome.annualHufSaved,
+    benchmark: buildBenchmark(degradedInputKw, input.nominalKw)
+  };
+}
+
+function calculateModelOutcome(
+  input: CompressorUnitInput,
+  selectedLegacy: CalculationResult["selectedLegacy"],
+  oldAnnualKwh: number,
+  model: CompressorModel
+) {
+  const profileMultiplier = getLoadProfileSavingsMultiplier(input, model);
+  const adjustedRecommendedInputKw = round(model.inputKw * profileMultiplier, 4);
+  const excelRecommendedAnnualKwh = round(adjustedRecommendedInputKw * input.annualHours, 2);
+  const excelAnnualKwhSaved = Math.max(0, round(oldAnnualKwh - excelRecommendedAnnualKwh, 2));
+  const categorySavingsVarianceMultiplier = getCategorySavingsVarianceMultiplier(
+    selectedLegacy.brand,
+    selectedLegacy.category,
+    selectedLegacy.nominalKw,
+    model
+  );
+  const annualKwhSaved = round(excelAnnualKwhSaved * categorySavingsVarianceMultiplier, 2);
+  const recommendedAnnualKwh = Math.max(0, round(oldAnnualKwh - annualKwhSaved, 2));
+  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
+
+  return {
+    adjustedRecommendedInputKw,
     recommendedAnnualKwh,
     excelAnnualKwhSaved,
     categorySavingsVarianceMultiplier,
     annualKwhSaved,
-    annualHufSaved,
-    benchmark: buildBenchmark(degradedInputKw, input.nominalKw)
+    annualHufSaved
+  };
+}
+
+function applyContinuousVariableSpeedCap(
+  input: CompressorUnitInput,
+  selectedLegacy: CalculationResult["selectedLegacy"],
+  oldAnnualKwh: number,
+  outcome: ReturnType<typeof calculateModelOutcome>
+) {
+  const profile = input.loadProfile ?? "continuous";
+  const isContinuousVariableSpeed = profile === "continuous" && input.preferVariableSpeed === true;
+  if (!isContinuousVariableSpeed) return outcome;
+
+  const fixedAlternative = recommendEfficiencyModel(input.nominalKw, false);
+  if (fixedAlternative.kind !== "fixed") return outcome;
+
+  const fixedOutcome = calculateModelOutcome(input, selectedLegacy, oldAnnualKwh, fixedAlternative);
+  const cappedAnnualKwhSaved = round(fixedOutcome.annualKwhSaved * 1.05, 2);
+  if (outcome.annualKwhSaved <= cappedAnnualKwhSaved) return outcome;
+
+  const cappedExcelAnnualKwhSaved = round(fixedOutcome.excelAnnualKwhSaved * 1.05, 2);
+  const excelAnnualKwhSaved =
+    cappedExcelAnnualKwhSaved > 0
+      ? Math.min(outcome.excelAnnualKwhSaved, cappedExcelAnnualKwhSaved)
+      : 0;
+  const annualKwhSaved = cappedAnnualKwhSaved;
+  const recommendedAnnualKwh = Math.max(0, round(oldAnnualKwh - annualKwhSaved, 2));
+  const annualHufSaved = Math.round(annualKwhSaved * input.energyPriceHufKwh);
+  const adjustedRecommendedInputKw =
+    input.annualHours > 0
+      ? round((oldAnnualKwh - excelAnnualKwhSaved) / input.annualHours, 4)
+      : outcome.adjustedRecommendedInputKw;
+
+  return {
+    ...outcome,
+    adjustedRecommendedInputKw,
+    recommendedAnnualKwh,
+    excelAnnualKwhSaved,
+    categorySavingsVarianceMultiplier:
+      excelAnnualKwhSaved > 0 ? round(annualKwhSaved / excelAnnualKwhSaved, 4) : 1,
+    annualKwhSaved,
+    annualHufSaved
   };
 }
 
@@ -227,134 +291,6 @@ function getStableBrandTypePosition(key: string) {
   return hash / 999;
 }
 
-const freeEmailDomains = new Set([
-  "gmail.com",
-  "googlemail.com",
-  "yahoo.com",
-  "yahoo.co.uk",
-  "hotmail.com",
-  "outlook.com",
-  "live.com",
-  "icloud.com",
-  "freemail.hu",
-  "citromail.hu",
-  "indamail.hu",
-  "proton.me",
-  "protonmail.com"
-]);
-
-function buildCompanyProfile(input: CalculatorInput): CalculationResult["companyProfile"] {
-  const website = input.companyWebsite?.trim() ?? "";
-  const activity = input.companyActivity?.trim() ?? "";
-  const email = input.email?.trim() ?? "";
-  const isBusinessEmail = isBusinessEmailAddress(email);
-  const hasWebsite = website.length >= 3;
-  const hasActivity = activity.length >= 2;
-  const profileText = `${website} ${activity}`.toLowerCase();
-  const detectedSegments = detectCompanySegments(profileText);
-  const operatingSignals = detectOperatingSignals(profileText);
-  const airQualitySignals = detectAirQualitySignals(profileText);
-  const loadProfileAdjustment = detectLoadProfileAdjustment(profileText);
-  const engineeringPdfEligible = isBusinessEmail && hasWebsite && hasActivity;
-  const accuracyLevel = engineeringPdfEligible
-    ? "engineering_prequalified"
-    : hasWebsite && hasActivity
-      ? "profiled"
-      : "basic";
-  const compatibility = buildCompatibilitySummary(detectedSegments, airQualitySignals);
-
-  return {
-    accuracyLevel,
-    label:
-      accuracyLevel === "engineering_prequalified"
-        ? "Mérnöki előminősített"
-        : accuracyLevel === "profiled"
-          ? "Cégprofilozott"
-          : "Alap",
-    expectedAccuracy: accuracyLevel === "basic" ? "+/- 35%" : "+/- 15-20%",
-    isBusinessEmail,
-    engineeringPdfEligible,
-    compatibilityLabel: compatibility.label,
-    compatibilityDescription: compatibility.description,
-    detectedSegments,
-    operatingSignals,
-    airQualitySignals,
-    loadProfileAdjustment
-  };
-}
-
-function isBusinessEmailAddress(email: string) {
-  const domain = email.split("@")[1]?.toLowerCase();
-  return Boolean(domain && !freeEmailDomains.has(domain));
-}
-
-function detectCompanySegments(text: string) {
-  const segments = [
-    [/élelmiszer|haccp|food|sütő|tej|hús|ital|konzerv/, "élelmiszeripari vagy higiéniai környezet"],
-    [/cnc|forgácsol|fémmegmunk|eszterga|maró|lézer/, "CNC / fémmegmunkáló üzem"],
-    [/autó|auto|karosszéria|gumiszerviz|szerviz/, "autóipari vagy szerviz jelleg"],
-    [/fest|lakkoz|porfest|fényez/, "festőüzemi levegőfelhasználás"],
-    [/logiszt|raktár|csomagol|warehouse/, "logisztikai / csomagolási terület"],
-    [/gyárt|termel|üzem|manufactur|factory/, "gyártóüzemi működés"],
-    [/műhely|workshop|javít/, "műhely vagy karbantartási felhasználás"]
-  ] satisfies Array<[RegExp, string]>;
-
-  return uniqueMatches(text, segments, "általános ipari felhasználás");
-}
-
-function detectOperatingSignals(text: string) {
-  const signals = [
-    [/3\s*műszak|három\s*műszak|24\/7|folyamatos|nonstop/, "folyamatos vagy több műszakos üzem valószínű"],
-    [/cnc|gyárt|termel|élelmiszer|autóipar/, "intenzívebb sűrítettlevegő-terhelés várható"],
-    [/műhely|szerviz|javít/, "szakaszos, műhely jellegű levegőigény valószínű"]
-  ] satisfies Array<[RegExp, string]>;
-
-  return uniqueMatches(text, signals, "általános iparági terhelési becslés");
-}
-
-function detectAirQualitySignals(text: string) {
-  const signals = [
-    [/élelmiszer|haccp|gyógyszer|pharma|labor/, "olajmentes vagy magas levegőminőségi igény valószínű"],
-    [/fest|fényez|lakkoz|porfest|cnc/, "szárított és szűrt levegő igénye valószínű"],
-    [/iso|iatf|b rc|brc/, "tanúsított gyártási környezetre utaló jel"]
-  ] satisfies Array<[RegExp, string]>;
-
-  return uniqueMatches(text, signals, "standard ipari levegőminőség előfeltételezve");
-}
-
-function detectLoadProfileAdjustment(text: string): "conservative" | "standard" | "intensive" {
-  if (/3\s*műszak|24\/7|folyamatos|cnc|élelmiszer|gyárt|termel|autóipar/.test(text)) {
-    return "intensive";
-  }
-  if (/műhely|szerviz|javít/.test(text)) return "conservative";
-  return "standard";
-}
-
-function buildCompatibilitySummary(segments: string[], airQualitySignals: string[]) {
-  const highQualityAir = airQualitySignals.some((signal) =>
-    /olajmentes|magas levegőminőségi|szárított/.test(signal)
-  );
-  if (highQualityAir) {
-    return {
-      label: "Kompatibilitási jelzés: levegőminőség pontosítandó",
-      description:
-        "A cégprofil alapján érdemes ellenőrizni, hogy olajkenésű csavarkompresszor szárítással/szűréssel, vagy olajmentes megoldás illeszkedik-e jobban."
-    };
-  }
-
-  return {
-    label: "Kompatibilitási jelzés: olajkenésű csavarkompresszor valószínű",
-    description: `A jelzett profil alapján első körben olajkenésű csavarkompresszor irány vizsgálható. Felismert profil: ${segments.join(", ")}.`
-  };
-}
-
-function uniqueMatches(text: string, rules: Array<[RegExp, string]>, fallback: string) {
-  const matches = rules
-    .filter(([pattern]) => pattern.test(text))
-    .map(([, label]) => label);
-  return matches.length ? [...new Set(matches)] : [fallback];
-}
-
 function buildAssumptions(
   input: CalculatorInput,
   model: CompressorModel,
@@ -364,16 +300,22 @@ function buildAssumptions(
   const excelAnnualKwhSaved = sum(units.map((unit) => unit.excelAnnualKwhSaved));
   const annualKwhSaved = sum(units.map((unit) => unit.annualKwhSaved));
   const effectiveVariance = excelAnnualKwhSaved > 0 ? round(annualKwhSaved / excelAnnualKwhSaved, 4) : 1;
+  const hasContinuousVariableSpeedCap = units.some(
+    (unit) =>
+      unit.input.loadProfile === "continuous" &&
+      unit.input.preferVariableSpeed === true &&
+      unit.recommendedModel.kind === "rs"
+  );
 
   return [
     `A számítás forrása: ${ASSUMPTION_VERSION.source}, verzió: ${ASSUMPTION_VERSION.id}.`,
     `A régi gép alap felvett teljesítménye ${row.inputKwBase} kW, a kor szerinti szorzó ${ageMultipliers[input.ageBand].toFixed(4)}.`,
     `Az ajánlott korszerű modell: ${model.model}, felvett teljesítmény: ${model.inputKw} kW.`,
     `A változó fordulatszámú RS modelleknél a táblázat szerinti ${ASSUMPTION_VERSION.rsInputPowerFactor} teljesítményfaktort használjuk.`,
-    `Az éves megtakarításnál az Excel márka- és kategóriaadatok alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
-    input.companyWebsite || input.companyActivity
-      ? `Cégprofil-alapú előminősítés: ${buildCompanyProfile(input).label}, várható pontosság ${buildCompanyProfile(input).expectedAccuracy}.`
+    hasContinuousVariableSpeedCap
+      ? `Folyamatos felhasználásnál a fordulatszám-szabályzós technológia számított megtakarítási előnyét a fix fordulatszámú alternatívához képest legfeljebb 5%-ra korlátozzuk.`
       : null,
+    `Az éves megtakarításnál az Excel márka- és kategóriaadatok alapján legfeljebb 1% szélességű korrekciós sávot használunk; prémium gyártóknál kedvezőbb, középkategóriánál magasabb energiaoldali becsléssel. Alkalmazott szorzó: ${effectiveVariance.toFixed(4)}.`,
     `Terhelési profil: ${loadProfileLabels[input.loadProfile ?? "continuous"]}.`,
     input.heatRecovery?.enabled
       ? `A hővisszanyerési modul az ajánlott ${model.brand} ${model.model} modell névleges ${model.nominalKw} kW teljesítményével számol. Forrás: HSS 22kW kompresszor hővisszanyerési megtérülés nagyságrendi.xlsx.`
@@ -384,9 +326,7 @@ function buildAssumptions(
 
 const loadProfileLabels = {
   continuous: "folyamatos",
-  shift: "műszakos",
-  fluctuating: "ingadozó",
-  peak: "csúcsterheléses"
+  fluctuating: "ingadozó"
 } satisfies Record<NonNullable<CalculatorInput["loadProfile"]>, string>;
 
 function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
@@ -398,7 +338,10 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       category: getBrandCategory(unit.brand),
       energyPriceHufKwh: unit.energyPriceHufKwh || input.energyPriceHufKwh,
       loadProfile: unit.loadProfile ?? input.loadProfile ?? "continuous",
-      preferVariableSpeed: unit.preferVariableSpeed ?? input.preferVariableSpeed ?? true
+      preferVariableSpeed: resolveVariableSpeedPreference(
+        unit.loadProfile ?? input.loadProfile ?? "continuous",
+        unit.preferVariableSpeed ?? input.preferVariableSpeed ?? true
+      )
     }));
   }
 
@@ -412,7 +355,10 @@ function normalizeUnitInputs(input: CalculatorInput): CompressorUnitInput[] {
       nominalKw: input.nominalKw,
       annualHours: input.annualHours,
       energyPriceHufKwh: input.energyPriceHufKwh,
-      preferVariableSpeed: input.preferVariableSpeed ?? true,
+      preferVariableSpeed: resolveVariableSpeedPreference(
+        input.loadProfile ?? "continuous",
+        input.preferVariableSpeed ?? true
+      ),
       loadProfile: input.loadProfile ?? "continuous"
     }
   ];
@@ -422,11 +368,23 @@ function applyExcelBrandCategories(input: CalculatorInput): CalculatorInput {
   return {
     ...input,
     category: getBrandCategory(input.brand),
+    preferVariableSpeed: resolveVariableSpeedPreference(
+      input.loadProfile ?? "continuous",
+      input.preferVariableSpeed ?? true
+    ),
     units: input.units?.map((unit) => ({
       ...unit,
-      category: getBrandCategory(unit.brand)
+      category: getBrandCategory(unit.brand),
+      preferVariableSpeed: resolveVariableSpeedPreference(
+        unit.loadProfile ?? input.loadProfile ?? "continuous",
+        unit.preferVariableSpeed ?? input.preferVariableSpeed ?? true
+      )
     }))
   };
+}
+
+function resolveVariableSpeedPreference(loadProfile: CalculatorInput["loadProfile"], preferVariableSpeed: boolean) {
+  return loadProfile === "fluctuating" ? true : preferVariableSpeed;
 }
 
 function calculateHeatRecovery(input: CalculatorInput, recommendedModel: CompressorModel) {
@@ -468,6 +426,7 @@ function calculateHeatRecovery(input: CalculatorInput, recommendedModel: Compres
     theoreticalGasSavedM3,
     theoreticalSavingsHuf,
     heatingMonths: config.heatingMonths,
+    canUseRecoveredHeatOutsideHeatingSeason: config.canUseRecoveredHeatOutsideHeatingSeason,
     hotWaterMonths: config.hotWaterMonths,
     hotWaterLoadFactor: config.hotWaterLoadFactor,
     seasonalGasSavedM3,
@@ -476,10 +435,16 @@ function calculateHeatRecovery(input: CalculatorInput, recommendedModel: Compres
 }
 
 function normalizeHeatRecoveryInput(input: HeatRecoveryInput) {
+  const heatingMonths = clampMonthCount(input.heatingMonths ?? heatRecoveryDefaults.heatingMonths);
+  const canUseRecoveredHeatOutsideHeatingSeason =
+    input.canUseRecoveredHeatOutsideHeatingSeason ??
+    heatRecoveryDefaults.canUseRecoveredHeatOutsideHeatingSeason;
+
   return {
     gasPriceHufPerM3: input.gasPriceHufPerM3 ?? heatRecoveryDefaults.gasPriceHufPerM3,
-    heatingMonths: input.heatingMonths ?? heatRecoveryDefaults.heatingMonths,
-    hotWaterMonths: input.hotWaterMonths ?? heatRecoveryDefaults.hotWaterMonths,
+    heatingMonths,
+    canUseRecoveredHeatOutsideHeatingSeason,
+    hotWaterMonths: canUseRecoveredHeatOutsideHeatingSeason ? 12 - heatingMonths : 0,
     hotWaterLoadFactor: input.hotWaterLoadFactor ?? heatRecoveryDefaults.hotWaterLoadFactor,
     recoverablePowerRatio: input.recoverablePowerRatio ?? heatRecoveryDefaults.recoverablePowerRatio,
     utilizationEfficiency: input.utilizationEfficiency ?? heatRecoveryDefaults.utilizationEfficiency,
@@ -488,14 +453,16 @@ function normalizeHeatRecoveryInput(input: HeatRecoveryInput) {
   };
 }
 
+function clampMonthCount(months: number) {
+  return Math.min(12, Math.max(1, months));
+}
+
 function getLoadProfileSavingsMultiplier(input: CompressorUnitInput, model: CompressorModel) {
   if (model.kind !== "rs") return 1;
   const profile = input.loadProfile ?? "continuous";
   const multipliers = {
     continuous: 1,
-    shift: 0.96,
-    fluctuating: 0.9,
-    peak: 0.93
+    fluctuating: 0.9
   } satisfies Record<NonNullable<CalculatorInput["loadProfile"]>, number>;
   return multipliers[profile];
 }
@@ -559,46 +526,38 @@ export function calculateLeadScore(
   const maxAnnualHours = input.units?.length
     ? Math.max(...input.units.map((unit) => unit.annualHours))
     : input.annualHours;
-  const businessEmail = isBusinessEmailAddress(input.email ?? "");
-  const hasWebsite = Boolean(input.companyWebsite?.trim());
-  const hasActivity = Boolean(input.companyActivity?.trim());
   const machineCount = result.totalMachineCount ?? input.units?.length ?? 1;
 
-  const savingsScore = scaledScore(result.annualHufSaved, 5_000_000, 32);
-  const sizeScore = scaledScore(totalNominalKw, 160, 16);
-  const hoursScore = scaledScore(Math.max(0, maxAnnualHours - 1000), 7000, 16);
+  const savingsScore = scaledScore(result.annualHufSaved, 5_000_000, 40);
+  const sizeScore = scaledScore(totalNominalKw, 160, 20);
+  const hoursScore = scaledScore(Math.max(0, maxAnnualHours - 1000), 7000, 20);
   const benchmarkScore =
-    result.benchmark.level === "critical" ? 12 : result.benchmark.level === "high" ? 8 : 3;
-  const profileScore = clampScore(
-    (businessEmail ? 6 : 0) + (hasWebsite ? 4 : 0) + (hasActivity ? 4 : 0),
-    14
-  );
-  const fleetScore = clampScore(Math.max(0, (machineCount - 1) * 3), 5);
+    result.benchmark.level === "critical" ? 15 : result.benchmark.level === "high" ? 10 : 4;
+  const fleetScore = clampScore(Math.max(0, (machineCount - 1) * 2), 3);
   const heatRecoveryScore = result.heatRecovery
-    ? scaledScore(result.heatRecovery.seasonalSavingsHuf, 1_000_000, 5)
+    ? scaledScore(result.heatRecovery.seasonalSavingsHuf, 1_000_000, 2)
     : 0;
 
   reasons.push(
-    `Éves megtakarítási potenciál: ${formatScoreHuf(result.annualHufSaved)} / év (${savingsScore}/32 pont)`,
-    `Kompresszor méret: ${formatScoreNumber(totalNominalKw)} kW összesített névleges teljesítmény (${sizeScore}/16 pont)`,
-    `Üzemóra intenzitás: ${formatScoreNumber(maxAnnualHours)} óra/év (${hoursScore}/16 pont)`,
-    `Benchmark sáv: ${result.benchmark.label} (${benchmarkScore}/12 pont)`,
-    `Cégprofil teljessége: ${profileScore}/14 pont`
+    `Éves megtakarítási potenciál: ${formatScoreHuf(result.annualHufSaved)} / év (${savingsScore}/40 pont)`,
+    `Kompresszor méret: ${formatScoreNumber(totalNominalKw)} kW összesített névleges teljesítmény (${sizeScore}/20 pont)`,
+    `Üzemóra intenzitás: ${formatScoreNumber(maxAnnualHours)} óra/év (${hoursScore}/20 pont)`,
+    `Benchmark sáv: ${result.benchmark.label} (${benchmarkScore}/15 pont)`
   );
 
   if (fleetScore > 0) {
-    reasons.push(`Több gépes üzem: ${machineCount} gép (${fleetScore}/5 pont)`);
+    reasons.push(`Több gépes üzem: ${machineCount} gép (${fleetScore}/3 pont)`);
   }
 
   if (heatRecoveryScore > 0 && result.heatRecovery) {
     reasons.push(
-      `Hővisszanyerési potenciál: ${formatScoreHuf(result.heatRecovery.seasonalSavingsHuf)} / év (${heatRecoveryScore}/5 pont)`
+      `Hővisszanyerési potenciál: ${formatScoreHuf(result.heatRecovery.seasonalSavingsHuf)} / év (${heatRecoveryScore}/2 pont)`
     );
   }
 
   const score = Math.min(
     100,
-    savingsScore + sizeScore + hoursScore + benchmarkScore + profileScore + fleetScore + heatRecoveryScore
+    savingsScore + sizeScore + hoursScore + benchmarkScore + fleetScore + heatRecoveryScore
   );
   const label = score >= 75 ? "Forró" : score >= 55 ? "Erős" : score >= 35 ? "Közepes" : "Alap";
   return { score, label, reasons };

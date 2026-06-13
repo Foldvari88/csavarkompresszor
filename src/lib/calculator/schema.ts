@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getBrandCategory } from "./brand-category";
 
 export const ageBandSchema = z.enum(["5-10", "10-15", "15+"]);
-export const loadProfileSchema = z.enum(["continuous", "shift", "fluctuating", "peak"]);
+export const loadProfileSchema = z.enum(["continuous", "fluctuating"]);
 
 const campaignTrackingSchema = z.object({
   utmSource: z.string().max(160).optional(),
@@ -21,7 +21,8 @@ const heatRecoverySchema = z.object({
   enabled: z.coerce.boolean().default(false),
   gasPriceHufPerM3: z.coerce.number().min(1).max(5000).optional(),
   heatingMonths: z.coerce.number().min(1).max(12).optional(),
-  hotWaterMonths: z.coerce.number().min(1).max(12).optional(),
+  canUseRecoveredHeatOutsideHeatingSeason: z.coerce.boolean().optional().default(false),
+  hotWaterMonths: z.coerce.number().min(0).max(12).optional(),
   hotWaterLoadFactor: z.coerce.number().min(0).max(1).optional(),
   recoverablePowerRatio: z.coerce.number().min(0.1).max(1).optional(),
   utilizationEfficiency: z.coerce.number().min(0.1).max(1).optional(),
@@ -63,8 +64,8 @@ export const extendedCalculatorInputSchema = extendedCalculatorInputBaseSchema.t
 
 export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   email: z.string().email(),
-  companyName: z.string().min(2).max(120),
-  companyWebsite: z.string().trim().min(3).max(220).refine(isLikelyWebsite, {
+  companyName: z.string().trim().max(120).optional().default(""),
+  companyWebsite: z.string().trim().max(220).optional().default("").refine((value) => !value || isLikelyWebsite(value), {
     message: "Adj meg valós céges weboldalt. Példa: ceg.hu"
   }),
   companyActivity: z.string().trim().min(2).max(180),
@@ -74,10 +75,23 @@ export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   consentPrivacy: z.literal(true)
 }).transform(withExcelCategory);
 
-function withExcelCategory<T extends { brand: string; category?: string }>(input: T) {
+function withExcelCategory<
+  T extends {
+    brand: string;
+    category?: string;
+    loadProfile?: string;
+    preferVariableSpeed?: boolean;
+    units?: Array<{ loadProfile?: string; preferVariableSpeed?: boolean }>;
+  }
+>(input: T) {
   return {
     ...input,
-    category: getBrandCategory(input.brand)
+    category: getBrandCategory(input.brand),
+    preferVariableSpeed: input.loadProfile === "fluctuating" ? true : input.preferVariableSpeed,
+    units: input.units?.map((unit) => ({
+      ...unit,
+      preferVariableSpeed: unit.loadProfile === "fluctuating" ? true : unit.preferVariableSpeed
+    }))
   };
 }
 

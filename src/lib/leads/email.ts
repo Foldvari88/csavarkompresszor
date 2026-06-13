@@ -1,21 +1,27 @@
-import { Resend } from "resend";
+import { readFileSync } from "node:fs";
+import { Resend, type Attachment } from "resend";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import {
   getCompressorProductImage,
-  getCompressorProductImageDataUri,
-  getCompressorProductImageUrl
+  getCompressorProductImageDataUri
 } from "@/lib/product-images";
 import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 import { generateLeadPdf } from "./pdf";
 
 type RenderEmailOptions = {
   inlineProductImages?: boolean;
+  productImageCid?: string;
 };
 
 type SequenceScheduleResult =
   | {
       mode: "scheduled";
       emails: Array<{ id: string; scheduledAt: string; resendId: string | null }>;
+    }
+  | {
+      mode: "broadcast";
+      segmentId: string;
+      contactId: string | null;
     }
   | { mode: "skipped"; reason: string }
   | { mode: "failed"; reason: string };
@@ -24,6 +30,7 @@ let resend: Resend | null = null;
 
 const defaultConsultationNotificationTo = "info@iparikalkulator.hu";
 const consultationNotificationTo = "info@iparikalkulator.hu";
+const recommendedProductImageContentId = "recommended-product-image";
 
 const sequenceSteps = [
   {
@@ -148,16 +155,21 @@ export async function sendLeadEmails(lead: LeadRecord) {
     content: pdf,
     contentType: "application/pdf"
   };
-  const customerHtml = renderCustomerEmail(lead);
+  const productImageAttachment = getProductImageAttachment(lead.result);
+  const productImageRenderOptions = {
+    productImageCid: recommendedProductImageContentId
+  };
+  const customerAttachments = [pdfAttachment, productImageAttachment];
+  const customerHtml = renderCustomerEmail(lead, productImageRenderOptions);
   const customerEmail = await client.emails.send(
     {
       from,
       replyTo,
       to: lead.input.email,
-      subject: `Személyre szabott csavarkompresszor riport: ${lead.input.companyName}`,
+      subject: `Személyre szabott csavarkompresszor riport: ${getLeadDisplayName(lead)}`,
       html: customerHtml,
       text: renderPlainTextFromHtml(customerHtml),
-      attachments: lead.result.companyProfile.engineeringPdfEligible ? [pdfAttachment] : [],
+      attachments: customerAttachments,
       tags: [
         { name: "category", value: "calculator-result" },
         { name: "leadId", value: lead.id }
@@ -173,16 +185,20 @@ export async function sendLeadEmails(lead: LeadRecord) {
   let notificationEmailId: string | null = null;
 
   if (notificationTo) {
-    const notificationHtml = renderInternalNotificationEmail(lead);
+    const notificationHtml = renderInternalNotificationEmail(
+      lead,
+      undefined,
+      productImageRenderOptions
+    );
     const notificationEmail = await client.emails.send(
       {
         from,
         replyTo,
         to: getEmailRecipients(notificationTo),
-        subject: `Új csavarkompresszor kalkuláció: ${lead.input.companyName}`,
+        subject: `Új csavarkompresszor kalkuláció: ${getLeadDisplayName(lead)}`,
         html: notificationHtml,
         text: renderPlainTextFromHtml(notificationHtml),
-        attachments: [pdfAttachment],
+        attachments: [pdfAttachment, productImageAttachment],
         tags: [
           { name: "category", value: "lead-notification" },
           { name: "leadId", value: lead.id }
@@ -236,7 +252,7 @@ export async function sendLeadEngagementNotification({
       from,
       replyTo,
       to: getEmailRecipients(notificationTo),
-      subject: `${eventLabel}: ${lead.input.companyName}`,
+      subject: `${eventLabel}: ${getLeadDisplayName(lead)}`,
       html,
       text: renderPlainTextFromHtml(html),
       tags: [
@@ -318,11 +334,19 @@ async function scheduleLeadSequence({
     return { mode: "skipped", reason: "marketing-consent-missing" };
   }
 
+  if (getEmailSequenceMode() === "broadcast") {
+    return enrollLeadInBroadcastSequence({ client, lead });
+  }
+
   try {
     const scheduled = [];
+    const productImageAttachment = getProductImageAttachment(lead.result);
+    const productImageRenderOptions = {
+      productImageCid: recommendedProductImageContentId
+    };
 
     for (const step of sequenceSteps) {
-      const html = renderSequenceEmail(lead, step);
+      const html = renderSequenceEmail(lead, step, productImageRenderOptions);
       const response = await client.emails.send(
         {
           from,
@@ -331,6 +355,7 @@ async function scheduleLeadSequence({
           subject: step.subject,
           html,
           text: renderPlainTextFromHtml(html),
+          attachments: [productImageAttachment],
           scheduledAt: step.delay,
           tags: [
             { name: "category", value: "lead-sequence" },
@@ -372,85 +397,56 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
   const personalizedIntro = getPersonalizedIntro(lead);
   const personalizedNextStep = getPersonalizedNextStep(lead);
-  const engineeringPdfEligible = result.companyProfile.engineeringPdfEligible;
-  const engineeringPdfNotice = engineeringPdfEligible
-    ? "A mérnöki PDF riportot csatoltuk az emailhez."
-    : "Céges emaillel a rendszer mérnöki PDF-et, részletes géptípus-ajánlást és visszahívási opciót is ad.";
+  const reportSavings = getReportSavings(lead);
   const html = emailShell(`
     <p>Tisztelt ${escapeHtml(input.name)}!</p>
     <p>Köszönjük, hogy elküldte részünkre a csavarkompresszor energiahatékonysági kalkulációhoz szükséges adatokat.</p>
     <p>${escapeHtml(personalizedIntro)}</p>
-    ${renderCompanyProfileEmailBlock(lead)}
-    <p>A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható éves megtakarítása:</p>
-    <div class="metric">${formatHuf(result.annualHufSaved)} / év</div>
-    ${engineeringPdfEligible ? renderRecommendedProductImage(result, options) : ""}
+    <p>A megadott adatok alapján az ajánlott ${escapeHtml(recommendedModelName)} modell várható ${
+      reportSavings.heatRecoveryAnnualHuf > 0 ? "összesített " : ""
+    }éves megtakarítása:</p>
+    <div class="metric">${formatHuf(reportSavings.totalAnnualHuf)} / év</div>
+    ${renderRecommendedProductImage(result, options)}
     <p>Ez körülbelül ${formatNumber(result.annualKwhSaved)} kWh villamosenergia-megtakarítás évente, ${formatNumber(input.annualHours)} üzemórával és ${formatHuf(input.energyPriceHufKwh)} / kWh áramárral számolva.</p>
     <table>
       <tr><td>Jelenlegi gép</td><td>${escapeHtml(input.brand)} - ${formatKw(input.nominalKw)}</td></tr>
       <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
-      <tr><td>Régi felvett teljesítmény</td><td>${formatNumber(result.selectedLegacy.degradedInputKw, 2)} kW</td></tr>
       <tr><td>Ajánlott modell felvett teljesítménye</td><td>${formatNumber(result.recommendedModel.inputKw, 2)} kW</td></tr>
-      ${renderHeatRecoveryRows(result)}
-      <tr><td>Lead prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
+      ${renderReportSavingsRows(lead)}
+      ${renderHeatRecoveryRows(lead)}
     </table>
-    <p>${escapeHtml(engineeringPdfNotice)}</p>
-    ${
-      engineeringPdfEligible
-        ? `<p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">Mérnöki PDF riport letöltése</a></p>`
-        : ""
-    }
-    <p>${escapeHtml(result.priority.description)}</p>
+    <p>A részletes PDF riportot csatoltuk az emailhez.</p>
+    <p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">PDF riport letöltése</a></p>
     <p>${escapeHtml(personalizedNextStep)}</p>
     <p><a class="cta" href="${escapeHtml(appointmentUrl)}">Konzultációs visszahívás kérése</a></p>
     ${renderCustomerEmailSignature()}
     <p class="fine">${result.assumptions.map(escapeHtml).join("<br>")}</p>
   `);
-  return engineeringPdfEligible ? html : stripEngineeringDetailsFromCustomerEmail(html, result);
+  return html;
 }
 
-function stripEngineeringDetailsFromCustomerEmail(html: string, result: CalculationResult) {
-  const recommendedModelName = escapeRegExp(formatCompressorModel(result.recommendedModel));
-  const nominalKw = escapeRegExp(formatKw(result.recommendedModel.nominalKw));
-  const inputKw = escapeRegExp(formatNumber(result.recommendedModel.inputKw, 2));
-
-  return html
-    .replace(
-      new RegExp(`<p>[\\s\\S]*?${recommendedModelName}[\\s\\S]*?</p>`, "i"),
-      "<p>Köszönjük a kalkulációt. Az általános iparági becslés alapján a várható éves megtakarítási potenciál:</p>"
-    )
-    .replace(new RegExp(`<tr><td>[^<]*modell</td><td>${recommendedModelName} - ${nominalKw}</td></tr>`, "i"), "")
-    .replace(
-      new RegExp(`<tr><td>[^<]*modell felvett teljes[^<]*</td><td>${inputKw} kW</td></tr>`, "i"),
-      `<tr><td>Pontossági szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
-        result.companyProfile.expectedAccuracy
-      )}</td></tr>`
-    )
-    .replace(/<div class="product-photo">[\s\S]*?<\/div>\s*<\/div>/, "")
-    .replace(/<p><a class="cta"[\s\S]*?<\/a><\/p>/, "");
-}
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[number]) {
+function renderSequenceEmail(
+  lead: LeadRecord,
+  step: (typeof sequenceSteps)[number],
+  options: RenderEmailOptions = {}
+) {
   const appointmentUrl = getTrackedAppointmentUrl(lead, step.id);
   const { result, input } = lead;
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
+  const reportSavings = getReportSavings(lead);
   return emailShell(`
     <div class="preheader">${escapeHtml(step.preview)}</div>
     <h1>${escapeHtml(step.heading)}</h1>
     <p>Tisztelt ${escapeHtml(input.name)}!</p>
     <p>${escapeHtml(step.intro)}</p>
     <div class="summary-box">
-      <strong>${escapeHtml(input.companyName)} kalkulációs összefoglaló</strong>
-      ${renderRecommendedProductImage(result)}
+      <strong>${escapeHtml(getLeadDisplayName(lead))} kalkulációs összefoglaló</strong>
+      ${renderRecommendedProductImage(result, options)}
       <table>
-        <tr><td>Becsült éves megtakarítás</td><td>${formatHuf(result.annualHufSaved)}</td></tr>
-        <tr><td>5 éves potenciál</td><td>${formatHuf(result.fiveYearHufSaved)}</td></tr>
+        ${renderReportSavingsRows(lead)}
+        <tr><td>5 éves összesített potenciál</td><td>${formatHuf(reportSavings.totalAnnualHuf * 5)}</td></tr>
         <tr><td>Ajánlott modell</td><td>${escapeHtml(recommendedModelName)} - ${formatKw(result.recommendedModel.nominalKw)}</td></tr>
-        ${renderHeatRecoveryRows(result)}
-        <tr><td>Prioritás</td><td>${escapeHtml(result.priority.label)}</td></tr>
+        ${renderHeatRecoveryRows(lead)}
       </table>
     </div>
     <ul>
@@ -463,22 +459,22 @@ function renderSequenceEmail(lead: LeadRecord, step: (typeof sequenceSteps)[numb
 
 export function renderInternalNotificationEmail(
   lead: LeadRecord,
-  sequence?: SequenceScheduleResult
+  sequence?: SequenceScheduleResult,
+  options: RenderEmailOptions = {}
 ) {
   const recommendedModelName = formatCompressorModel(lead.result.recommendedModel);
   return emailShell(`
     <p>Új kalkulációs beküldés érkezett a csavarkompresszor kalkulátorból.</p>
-    ${renderRecommendedProductImage(lead.result)}
+    ${renderRecommendedProductImage(lead.result, options)}
     <table>
-      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName || "-")}</td></tr>
       <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
       <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
       <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
       <tr><td>Marketing hozzájárulás</td><td>${lead.input.consentMarketing ? "igen" : "nem"}</td></tr>
       <tr><td>Email szekvencia</td><td>${escapeHtml(formatSequenceStatus(sequence))}</td></tr>
       <tr><td>Éves megtakarítás</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
-      ${renderHeatRecoveryRows(lead.result)}
-      <tr><td>Prioritás</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
+      ${renderHeatRecoveryRows(lead)}
       <tr><td>Score</td><td>${lead.result.leadScore.score}/100 - ${escapeHtml(lead.result.leadScore.label)}</td></tr>
       <tr><td>Benchmark</td><td>${escapeHtml(lead.result.benchmark.label)}</td></tr>
       <tr><td>Gépek száma</td><td>${lead.result.totalMachineCount}</td></tr>
@@ -502,7 +498,7 @@ export function renderLeadEngagementNotificationEmail({
   return emailShell(`
     <p>${escapeHtml(formatEngagementEventType(type))} történt egy kalkulátor leadnél.</p>
     <table>
-      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName || "-")}</td></tr>
       <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
       <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
       <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
@@ -535,7 +531,7 @@ export function renderConsultationRequestNotificationEmail({
   return emailShell(`
     <p>Konzultációs visszahívás kérést indított egy kalkulátor lead.</p>
     <table>
-      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName)}</td></tr>
+      <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName || "-")}</td></tr>
       <tr><td>Kapcsolattartó</td><td>${escapeHtml(lead.input.name || "-")}</td></tr>
       <tr><td>Email</td><td>${escapeHtml(lead.input.email)}</td></tr>
       <tr><td>Telefon</td><td>${escapeHtml(lead.input.phone || "-")}</td></tr>
@@ -545,7 +541,6 @@ export function renderConsultationRequestNotificationEmail({
       <tr><td>Időpont</td><td>${escapeHtml(
         occurredAt.toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })
       )}</td></tr>
-      <tr><td>Prioritás</td><td>${escapeHtml(lead.result.priority.label)}</td></tr>
       <tr><td>Lead score</td><td>${lead.result.leadScore.score}/100 - ${escapeHtml(lead.result.leadScore.label)}</td></tr>
       <tr><td>Éves megtakarítás</td><td>${formatHuf(lead.result.annualHufSaved)}</td></tr>
       <tr><td>5 éves potenciál</td><td>${formatHuf(lead.result.fiveYearHufSaved)}</td></tr>
@@ -566,9 +561,11 @@ function renderRecommendedProductImage(
   options: RenderEmailOptions = {}
 ) {
   const image = getCompressorProductImage(result.recommendedModel);
-  const imageUrl = options.inlineProductImages
-    ? getCompressorProductImageDataUri(result.recommendedModel)
-    : getCompressorProductImageUrl(result.recommendedModel);
+  const imageUrl = options.productImageCid
+    ? `cid:${options.productImageCid}`
+    : options.inlineProductImages
+      ? getCompressorProductImageDataUri(result.recommendedModel)
+      : image.publicPath;
   const recommendedModelName = formatCompressorModel(result.recommendedModel);
 
   return `
@@ -583,9 +580,51 @@ function renderRecommendedProductImage(
   `;
 }
 
-function renderHeatRecoveryRows(result: CalculationResult) {
-  const heat = result.heatRecovery;
+function getProductImageAttachment(result: CalculationResult): Attachment {
+  const image = getCompressorProductImage(result.recommendedModel);
+  const filename = image.publicPath.split("/").pop() ?? "ajanlott-csavarkompresszor.jpg";
+
+  return {
+    filename,
+    content: readFileSync(image.localPath),
+    contentType: "image/jpeg",
+    contentId: recommendedProductImageContentId
+  };
+}
+
+function getReportSavings(lead: LeadRecord) {
+  const heatRecoveryAnnualHuf = getEnabledHeatRecovery(lead)?.seasonalSavingsHuf ?? 0;
+  return {
+    heatRecoveryAnnualHuf,
+    totalAnnualHuf: lead.result.annualHufSaved + heatRecoveryAnnualHuf
+  };
+}
+
+function renderReportSavingsRows(lead: LeadRecord) {
+  const reportSavings = getReportSavings(lead);
+
+  if (reportSavings.heatRecoveryAnnualHuf <= 0) {
+    return `
+      <tr><td>Éves megtakarítás</td><td>${formatHuf(reportSavings.totalAnnualHuf)} / év</td></tr>
+    `;
+  }
+
+  return `
+      <tr><td>Összesített éves megtakarítás</td><td>${formatHuf(reportSavings.totalAnnualHuf)} / év</td></tr>
+      <tr><td>Villamosenergia-megtakarítás</td><td>${formatHuf(lead.result.annualHufSaved)} / év</td></tr>
+      <tr><td>Hővisszanyerési gázkiváltás</td><td>${formatHuf(reportSavings.heatRecoveryAnnualHuf)} / év</td></tr>
+    `;
+}
+
+function renderHeatRecoveryRows(lead: LeadRecord) {
+  const heat = getEnabledHeatRecovery(lead);
   if (!heat) return "";
+  const gasLabel = heat.canUseRecoveredHeatOutsideHeatingSeason
+    ? "Kiváltható földgáz fűtés/HMV kombinációval"
+    : "Kiváltható földgáz fűtési időszakban";
+  const costLabel = heat.canUseRecoveredHeatOutsideHeatingSeason
+    ? "Fűtés/HMV kombinációval kiváltható gázköltség"
+    : "Fűtési időszakban kiváltható gázköltség";
 
   return `
       <tr><td>Hővisszanyerés alapja</td><td>${escapeHtml(heat.compressorModelName)} - ${formatKw(heat.compressorNominalKw)}</td></tr>
@@ -593,44 +632,13 @@ function renderHeatRecoveryRows(result: CalculationResult) {
       <tr><td>Visszanyerhető hőteljesítmény</td><td>${formatNumber(heat.recoverableHeatKw, 2)} kW</td></tr>
       <tr><td>Visszanyerhető hőteljesítmény veszteséggel</td><td>${formatNumber(heat.usefulHeatKw, 2)} kW</td></tr>
       <tr><td>Földgáz ára</td><td>${formatHuf(heat.gasPriceHufPerM3)} / m3</td></tr>
-      <tr><td>HMV jelentése</td><td>használati melegvíz</td></tr>
       <tr><td>Hővisszanyerési megtakarítás</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
       <tr><td>Elméleti hővisszanyerési hatás</td><td>${formatHuf(heat.theoreticalSavingsHuf)} / év</td></tr>
-      <tr><td>Kiváltható földgáz fűtés/HMV kombinációval</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
+      <tr><td>${escapeHtml(gasLabel)}</td><td>${formatNumber(heat.seasonalGasSavedM3)} m3 / év</td></tr>
       <tr><td>Kiváltható földgáz folyamatos HMV/ipari felhasználásnál</td><td>${formatNumber(heat.theoreticalGasSavedM3)} m3 / év</td></tr>
       <tr><td>Hasznosítható hőenergia</td><td>${formatNumber(heat.annualUsefulHeatKwh)} kWh / év</td></tr>
-      <tr><td>Fűtés/HMV kombinációval kiváltható gázköltség</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
+      <tr><td>${escapeHtml(costLabel)}</td><td>${formatHuf(heat.seasonalSavingsHuf)} / év</td></tr>
     `;
-}
-
-function renderCompanyProfileEmailBlock(lead: LeadRecord) {
-  const { input, result } = lead;
-  const detectedContext = [
-    ...result.companyProfile.detectedSegments,
-    ...result.companyProfile.operatingSignals,
-    ...result.companyProfile.airQualitySignals
-  ].slice(0, 5);
-
-  return `
-    <div class="profile-box">
-      <strong>${escapeHtml(input.companyName)} cégprofil alapján súlyozott kalkuláció</strong>
-      <p>A megadott weboldal és tevékenység alapján a riport nem általános sablonként, hanem a várható felhasználási környezethez igazítva készült.</p>
-      <table>
-        <tr><td>Céges weboldal</td><td>${escapeHtml(input.companyWebsite || "-")}</td></tr>
-        <tr><td>Tevékenység</td><td>${escapeHtml(input.companyActivity || "-")}</td></tr>
-        <tr><td>Pontossági szint</td><td>${escapeHtml(result.companyProfile.label)} - ${escapeHtml(
-          result.companyProfile.expectedAccuracy
-        )}</td></tr>
-        <tr><td>Kompatibilitási jelzés</td><td>${escapeHtml(result.companyProfile.compatibilityLabel)}</td></tr>
-        <tr><td>Terhelési súlyozás</td><td>${escapeHtml(formatLoadProfileAdjustment(result.companyProfile.loadProfileAdjustment))}</td></tr>
-      </table>
-      ${
-        detectedContext.length
-          ? `<p class="profile-tags">${detectedContext.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</p>`
-          : ""
-      }
-    </div>
-  `;
 }
 
 function renderCustomerEmailSignature() {
@@ -643,34 +651,34 @@ function renderCustomerEmailSignature() {
 }
 
 function getPersonalizedIntro(lead: LeadRecord) {
-  const { input, result } = lead;
+  const { input } = lead;
+  const displayName = getLeadDisplayName(lead);
   const websitePart = input.companyWebsite ? ` (${input.companyWebsite})` : "";
   const activityPart = input.companyActivity
     ? `, ${input.companyActivity.toLowerCase()} jellegű felhasználás mellett`
     : "";
 
-  return `${input.companyName}${websitePart} részére elkészítettük a csavarkompresszor energiahatékonysági előkalkulációt${activityPart}. A számítás a megadott üzemórát, áramdíjat, jelenlegi gépadatokat és a cégprofil alapján becsült felhasználási környezetet veszi figyelembe. Pontossági szint: ${result.companyProfile.label}, várható pontosság: ${result.companyProfile.expectedAccuracy}.`;
+  return `${displayName}${websitePart} részére elkészítettük a csavarkompresszor energiahatékonysági előkalkulációt${activityPart}. A számítás a megadott üzemórát, áramdíjat és jelenlegi gépadatokat veszi figyelembe.`;
 }
 
 function getPersonalizedNextStep(lead: LeadRecord) {
-  const { input, result } = lead;
+  const { input } = lead;
+  const displayName = getLeadDisplayName(lead);
   const activity = input.companyActivity ? `${input.companyActivity} környezetben` : "az Ön üzemében";
 
-  if (result.heatRecovery) {
-    return `${input.companyName} esetében a következő szakmai lépés annak ellenőrzése, hogy ${activity} a hővisszanyerés milyen arányban használható fűtésre vagy HMV célra, és mekkora gázköltség váltható ki valós üzemi adatokkal.`;
+  if (getEnabledHeatRecovery(lead)) {
+    return `${displayName} esetében a következő szakmai lépés annak ellenőrzése, hogy ${activity} a hővisszanyerés milyen arányban használható fűtésre vagy HMV célra, és mekkora gázköltség váltható ki valós üzemi adatokkal.`;
   }
 
-  if (result.companyProfile.loadProfileAdjustment === "intensive") {
-    return `${input.companyName} esetében érdemes a terhelési profilt és a részterhelési üzemet külön pontosítani, mert intenzívebb felhasználásnál az RS/VSD technológia megtakarítási hatása erősebben jelentkezhet.`;
-  }
-
-  return `${input.companyName} esetében a következő lépés a tényleges levegőigény, üzemi nyomás és tartalékkapacitás rövid pontosítása, hogy az ajánlott géptartomány üzemi oldalról is illeszkedjen.`;
+  return `${displayName} esetében a következő lépés a tényleges levegőigény, üzemi nyomás és tartalékkapacitás rövid pontosítása, hogy az ajánlott géptartomány üzemi oldalról is illeszkedjen.`;
 }
 
-function formatLoadProfileAdjustment(value: CalculationResult["companyProfile"]["loadProfileAdjustment"]) {
-  if (value === "intensive") return "intenzívebb üzemi súlyozás";
-  if (value === "conservative") return "konzervatívabb üzemi súlyozás";
-  return "standard üzemi súlyozás";
+function getLeadDisplayName(lead: LeadRecord) {
+  return lead.input.companyName?.trim() || lead.input.name?.trim() || "Az Ön üzeme";
+}
+
+function getEnabledHeatRecovery(lead: LeadRecord) {
+  return lead.input.heatRecovery?.enabled ? lead.result.heatRecovery : null;
 }
 
 function formatSequenceStatus(sequence?: SequenceScheduleResult) {
@@ -733,11 +741,6 @@ function emailShell(content: string) {
           .product-photo strong { color:#17202a; display:block; font-size:20px; line-height:1.25; }
           .product-photo small { color:#64748b; display:block; font-size:13px; margin-top:5px; }
           .summary-box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin:18px 0; }
-          .profile-box { background:#f8fafc; border:1px solid #d7dee8; border-left:4px solid #303184; border-radius:10px; padding:16px; margin:18px 0; }
-          .profile-box strong { color:#17202a; display:block; font-size:16px; margin-bottom:8px; }
-          .profile-box table { margin:12px 0; }
-          .profile-tags { margin:10px 0 0; }
-          .profile-tags span { background:#eef2ff; border:1px solid #dbe3ff; border-radius:999px; color:#303184; display:inline-block; font-size:12px; font-weight:700; margin:0 6px 6px 0; padding:6px 9px; }
           .signature { border-top:1px solid #d7dee8; margin-top:24px; padding-top:18px; }
           .signature p { margin:0 0 6px; }
           .signature strong { color:#17202a; display:block; font-size:16px; margin-bottom:4px; }

@@ -69,7 +69,8 @@ export function buildHomeJsonLd() {
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      name: "Csavarkompresszor megtakarítás kalkulátor",
+      name:
+        "Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: absoluteUrl("/"),
@@ -96,4 +97,3 @@ export function buildHomeJsonLd() {
     }
   ];
 }
-

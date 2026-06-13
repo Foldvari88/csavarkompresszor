@@ -31,7 +31,8 @@ export const metadata: Metadata = {
     shortcut: ["/icon.svg"]
   },
   title: {
-    default: "Csavarkompresszor megtakarítás kalkulátor | Ipari energia költség számítás",
+    default:
+      "Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél",
     template: `%s | ${siteName}`
   },
   description: defaultDescription,
@@ -52,7 +53,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "hu_HU",
     siteName,
-    title: "Csavarkompresszor megtakarítás kalkulátor",
+    title:
+      "Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél",
     description: defaultDescription,
     images: [
       {
@@ -65,7 +67,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Csavarkompresszor megtakarítás kalkulátor",
+    title:
+      "Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél",
     description: defaultDescription,
     images: ["/images/industrial-compressor-og.jpg"]
   }

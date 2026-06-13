@@ -55,7 +55,6 @@ function isHeading(line: string, index: number) {
       "Bemeneti adatok",
       "Eredmény",
       "Ajánlott modell",
-      "Minősítés",
       "Következő lépés"
     ].includes(line)
   );

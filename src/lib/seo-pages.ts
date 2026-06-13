@@ -155,7 +155,7 @@ export const seoPages = [
           "Valós üzemi nyomás és nyomásveszteség.",
           "Szivárgások aránya a sűrített levegő rendszerben.",
           "Tartály, szárító és levegőkezelés állapota.",
-          "A tényleges terhelési profil: folyamatos, műszakos, ingadozó vagy csúcsterheléses."
+          "A tényleges terhelési profil: folyamatos vagy ingadozó."
         ]
       }
     ],
@@ -500,4 +500,3 @@ export function buildSeoPageJsonLd(page: SeoPageData) {
     }
   ];
 }
-

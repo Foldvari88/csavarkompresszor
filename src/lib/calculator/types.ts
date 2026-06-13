@@ -4,13 +4,11 @@ export type AgeBand = "5-10" | "10-15" | "15+";
 
 export type LeadStatus = "new" | "contacted" | "quoted" | "closed" | "lost";
 
-export type LoadProfile = "continuous" | "shift" | "fluctuating" | "peak";
+export type LoadProfile = "continuous" | "fluctuating";
 
 export type BenchmarkLevel = "average" | "high" | "critical";
 
 export type PriorityLevel = "standard" | "high" | "fast_payback" | "survey_recommended";
-
-export type CompanyProfileAccuracyLevel = "basic" | "profiled" | "engineering_prequalified";
 
 export type CampaignTracking = {
   utmSource?: string;
@@ -29,6 +27,7 @@ export type HeatRecoveryInput = {
   enabled: boolean;
   gasPriceHufPerM3?: number;
   heatingMonths?: number;
+  canUseRecoveredHeatOutsideHeatingSeason?: boolean;
   hotWaterMonths?: number;
   hotWaterLoadFactor?: number;
   recoverablePowerRatio?: number;
@@ -131,19 +130,6 @@ export type CalculationResult = {
     label: string;
     reasons: string[];
   };
-  companyProfile: {
-    accuracyLevel: CompanyProfileAccuracyLevel;
-    label: string;
-    expectedAccuracy: string;
-    isBusinessEmail: boolean;
-    engineeringPdfEligible: boolean;
-    compatibilityLabel: string;
-    compatibilityDescription: string;
-    detectedSegments: string[];
-    operatingSignals: string[];
-    airQualitySignals: string[];
-    loadProfileAdjustment: "conservative" | "standard" | "intensive";
-  };
   whyBreakdown: {
     annualHours: number;
     energyPriceHufKwh: number;
@@ -174,6 +160,7 @@ export type HeatRecoveryResult = {
   theoreticalGasSavedM3: number;
   theoreticalSavingsHuf: number;
   heatingMonths: number;
+  canUseRecoveredHeatOutsideHeatingSeason: boolean;
   hotWaterMonths: number;
   hotWaterLoadFactor: number;
   seasonalGasSavedM3: number;

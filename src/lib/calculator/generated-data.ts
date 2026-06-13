@@ -460,1428 +460,1428 @@ export const LEGACY_PERFORMANCE_ROWS: LegacyPerformanceRow[] = [
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.5
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 36.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 43.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 53.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 64.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 82.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 98.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 122.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 145.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 175.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 220.0
   },
   {
     "category": "Prémium",
     "brand": "Atlas Copco",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 260.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.5
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 36.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 43.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 53.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 64.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 82.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 98.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 122.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 145.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 175.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 220.0
   },
   {
     "category": "Prémium",
     "brand": "Kaeser",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 260.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.5
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 36.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 43.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 53.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 64.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 82.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 98.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 122.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 145.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 175.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 220.0
   },
   {
     "category": "Prémium",
     "brand": "Ingersoll Rand",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 260.0
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Boge",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Alup",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Almig",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Ceccato",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Worthington",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Renner",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "FIAC",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Hertz",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "ABAC",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Mark",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 5.5,
-    "inputKwBase": 6.3
+    "inputKwBase": 6.18
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 7.5,
-    "inputKwBase": 8.925
+    "inputKwBase": 8.755
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 11.0,
-    "inputKwBase": 13.65
+    "inputKwBase": 13.39
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 15.0,
-    "inputKwBase": 18.9
+    "inputKwBase": 18.54
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 18.5,
-    "inputKwBase": 23.1
+    "inputKwBase": 22.66
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 22.0,
-    "inputKwBase": 27.3
+    "inputKwBase": 26.78
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 30.0,
-    "inputKwBase": 37.8
+    "inputKwBase": 37.08
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 37.0,
-    "inputKwBase": 45.15
+    "inputKwBase": 44.29
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 45.0,
-    "inputKwBase": 55.65
+    "inputKwBase": 54.59
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 55.0,
-    "inputKwBase": 67.2
+    "inputKwBase": 65.92
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 75.0,
-    "inputKwBase": 86.1
+    "inputKwBase": 84.46
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 90.0,
-    "inputKwBase": 102.9
+    "inputKwBase": 100.94
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 110.0,
-    "inputKwBase": 128.1
+    "inputKwBase": 125.66
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 132.0,
-    "inputKwBase": 152.25
+    "inputKwBase": 149.35
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 160.0,
-    "inputKwBase": 183.75
+    "inputKwBase": 180.25
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 200.0,
-    "inputKwBase": 231.0
+    "inputKwBase": 226.6
   },
   {
     "category": "Közép",
     "brand": "Egyéb",
     "nominalKw": 250.0,
-    "inputKwBase": 273.0
+    "inputKwBase": 267.8
   }
 ];

@@ -3,7 +3,8 @@ import { CalculatorApp } from "@/components/calculator-app";
 import { buildHomeJsonLd } from "@/lib/home-seo";
 
 export const metadata: Metadata = {
-  title: "Csavarkompresszor megtakarítás kalkulátor",
+  title:
+    "Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél",
   description:
     "Számolja ki, mennyit csökkenthet az éves villamosenergia-költségen egy korszerű ipari csavarkompresszorral.",
   alternates: {

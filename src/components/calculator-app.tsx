@@ -2,14 +2,11 @@
 
 import {
   ArrowRight,
-  BadgeCheck,
   BarChart3,
   CheckCircle2,
   Clock3,
-  Factory,
   FileText,
   Gauge,
-  ShieldCheck,
   Sparkles,
   Target,
   TrendingDown,
@@ -29,6 +26,7 @@ import type {
   AgeBand,
   CalculatorInput,
   CampaignTracking,
+  HeatRecoveryResult,
   LeadFormInput
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
@@ -57,7 +55,7 @@ const initialCalculator: CalculatorInput = {
   brand: "Atlas Copco",
   category: getBrandCategory("Atlas Copco"),
   ageBand: "10-15",
-  nominalKw: 37,
+  nominalKw: 75,
   annualHours: ASSUMPTION_VERSION.defaultAnnualHours,
   energyPriceHufKwh: ASSUMPTION_VERSION.defaultEnergyPriceHufKwh,
   preferVariableSpeed: true,
@@ -66,6 +64,7 @@ const initialCalculator: CalculatorInput = {
     enabled: false,
     gasPriceHufPerM3: 304,
     heatingMonths: 7,
+    canUseRecoveredHeatOutsideHeatingSeason: false,
     hotWaterMonths: 5,
     hotWaterLoadFactor: 0.5,
     recoverablePowerRatio: 0.9,
@@ -77,26 +76,29 @@ const initialCalculator: CalculatorInput = {
 
 const loadProfileOptions = [
   { value: "continuous", label: "Folyamatos", helper: "stabil levegőigény" },
-  { value: "shift", label: "Műszakos", helper: "napi termelési ciklus" },
-  { value: "fluctuating", label: "Ingadozó", helper: "változó fogyasztás" },
-  { value: "peak", label: "Csúcsterheléses", helper: "időszakos kiugrások" }
+  { value: "fluctuating", label: "Ingadozó", helper: "változó fogyasztás" }
 ] satisfies Array<{ value: NonNullable<CalculatorInput["loadProfile"]>; label: string; helper: string }>;
 
-const publicLegacyBrands = LEGACY_BRANDS.filter(
-  (brand) => brand !== "CompAir" && brand !== "Egyéb"
-);
+const publicLegacyBrands = LEGACY_BRANDS.filter((brand) => brand !== "CompAir");
 
 const monthOptions = Array.from({ length: 12 }, (_, index) => index + 1);
 
 const companyActivityOptions = [
-  "Gyártóüzem / termelés",
-  "CNC / fémmegmunkálás",
-  "Élelmiszeripari gyártás",
-  "Autóipar / autószerviz",
-  "Festőüzem / fényezés",
-  "Logisztika / csomagolás",
-  "Műhely / szerviz",
-  "Egyéb ipari tevékenység"
+  "Élelmiszeripar",
+  "Fém és fém megmunkálás",
+  "Autó és járműipar",
+  "Gépgyártás",
+  "Elektronikai ipar",
+  "Vegyipar",
+  "Gyógyszeripar",
+  "Műanyagipar és gumiipar",
+  "Papír és nyomdaipar",
+  "Faipar",
+  "Textil és ruhaipar",
+  "Építőanyagipar",
+  "Üveg és kerámiaipar",
+  "Energiaipar",
+  "Egyéb"
 ];
 
 const initialLead: LeadFields = {
@@ -152,8 +154,6 @@ export function CalculatorApp() {
     calculator.annualHours > 0,
     calculator.energyPriceHufKwh > 0,
     Boolean(calculator.loadProfile),
-    lead.companyName.trim().length > 1,
-    lead.companyWebsite.trim().length > 2,
     lead.companyActivity.trim().length > 1,
     lead.name.trim().length > 1,
     isValidEmail(lead.email),
@@ -251,7 +251,7 @@ export function CalculatorApp() {
             <Zap size={16} />
             Csavarkompresszor csere előkalkuláció
           </span>
-          <h1>Csavarkompresszor megtakarítás ipari levegőrendszerekhez</h1>
+          <h1>Energiamegtakarítás kalkulátor csavarkompresszorok esetén, sűrített levegő rendszereknél</h1>
           <p>
             Számolja ki, mennyit csökkenthet az éves villamosenergia-költségen egy
             korszerű csavarkompresszorral. A részletes eredményt emailben küldjük ki,
@@ -273,7 +273,7 @@ export function CalculatorApp() {
           </div>
           <div className="trust-row">
             <div className="trust-item">
-              <BadgeCheck size={17} /> Excel metodika alapján
+              <CheckCircle2 size={17} /> Független kalkulációs logika
             </div>
             <div className="trust-item">
               <CheckCircle2 size={17} /> RS/VSD modellajánló
@@ -348,7 +348,7 @@ export function CalculatorApp() {
               </select>
             </Field>
 
-            <Field label="Excel szerinti kategória">
+            <Field label="Márka szerinti kategória">
               <div className="readonly-field">
                 <strong>{calculator.category}</strong>
                 <span>Márka alapján automatikus</span>
@@ -391,7 +391,7 @@ export function CalculatorApp() {
               />
             </Field>
 
-            <Field label="Villamos energia díja">
+            <Field label="Villamos energia díja Ft/kWh">
               <input
                 inputMode="decimal"
                 min={1}
@@ -415,7 +415,9 @@ export function CalculatorApp() {
                 onChange={(event) =>
                   updateCalculator((current) => ({
                     ...current,
-                    loadProfile: event.target.value as NonNullable<CalculatorInput["loadProfile"]>
+                    loadProfile: event.target.value as NonNullable<CalculatorInput["loadProfile"]>,
+                    preferVariableSpeed:
+                      event.target.value === "fluctuating" ? true : current.preferVariableSpeed
                   }))
                 }
               >
@@ -428,10 +430,11 @@ export function CalculatorApp() {
             </Field>
 
             <Field label="Technológiai preferencia">
-              <label className="toggle-row">
+              <label className={`toggle-row ${calculator.loadProfile === "fluctuating" ? "is-disabled" : ""}`}>
                 <input
                   type="checkbox"
-                  checked={calculator.preferVariableSpeed}
+                  checked={calculator.loadProfile === "fluctuating" || Boolean(calculator.preferVariableSpeed)}
+                  disabled={calculator.loadProfile === "fluctuating"}
                   onChange={(event) =>
                     updateCalculator((current) => ({
                       ...current,
@@ -472,13 +475,13 @@ export function CalculatorApp() {
                   }))
                 }
               />
-              <span>Szeretne hővisszanyerési gázmegtakarítást is számolni?</span>
+              <span>Szeretné a kompresszor hulladékhőjét hasznosítani fűtési célokra?</span>
             </label>
 
             {calculator.heatRecovery?.enabled ? (
               <>
                 <div className="heat-recovery-note">
-                  Excel logika: az ajánlott kompresszor névleges teljesítménye alapján 90%
+                  Számítási alap: az ajánlott kompresszor névleges teljesítménye alapján 90%
                   visszanyerhető hőteljesítmény x 90% hasznosítási tényező. HMV = használati
                   melegvíz, azaz mosdóhoz, technológiához vagy üzemi melegvízhez használt víz.
                   Az alap földgázár 304 Ft/m3 ipari piaci becslés, szabadon módosítható.
@@ -505,7 +508,10 @@ export function CalculatorApp() {
                       onChange={(event) =>
                         updateHeatRecovery((current) => ({
                           ...current,
-                          heatingMonths: Number(event.target.value)
+                          heatingMonths: Number(event.target.value),
+                          hotWaterMonths: current.canUseRecoveredHeatOutsideHeatingSeason
+                            ? Math.max(0, 12 - Number(event.target.value))
+                            : current.hotWaterMonths
                         }))
                       }
                     >
@@ -517,23 +523,41 @@ export function CalculatorApp() {
                     </select>
                   </OptionalField>
 
-                  <OptionalField label="Csak HMV időszak hónap/év">
+                  <OptionalField label="Fűtési időszakon kívül fel tudja használni a visszanyert hőt?">
                     <select
-                      value={calculator.heatRecovery.hotWaterMonths ?? 5}
+                      value={
+                        calculator.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason
+                          ? "yes"
+                          : "no"
+                      }
                       onChange={(event) =>
-                        updateHeatRecovery((current) => ({
-                          ...current,
-                          hotWaterMonths: Number(event.target.value)
-                        }))
+                        updateHeatRecovery((current) => {
+                          const canUseOutsideHeating = event.target.value === "yes";
+                          return {
+                            ...current,
+                            canUseRecoveredHeatOutsideHeatingSeason: canUseOutsideHeating,
+                            hotWaterMonths: canUseOutsideHeating
+                              ? Math.max(0, 12 - (current.heatingMonths ?? 7))
+                              : current.hotWaterMonths
+                          };
+                        })
                       }
                     >
-                      {monthOptions.map((month) => (
-                        <option key={month} value={month}>
-                          {month} hónap
-                        </option>
-                      ))}
+                      <option value="no">Nem</option>
+                      <option value="yes">Igen, HMV célra</option>
                     </select>
                   </OptionalField>
+
+                  {calculator.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason ? (
+                    <OptionalField label="Csak HMV időszak hónap/év">
+                      <input
+                        aria-readonly="true"
+                        readOnly
+                        type="text"
+                        value={`${Math.max(0, 12 - (calculator.heatRecovery.heatingMonths ?? 7))} hónap`}
+                      />
+                    </OptionalField>
+                  ) : null}
                 </div>
               </>
             ) : null}
@@ -549,54 +573,22 @@ export function CalculatorApp() {
               <div>
                 <div className="panel-kicker">
                   <span>02</span>
-                  Cégprofil-alapú kalkuláció
+                  Riport küldése
                 </div>
-                <h3>Kompresszor-kompatibilitási jelentés</h3>
+                <h3>Kapcsolati adatok</h3>
               </div>
               <span className="step-badge">
-                <ShieldCheck size={15} />
-                Profilozott riport
+                <FileText size={15} />
+                Emailes riport
               </span>
             </div>
-
-            <div className="company-profile-card">
-            <div className="profile-card-head">
-              <span>
-                <Factory size={18} />
-                Cégprofil pontosság
-              </span>
-              <strong>{result.companyProfile.label}</strong>
-            </div>
-            <p>
-              Add meg a céges weboldalad, és a kalkulátor az iparágad, várható
-              üzemterhelésed és levegőminőségi igényed alapján pontosítja az eredményt.
-            </p>
-            <div className="profile-grid">
-              <div>
-                <span>Pontossági szint</span>
-                <strong>{result.companyProfile.expectedAccuracy}</strong>
-              </div>
-              <div>
-                <span>Mérnöki PDF</span>
-                <strong>{result.companyProfile.engineeringPdfEligible ? "elérhető" : "céges email szükséges"}</strong>
-              </div>
-            </div>
-            {!result.companyProfile.engineeringPdfEligible ? (
-              <p className="profile-warning">
-                A kalkuláció cégprofil alapján súlyozott. Pontos cégnév, weboldal és
-                céges email nélkül csak általános iparági becslést tudunk adni.
-              </p>
-            ) : null}
-          </div>
 
           <div className="form-grid two">
-            <Field label="Cégnév">
+            <Field label="Cégnév (opcionális)">
               <input
                 id="companyName"
                 aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
                 aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
-                required
-                minLength={2}
                 value={lead.companyName}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, companyName: event.target.value }))
@@ -606,14 +598,13 @@ export function CalculatorApp() {
               <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
             </Field>
 
-            <Field label="Céges weboldal">
+            <Field label="Céges weboldal (opcionális)">
               <input
                 id="companyWebsite"
                 aria-describedby={
                   visibleLeadFieldErrors.companyWebsite ? "companyWebsite-error" : undefined
                 }
                 aria-invalid={Boolean(visibleLeadFieldErrors.companyWebsite)}
-                required
                 value={lead.companyWebsite}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, companyWebsite: event.target.value }))
@@ -669,8 +660,7 @@ export function CalculatorApp() {
               <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
               {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
                 <p className="field-hint is-warning">
-                  Gmail/ingyenes email esetén előzetes összefoglalót küldünk. Mérnöki PDF,
-                  részletes géptípus-ajánlás és visszahívási opció céges emaillel érhető el.
+                  Céges email előnyös, de nem kötelező. A részletes riportot erre az email címre küldjük.
                 </p>
               ) : null}
             </Field>
@@ -851,7 +841,9 @@ export function CalculatorApp() {
                   HMV = használati melegvíz. {formatNumber(result.heatRecovery.annualUsefulHeatKwh)}
                   kWh/év hasznosítható hő, nagyságrendileg{" "}
                   {formatNumber(result.heatRecovery.seasonalGasSavedM3)} m3 földgáz kiváltás
-                  a fűtés/HMV modellben.
+                  {result.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason
+                    ? " a fűtés/HMV modellben."
+                    : " a fűtési időszakban."}
                 </p>
                 <div className="heat-recovery-result-grid">
                   <span>
@@ -859,7 +851,9 @@ export function CalculatorApp() {
                     <b>{formatHuf(result.heatRecovery.theoreticalSavingsHuf)}</b>
                   </span>
                   <span>
-                    Fűtés/HMV hatás
+                    {result.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason
+                      ? "Fűtés/HMV hatás"
+                      : "Fűtési időszaki hatás"}
                     <b>{formatHuf(result.heatRecovery.seasonalSavingsHuf)}</b>
                   </span>
                 </div>
@@ -897,11 +891,15 @@ export function CalculatorApp() {
                     value={formatHuf(result.heatRecovery.theoreticalSavingsHuf)}
                   />
                   <HeatRecoveryRow
-                    label={`${result.heatRecovery.heatingMonths} hónap fűtés + ${result.heatRecovery.hotWaterMonths} hónap csak HMV`}
+                    label={getHeatRecoverySeasonLabel(result.heatRecovery)}
                     value={formatHuf(result.heatRecovery.seasonalSavingsHuf)}
                   />
                   <HeatRecoveryRow
-                    label="Fűtés/HMV kombinációval kiváltható gázköltség"
+                    label={
+                      result.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason
+                        ? "Fűtés/HMV kombinációval kiváltható gázköltség"
+                        : "Fűtési időszakban kiváltható gázköltség"
+                    }
                     value={formatHuf(result.heatRecovery.seasonalSavingsHuf)}
                   />
                 </div>
@@ -1037,13 +1035,11 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
   const errors: LeadFieldErrors = {};
 
-  if (lead.companyName.trim().length < 2) {
-    errors.companyName = "Add meg a cégnevet, legalább 2 karakterrel.";
+  if (lead.companyName.trim().length > 0 && lead.companyName.trim().length < 2) {
+    errors.companyName = "Ha megadod a cégnevet, legalább 2 karakter legyen.";
   }
 
-  if (lead.companyWebsite.trim().length === 0) {
-    errors.companyWebsite = "Add meg a céges weboldalt. Példa: ceg.hu";
-  } else if (!isLikelyWebsite(lead.companyWebsite)) {
+  if (lead.companyWebsite.trim().length > 0 && !isLikelyWebsite(lead.companyWebsite)) {
     errors.companyWebsite = "A weboldal formátuma nem jó. Példa: ceg.hu";
   }
 
@@ -1162,6 +1158,14 @@ function getCampaignTracking(): CampaignTracking {
   };
 }
 
+function getHeatRecoverySeasonLabel(heatRecovery: HeatRecoveryResult) {
+  if (heatRecovery.canUseRecoveredHeatOutsideHeatingSeason) {
+    return `${heatRecovery.heatingMonths} hónap fűtés + ${heatRecovery.hotWaterMonths} hónap csak HMV`;
+  }
+
+  return `${heatRecovery.heatingMonths} hónap fűtési célú hőhasznosítás`;
+}
+
 function LegalFooterClean() {
   return (
     <footer className="legal-footer">
@@ -1185,7 +1189,14 @@ function LegalFooterClean() {
 }
 
 function getPublicAssumptions(assumptions: string[]) {
-  return assumptions.filter((assumption) => !assumption.toLowerCase().includes("ajánlott"));
+  return assumptions.filter((assumption) => {
+    const normalized = assumption.toLowerCase();
+    return (
+      !normalized.includes("ajánlott") &&
+      !normalized.includes("excel") &&
+      !normalized.includes("számítás forrása")
+    );
+  });
 }
 
 

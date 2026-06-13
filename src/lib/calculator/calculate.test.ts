@@ -14,29 +14,54 @@ const baseInput: CalculatorInput = {
 
 describe("calculateSavings", () => {
   it("matches the Excel-style annual saving formula for a 5-10 year compressor", () => {
-    const result = calculateSavings(baseInput);
+    const result = calculateSavings({
+      ...baseInput,
+      preferVariableSpeed: false,
+      loadProfile: "continuous"
+    });
 
-    expect(result.recommendedModel.model).toBe("L37RS");
-    expect(result.selectedLegacy.inputKwBase).toBeCloseTo(45.15);
-    expect(result.recommendedModel.inputKw).toBeCloseTo(27.594);
-    expect(result.excelAnnualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500);
-    expect(result.categorySavingsVarianceMultiplier).toBeCloseTo(0.9979);
-    expect(result.annualKwhSaved).toBeCloseTo((45.15 - 27.594) * 5500 * 0.9979);
+    expect(result.recommendedModel.model).toBe("L37");
+    expect(result.selectedLegacy.inputKwBase).toBeCloseTo(43);
+    expect(result.recommendedModel.inputKw).toBeCloseTo(39.42);
+    expect(result.excelAnnualKwhSaved).toBeCloseTo((43 - 39.42) * 5500);
+    expect(result.categorySavingsVarianceMultiplier).toBeGreaterThanOrEqual(0.99);
+    expect(result.categorySavingsVarianceMultiplier).toBeLessThanOrEqual(0.999);
+    expect(result.annualKwhSaved).toBeCloseTo(
+      result.excelAnnualKwhSaved * result.categorySavingsVarianceMultiplier
+    );
     expect(result.annualHufSaved).toBe(Math.round(result.annualKwhSaved * 35));
+  });
+
+  it("keeps the attached Excel workbook as the base method before the 1 percent variance", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      brand: "CompAir",
+      category: "ignored",
+      nominalKw: 250,
+      preferVariableSpeed: false
+    });
+
+    expect(result.recommendedModel.model).toBe("L250FC");
+    expect(result.selectedLegacy.inputKwBase).toBeCloseTo(260);
+    expect(result.recommendedModel.inputKw).toBeCloseTo(217.57);
+    expect(result.excelAnnualKwhSaved).toBeCloseTo((260 - 217.57) * 5500);
+    expect(Math.round(result.excelAnnualKwhSaved * 35)).toBe(8167775);
+    expect(result.categorySavingsVarianceMultiplier).toBeGreaterThanOrEqual(0.99);
+    expect(result.categorySavingsVarianceMultiplier).toBeLessThanOrEqual(1.01);
   });
 
   it("applies the 5 percent degradation step for 10-15 years", () => {
     const result = calculateSavings({ ...baseInput, ageBand: "10-15" });
 
     expect(result.selectedLegacy.degradationMultiplier).toBeCloseTo(1.05);
-    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(45.15 * 1.05);
+    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(43 * 1.05);
   });
 
   it("applies two 5 percent degradation steps for 15+ years", () => {
     const result = calculateSavings({ ...baseInput, ageBand: "15+" });
 
     expect(result.selectedLegacy.degradationMultiplier).toBeCloseTo(1.1025);
-    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(45.15 * 1.1025);
+    expect(result.selectedLegacy.degradedInputKw).toBeCloseTo(43 * 1.1025);
   });
 
   it("uses the next larger recommended model when there is no exact nominal match", () => {
@@ -59,11 +84,12 @@ describe("calculateSavings", () => {
   });
 
   it("keeps category variance inside a 1 percent annual savings band", () => {
-    const premium = calculateSavings(baseInput);
+    const premium = calculateSavings({ ...baseInput, loadProfile: "fluctuating" });
     const middle = calculateSavings({
       ...baseInput,
       brand: "Boge",
-      category: "KĂ¶zĂ©p"
+      category: "KĂ¶zĂ©p",
+      loadProfile: "fluctuating"
     });
 
     expect(premium.categorySavingsVarianceMultiplier).toBeGreaterThanOrEqual(0.99);
@@ -76,10 +102,11 @@ describe("calculateSavings", () => {
   });
 
   it("adds deterministic brand-level variance inside the same premium category", () => {
-    const atlas = calculateSavings(baseInput);
+    const atlas = calculateSavings({ ...baseInput, loadProfile: "fluctuating" });
     const kaeser = calculateSavings({
       ...baseInput,
-      brand: "Kaeser"
+      brand: "Kaeser",
+      loadProfile: "fluctuating"
     });
 
     expect(atlas.selectedLegacy.category).toBe("Prémium");
@@ -90,10 +117,11 @@ describe("calculateSavings", () => {
   });
 
   it("adds deterministic type-level variance for the same brand", () => {
-    const atlas37 = calculateSavings(baseInput);
+    const atlas37 = calculateSavings({ ...baseInput, loadProfile: "fluctuating" });
     const atlas45 = calculateSavings({
       ...baseInput,
-      nominalKw: 45
+      nominalKw: 45,
+      loadProfile: "fluctuating"
     });
 
     expect(atlas37.recommendedModel.model).toBe("L37RS");
@@ -102,34 +130,45 @@ describe("calculateSavings", () => {
     expect(atlas45.categorySavingsVarianceMultiplier).toBe(0.9918);
   });
 
-  it("prequalifies engineering PDF only with business email, website and activity", () => {
-    const result = calculateSavings({
+  it("forces variable speed preference for fluctuating profile inputs", () => {
+    const fluctuating = calculateSavings({
       ...baseInput,
-      companyWebsite: "mintaipar.hu",
-      companyActivity: "CNC / fémmegmunkálás",
-      email: "mernok@mintaipar.hu"
+      preferVariableSpeed: false,
+      loadProfile: "fluctuating"
+    });
+    const explicitVariableSpeed = calculateSavings({
+      ...baseInput,
+      preferVariableSpeed: true,
+      loadProfile: "fluctuating"
     });
 
-    expect(result.companyProfile.label).toBe("Mérnöki előminősített");
-    expect(result.companyProfile.expectedAccuracy).toBe("+/- 15-20%");
-    expect(result.companyProfile.engineeringPdfEligible).toBe(true);
-    expect(result.companyProfile.detectedSegments).toContain("CNC / fémmegmunkáló üzem");
+    expect(fluctuating.units[0].input.preferVariableSpeed).toBe(true);
+    expect(fluctuating.recommendedModel.model).toBe("L37RS");
+    expect(fluctuating.excelAnnualKwhSaved).toBeCloseTo(explicitVariableSpeed.excelAnnualKwhSaved);
+    expect(fluctuating.annualHufSaved).toBe(explicitVariableSpeed.annualHufSaved);
   });
 
-  it("keeps free email leads profiled but without engineering PDF eligibility", () => {
-    const result = calculateSavings({
+  it("caps the continuous profile variable speed advantage at 5 percent", () => {
+    const fixedSpeed = calculateSavings({
       ...baseInput,
-      companyWebsite: "mintaipar.hu",
-      companyActivity: "CNC / fémmegmunkálás",
-      email: "teszt@gmail.com"
+      loadProfile: "continuous",
+      preferVariableSpeed: false
+    });
+    const variableSpeed = calculateSavings({
+      ...baseInput,
+      loadProfile: "continuous",
+      preferVariableSpeed: true
     });
 
-    expect(result.companyProfile.label).toBe("Cégprofilozott");
-    expect(result.companyProfile.isBusinessEmail).toBe(false);
-    expect(result.companyProfile.engineeringPdfEligible).toBe(false);
+    expect(fixedSpeed.recommendedModel.model).toBe("L37");
+    expect(variableSpeed.recommendedModel.model).toBe("L37RS");
+    expect(variableSpeed.annualHufSaved).toBeLessThanOrEqual(
+      Math.round(fixedSpeed.annualHufSaved * 1.05)
+    );
+    expect(variableSpeed.annualKwhSaved).toBeCloseTo(fixedSpeed.annualKwhSaved * 1.05, 2);
   });
 
-  it("scores leads from measurable savings, company profile, size and utilization data", () => {
+  it("scores leads from measurable savings, size and utilization data", () => {
     const basic = calculateSavings({
       ...baseInput,
       nominalKw: 22,
@@ -141,13 +180,13 @@ describe("calculateSavings", () => {
       nominalKw: 75,
       annualHours: 7000,
       companyWebsite: "mintaipar.hu",
-      companyActivity: "Gyártóüzem / termelés",
+      companyActivity: "Gépgyártás",
       email: "mernok@mintaipar.hu"
     });
 
     expect(qualified.leadScore.score).toBeGreaterThan(basic.leadScore.score);
     expect(qualified.leadScore.reasons.join(" ")).toContain("Éves megtakarítási potenciál");
-    expect(qualified.leadScore.reasons.join(" ")).toContain("Cégprofil teljessége");
+    expect(qualified.leadScore.reasons.join(" ")).toContain("Üzemóra intenzitás");
   });
 
   it("keeps Atlas and Kaeser visibly different in the live fluctuating profile scenario", () => {
@@ -163,8 +202,8 @@ describe("calculateSavings", () => {
       loadProfile: "fluctuating"
     });
 
-    expect(liveAtlas.annualHufSaved).toBe(4336158);
-    expect(liveKaeser.annualHufSaved).toBe(4305741);
+    expect(liveAtlas.annualHufSaved).toBe(3902502);
+    expect(liveKaeser.annualHufSaved).toBe(3875127);
     expect(liveAtlas.annualHufSaved).not.toBe(liveKaeser.annualHufSaved);
   });
 
@@ -177,6 +216,7 @@ describe("calculateSavings", () => {
         enabled: true,
         gasPriceHufPerM3: 300,
         heatingMonths: 7,
+        canUseRecoveredHeatOutsideHeatingSeason: true,
         hotWaterMonths: 5
       }
     });
@@ -195,6 +235,46 @@ describe("calculateSavings", () => {
     );
   });
 
+  it("uses only heating months when recovered heat is not usable outside the heating season", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      nominalKw: 37,
+      annualHours: 4000,
+      heatRecovery: {
+        enabled: true,
+        gasPriceHufPerM3: 300,
+        heatingMonths: 7,
+        canUseRecoveredHeatOutsideHeatingSeason: false,
+        hotWaterMonths: 5
+      }
+    });
+
+    expect(result.heatRecovery?.canUseRecoveredHeatOutsideHeatingSeason).toBe(false);
+    expect(result.heatRecovery?.hotWaterMonths).toBe(0);
+    expect(result.heatRecovery?.seasonalSavingsHuf).toBe(
+      Math.round(Number((((37 * 0.9 * 0.9 * 4000) / 9.44 / 0.9) * (7 / 12)).toFixed(2)) * 300)
+    );
+  });
+
+  it("derives HMV months from the heating season so the two always add up to 12", () => {
+    const result = calculateSavings({
+      ...baseInput,
+      nominalKw: 37,
+      annualHours: 4000,
+      heatRecovery: {
+        enabled: true,
+        gasPriceHufPerM3: 300,
+        heatingMonths: 8,
+        canUseRecoveredHeatOutsideHeatingSeason: true,
+        hotWaterMonths: 1
+      }
+    });
+
+    expect(result.heatRecovery?.heatingMonths).toBe(8);
+    expect(result.heatRecovery?.hotWaterMonths).toBe(4);
+    expect((result.heatRecovery?.heatingMonths ?? 0) + (result.heatRecovery?.hotWaterMonths ?? 0)).toBe(12);
+  });
+
   it("uses the recommended compressor model for heat recovery calculations", () => {
     const result = calculateSavings({
       ...baseInput,
@@ -204,6 +284,7 @@ describe("calculateSavings", () => {
         enabled: true,
         gasPriceHufPerM3: 300,
         heatingMonths: 7,
+        canUseRecoveredHeatOutsideHeatingSeason: true,
         hotWaterMonths: 5
       }
     });
