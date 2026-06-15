@@ -195,45 +195,26 @@ a {
   position: relative;
   display: inline-block;
   isolation: isolate;
-  padding: 0 0.08em 0.04em;
+  padding: 0;
   color: #303184;
   font-weight: 800;
-  text-decoration: underline;
-  text-decoration-color: #303184;
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.11em;
 }
 
 .industrial-word-mark::after {
   position: absolute;
   right: 0;
-  bottom: -0.02em;
+  bottom: 4px;
   left: 0;
   z-index: -1;
-  height: 0.42em;
-  border-bottom: 3px solid #303184;
-  border-left: 2px solid rgba(48, 49, 132, 0.55);
-  border-radius: 0 0 4px 4px;
-  background:
-    linear-gradient(180deg, rgba(48, 49, 132, 0), rgba(48, 49, 132, 0.16)),
-    repeating-linear-gradient(
-      90deg,
-      rgba(48, 49, 132, 0.2) 0,
-      rgba(48, 49, 132, 0.2) 1px,
-      transparent 1px,
-      transparent 12px
-    );
-  content: "";
-}
-
-.industrial-word-mark::before {
-  position: absolute;
-  top: 0.08em;
-  right: -0.08em;
-  bottom: 0.13em;
-  width: 0.08em;
+  height: 4px;
   border-radius: 2px;
-  background: #303184;
+  background: linear-gradient(
+    90deg,
+    rgba(48, 49, 132, 0),
+    rgba(48, 49, 132, 0.78) 16%,
+    rgba(0, 113, 188, 0.46) 72%,
+    rgba(48, 49, 132, 0)
+  );
   content: "";
 }
 
