@@ -2,18 +2,19 @@
 
 import {
   ArrowRight,
-  BarChart3,
+  Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   FileText,
   Gauge,
   Sparkles,
   Target,
-  TrendingDown,
   Zap
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import type { CSSProperties, FocusEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import {
@@ -37,6 +38,11 @@ const CompressorChat = dynamic(
   { ssr: false }
 );
 
+const DEFAULT_ANNUAL_HOURS = 5500;
+const MIN_ANNUAL_HOURS = 100;
+const MAX_ANNUAL_HOURS = 8760;
+const ANNUAL_HOURS_STEP = 50;
+
 type LeadFields = Pick<
   LeadFormInput,
   | "companyName"
@@ -49,13 +55,19 @@ type LeadFields = Pick<
 >;
 
 type LeadFieldErrors = Partial<Record<keyof LeadFields, string>>;
+type SelectValue = string | number;
+type IndustrialSelectOption<T extends SelectValue> = {
+  value: T;
+  label: string;
+  helper?: string;
+};
 
 const initialCalculator: CalculatorInput = {
   brand: "Atlas Copco",
   category: getBrandCategory("Atlas Copco"),
   ageBand: "10-15",
   nominalKw: 75,
-  annualHours: ASSUMPTION_VERSION.defaultAnnualHours,
+  annualHours: DEFAULT_ANNUAL_HOURS,
   energyPriceHufKwh: ASSUMPTION_VERSION.defaultEnergyPriceHufKwh,
   preferVariableSpeed: true,
   loadProfile: "fluctuating",
@@ -136,6 +148,17 @@ export function CalculatorApp() {
   const oldInputKw = result.selectedLegacy.degradedInputKw;
   const recommendedInputKw = result.recommendedModel.inputKw;
   const recommendedBarWidth = Math.max(8, Math.min(100, (recommendedInputKw / oldInputKw) * 100));
+  const annualHoursProgress =
+    ((calculator.annualHours - MIN_ANNUAL_HOURS) / (MAX_ANNUAL_HOURS - MIN_ANNUAL_HOURS)) * 100;
+  const weeklyOperatingHours = Math.round(calculator.annualHours / 52);
+  const isHeatRecoveryHmvActive = Boolean(
+    result.heatRecovery?.canUseRecoveredHeatOutsideHeatingSeason &&
+      result.heatRecovery.hotWaterMonths > 0
+  );
+  const isHeatRecoveryGasActive = Boolean(result.heatRecovery && result.heatRecovery.heatingMonths > 0);
+  const annualHoursSliderStyle = {
+    "--hours-progress": `${Math.max(0, Math.min(100, annualHoursProgress))}%`
+  } as CSSProperties;
   const leadFieldErrors = useMemo(() => getLeadFieldErrors(lead), [lead]);
   const visibleLeadFieldErrors = hasTriedSubmit ? leadFieldErrors : {};
   const isLeadFormValid = Object.keys(leadFieldErrors).length === 0;
@@ -255,7 +278,7 @@ export function CalculatorApp() {
         <div className="hero-copy">
           <span className="eyebrow">
             <Zap size={16} />
-            Csavarkompresszor csere előkalkuláció
+            Csavarkompresszor csere megtérülési előkalkuláció
           </span>
           <h1>
             Energiamegtakarítás kalkulátor{" "}
@@ -281,33 +304,18 @@ export function CalculatorApp() {
               emailes riport
             </span>
           </div>
-          <div className="trust-row">
-            <div className="trust-item">
-              <CheckCircle2 size={17} /> Független kalkulációs logika
-            </div>
-            <div className="trust-item">
-              <CheckCircle2 size={17} /> RS/VSD modellajánló
-            </div>
-            <div className="trust-item">
-              <TrendingDown size={17} /> Energiafogyasztási összevetés
-            </div>
-          </div>
         </div>
 
         <div className="hero-roi-card" aria-label="Megtakarítási példa">
-          <div className="roi-card-top">
-            <span>Élő példa</span>
-            <BarChart3 size={18} />
-          </div>
           <strong>{formatHuf(result.annualHufSaved)}</strong>
-          <p>becsült éves megtakarítás a jelenlegi alapbeállításokkal</p>
+          <p>{formatHuf(result.annualHufSaved)}-nyi becsült éves villamosenergia-megtakarítás a jelenlegi beállítások alapján</p>
           <div className="roi-card-grid">
             <span>
-              Régi
+              Régi gép
               <b>{formatNumber(oldInputKw, 1)} kW</b>
             </span>
             <span>
-              Korszerű
+              Korszerű gép
               <b>{formatNumber(recommendedInputKw, 1)} kW</b>
             </span>
           </div>
@@ -339,23 +347,18 @@ export function CalculatorApp() {
 
           <div className="form-grid two">
             <Field label="Jelenlegi gép márkája">
-              <select
-                required
+              <IndustrialSelect
+                label="Jelenlegi gép márkája"
                 value={calculator.brand}
-                onChange={(event) =>
+                options={publicLegacyBrands.map((brand) => ({ value: brand, label: brand }))}
+                onChange={(value) =>
                   updateCalculator((current) => ({
                     ...current,
-                    brand: event.target.value,
-                    category: getBrandCategory(event.target.value)
+                    brand: value,
+                    category: getBrandCategory(value)
                   }))
                 }
-              >
-                {publicLegacyBrands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
+              />
             </Field>
 
             <Field label="Márka szerinti kategória">
@@ -366,39 +369,51 @@ export function CalculatorApp() {
             </Field>
 
             <Field label="Névleges teljesítmény">
-              <select
-                required
+              <IndustrialSelect
+                label="Névleges teljesítmény"
                 value={calculator.nominalKw}
-                onChange={(event) =>
+                options={NOMINAL_KW_VALUES.map((kw) => ({ value: kw, label: formatKw(kw) }))}
+                onChange={(value) =>
                   updateCalculator((current) => ({
                     ...current,
-                    nominalKw: Number(event.target.value)
-                  }))
-                }
-              >
-                {NOMINAL_KW_VALUES.map((kw) => (
-                  <option key={kw} value={kw}>
-                    {formatKw(kw)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Éves üzemóra">
-              <input
-                inputMode="numeric"
-                min={100}
-                max={8760}
-                required
-                type="number"
-                value={calculator.annualHours}
-                onChange={(event) =>
-                  updateCalculator((current) => ({
-                    ...current,
-                    annualHours: Number(event.target.value)
+                    nominalKw: value
                   }))
                 }
               />
+            </Field>
+
+            <Field label="Éves üzemóra">
+              <div className="annual-hours-control">
+                <div className="annual-hours-head">
+                  <span>Éves üzemidő</span>
+                  <strong>{formatNumber(calculator.annualHours)} óra/év</strong>
+                </div>
+                <input
+                  aria-label="Éves üzemóra csúszka"
+                  className="annual-hours-range"
+                  max={MAX_ANNUAL_HOURS}
+                  min={MIN_ANNUAL_HOURS}
+                  step={ANNUAL_HOURS_STEP}
+                  style={annualHoursSliderStyle}
+                  type="range"
+                  value={calculator.annualHours}
+                  onChange={(event) =>
+                    updateCalculator((current) => ({
+                      ...current,
+                      annualHours: Number(event.target.value)
+                    }))
+                  }
+                />
+                <div className="annual-hours-scale" aria-hidden="true">
+                  <span>{formatNumber(MIN_ANNUAL_HOURS)} óra</span>
+                  <span>{formatNumber(4380)} óra</span>
+                  <span>{formatNumber(MAX_ANNUAL_HOURS)} óra</span>
+                </div>
+                <p className="annual-hours-weekly-note">
+                  Ez a jelenlegi beállítással kb.{" "}
+                  <strong>{formatNumber(weeklyOperatingHours)} üzemóra / hét</strong>.
+                </p>
+              </div>
             </Field>
 
             <Field label="Villamos energia díja Ft/kWh">
@@ -419,24 +434,22 @@ export function CalculatorApp() {
             </Field>
 
             <Field label="Terhelési profil">
-              <select
-                required
+              <IndustrialSelect
+                label="Terhelési profil"
                 value={calculator.loadProfile ?? "fluctuating"}
-                onChange={(event) =>
+                options={loadProfileOptions.map((profile) => ({
+                  value: profile.value,
+                  label: profile.label,
+                  helper: profile.helper
+                }))}
+                onChange={(value) =>
                   updateCalculator((current) => ({
                     ...current,
-                    loadProfile: event.target.value as NonNullable<CalculatorInput["loadProfile"]>,
-                    preferVariableSpeed:
-                      event.target.value === "fluctuating" ? true : current.preferVariableSpeed
+                    loadProfile: value,
+                    preferVariableSpeed: value === "fluctuating" ? true : current.preferVariableSpeed
                   }))
                 }
-              >
-                {loadProfileOptions.map((profile) => (
-                  <option key={profile.value} value={profile.value}>
-                    {profile.label} - {profile.helper}
-                  </option>
-                ))}
-              </select>
+              />
             </Field>
 
             <Field label="Technológiai preferencia">
@@ -458,7 +471,7 @@ export function CalculatorApp() {
           </div>
 
           <div className="field" style={{ marginTop: 14 }}>
-            <label>Gép kora</label>
+            <label>Csavarkompresszor kora</label>
             <div className="segmented">
               {(["5-10", "10-15", "15+"] satisfies AgeBand[]).map((ageBand) => (
                 <button
@@ -513,36 +526,40 @@ export function CalculatorApp() {
                   </OptionalField>
 
                   <OptionalField label="Fűtési időszak hónap/év">
-                    <select
+                    <IndustrialSelect
+                      label="Fűtési időszak hónap/év"
                       value={calculator.heatRecovery.heatingMonths ?? 7}
-                      onChange={(event) =>
+                      options={monthOptions.map((month) => ({
+                        value: month,
+                        label: `${month} hónap`
+                      }))}
+                      onChange={(value) =>
                         updateHeatRecovery((current) => ({
                           ...current,
-                          heatingMonths: Number(event.target.value),
+                          heatingMonths: value,
                           hotWaterMonths: current.canUseRecoveredHeatOutsideHeatingSeason
-                            ? Math.max(0, 12 - Number(event.target.value))
+                            ? Math.max(0, 12 - value)
                             : current.hotWaterMonths
                         }))
                       }
-                    >
-                      {monthOptions.map((month) => (
-                        <option key={month} value={month}>
-                          {month} hónap
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </OptionalField>
 
                   <OptionalField label="Fűtési időszakon kívül fel tudja használni a visszanyert hőt?">
-                    <select
+                    <IndustrialSelect
+                      label="Fűtési időszakon kívüli hasznosítás"
                       value={
                         calculator.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason
                           ? "yes"
                           : "no"
                       }
-                      onChange={(event) =>
+                      options={[
+                        { value: "no", label: "Nem" },
+                        { value: "yes", label: "Igen, HMV célra" }
+                      ]}
+                      onChange={(value) =>
                         updateHeatRecovery((current) => {
-                          const canUseOutsideHeating = event.target.value === "yes";
+                          const canUseOutsideHeating = value === "yes";
                           return {
                             ...current,
                             canUseRecoveredHeatOutsideHeatingSeason: canUseOutsideHeating,
@@ -552,10 +569,7 @@ export function CalculatorApp() {
                           };
                         })
                       }
-                    >
-                      <option value="no">Nem</option>
-                      <option value="yes">Igen, HMV célra</option>
-                    </select>
+                    />
                   </OptionalField>
 
                   {calculator.heatRecovery.canUseRecoveredHeatOutsideHeatingSeason ? (
@@ -593,7 +607,38 @@ export function CalculatorApp() {
               </span>
             </div>
 
-          <div className="form-grid two">
+            <div className="report-conversion-card">
+              <div className="report-conversion-icon">
+                <MiniScrewCompressorLogo />
+              </div>
+              <div>
+                <span>Ami csak az e-mail riportban elérhető:</span>
+                <strong>előszűrt gépkategória a megadott üzemadatok alapján</strong>
+                <p>
+                  A riportban a névleges teljesítmény, az éves üzemóra, a terhelési profil és
+                  a becsült felvett teljesítmény alapján megadjuk, milyen csavarkompresszor
+                  kategória vagy modellirány lehet műszakilag reális kiindulópont. Ez nem
+                  végleges ajánlat: a pontos méretezéshez a helyszíni levegőigényt, nyomást,
+                  vezérlést és üzemi ciklusokat is ellenőrizni kell.
+                </p>
+                <div className="report-conversion-points" aria-label="Riport tartalma">
+                  <span>
+                    <CheckCircle2 size={15} />
+                    előzetes terméktípus
+                  </span>
+                  <span>
+                    <CheckCircle2 size={15} />
+                    számítási feltételek
+                  </span>
+                  <span>
+                    <CheckCircle2 size={15} />
+                    mérnöki pontosítás
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-grid two">
             <Field label="Kapcsolattartó név">
               <input
                 id="name"
@@ -651,25 +696,19 @@ export function CalculatorApp() {
             </Field>
 
             <Field label="Iparág / tevékenység">
-              <select
+              <IndustrialSelect
                 id="companyActivity"
-                aria-describedby={
-                  visibleLeadFieldErrors.companyActivity ? "companyActivity-error" : undefined
-                }
-                aria-invalid={Boolean(visibleLeadFieldErrors.companyActivity)}
-                required
+                label="Iparág / tevékenység"
+                describedBy={visibleLeadFieldErrors.companyActivity ? "companyActivity-error" : undefined}
+                invalid={Boolean(visibleLeadFieldErrors.companyActivity)}
                 value={lead.companyActivity}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, companyActivity: event.target.value }))
-                }
-              >
-                <option value="">Válassz tevékenységet</option>
-                {companyActivityOptions.map((activity) => (
-                  <option key={activity} value={activity}>
-                    {activity}
-                  </option>
-                ))}
-              </select>
+                placeholder="Válassz tevékenységet"
+                options={companyActivityOptions.map((activity) => ({
+                  value: activity,
+                  label: activity
+                }))}
+                onChange={(value) => setLead((current) => ({ ...current, companyActivity: value }))}
+              />
               <FieldError
                 id="companyActivity-error"
                 message={visibleLeadFieldErrors.companyActivity}
@@ -736,7 +775,7 @@ export function CalculatorApp() {
               type="button"
               onClick={submitLead}
             >
-              {isSubmitting ? "Riport készítése..." : "Részletes riport küldése"}
+              {isSubmitting ? "Riport készítése..." : "Kérem a részletes riportot e-mailben!"}
               <ArrowRight size={18} />
             </button>
             {error ? <div className="error-note">{error}</div> : null}
@@ -851,9 +890,15 @@ export function CalculatorApp() {
                 <div className="heat-flow" aria-label="Hővisszanyerési számítási folyamat">
                   <span>Hulladékhő</span>
                   <i />
-                  <span>Fűtés/HMV</span>
+                  <span className={isHeatRecoveryHmvActive ? "is-active" : "is-inactive"}>
+                    HMV
+                    <small>{isHeatRecoveryHmvActive ? "aktív" : "nem aktív"}</small>
+                  </span>
                   <i />
-                  <span>Gázkiváltás</span>
+                  <span className={isHeatRecoveryGasActive ? "is-active" : "is-inactive"}>
+                    Gázkiváltás
+                    <small>{isHeatRecoveryGasActive ? "aktív" : "nem aktív"}</small>
+                  </span>
                 </div>
                 <p className="heat-recovery-summary">
                   HMV = használati melegvíz.{" "}
@@ -1023,6 +1068,86 @@ function OptionalField({ label, children }: { label: string; children: React.Rea
     <div className="field">
       <label>{label}</label>
       {children}
+    </div>
+  );
+}
+
+function IndustrialSelect<T extends SelectValue>({
+  describedBy,
+  id,
+  invalid,
+  label,
+  onChange,
+  options,
+  placeholder = "Válassz",
+  value
+}: {
+  describedBy?: string;
+  id?: string;
+  invalid?: boolean;
+  label: string;
+  onChange: (value: T) => void;
+  options: IndustrialSelectOption<T>[];
+  placeholder?: string;
+  value: T | "";
+}) {
+  const selectedOption = options.find((option) => option.value === value);
+  const [isOpen, setIsOpen] = useState(false);
+
+  function closeOnBlur(event: FocusEvent<HTMLDivElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsOpen(false);
+    }
+  }
+
+  return (
+    <div
+      className={`industrial-select ${isOpen ? "is-open" : ""} ${invalid ? "is-invalid" : ""}`}
+      onBlur={closeOnBlur}
+    >
+      <button
+        aria-describedby={describedBy}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-label={label}
+        className="industrial-select-trigger"
+        id={id}
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+      >
+        <span className="industrial-select-value">
+          <strong>{selectedOption?.label ?? placeholder}</strong>
+          {selectedOption?.helper ? <small>{selectedOption.helper}</small> : null}
+        </span>
+        <ChevronDown aria-hidden="true" size={18} />
+      </button>
+      {isOpen ? (
+        <div aria-label={label} className="industrial-select-menu" role="listbox">
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                aria-selected={isSelected}
+                className={isSelected ? "is-selected" : ""}
+                key={`${option.value}`}
+                role="option"
+                type="button"
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>
+                  <strong>{option.label}</strong>
+                  {option.helper ? <small>{option.helper}</small> : null}
+                </span>
+                {isSelected ? <Check aria-hidden="true" size={16} /> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
