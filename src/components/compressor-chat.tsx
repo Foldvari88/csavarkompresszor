@@ -163,18 +163,12 @@ function buildCompressorReply(
   }
 
   if (normalized.includes("modell") || normalized.includes("ajánlott") || normalized.includes("gép")) {
-    return `${currentSummary} A jelenlegi ajánlott gép: ${formatModelName(
-      result.recommendedModel
-    )}. A logika először az azonos névleges kW-t keresi, ha nincs pontos találat, akkor a következő nagyobb korszerű modellt veszi figyelembe.`;
+    return `${currentSummary} A kalkuláció egy korszerű iparági csavarkompresszor-géposztállyal számol. A logika először az azonos névleges kW-t veszi figyelembe, ha nincs pontos illeszkedés, akkor a következő nagyobb korszerű géposztály alapján készít előzetes becslést.`;
   }
 
   if (normalized.includes("riport") || normalized.includes("email") || normalized.includes("küld")) {
-    return `A képernyőn csak előnézetet látsz. A részletes email riportban benne lesznek a megadott adatok, a feltételezések, az éves kWh/Ft megtakarítás és az ajánlott gép. A kitöltési állapot most ${completionPercent}%.`;
+    return `A képernyőn csak előnézetet látsz. A részletes email riportban benne lesznek a megadott adatok, a feltételezések, az éves kWh/Ft megtakarítás és a szakmai géposztály-javaslat. A kitöltési állapot most ${completionPercent}%.`;
   }
 
   return `${currentSummary} Jó következő lépés: ellenőrizd a névleges kW-t, az éves üzemórát és az áramárat. Ezek mozgatják legjobban a kalkulációt. Ha konkrét termelési profilt írsz, segítek értelmezni, melyik mezőn érdemes finomítani.`;
-}
-
-function formatModelName(model: CalculationResult["recommendedModel"]) {
-  return `${model.brand} ${model.model}`;
 }

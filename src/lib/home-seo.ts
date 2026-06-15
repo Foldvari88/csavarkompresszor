@@ -14,12 +14,57 @@ export const homeFaq = [
   {
     question: "Mikor érdemes csavarkompresszor cserében gondolkodni?",
     answer:
-      "Akkor érdemes előszűrést végezni, ha a gép sokat fut, 5-10 évnél idősebb, magas az energiaár, vagy változó levegőigény mellett fix fordulaton dolgozik."
+      "Akkor érdemes előszűrést végezni, ha a gép sokat fut, 5-10 évnél idősebb, magas az energiaköltség, vagy változó levegőigény mellett fix fordulaton dolgozik."
   },
   {
     question: "Mit jelent az RS vagy VSD csavarkompresszor?",
     answer:
       "Az RS/VSD fordulatszám-szabályozott gépet jelent, amely változó levegőigénynél a terheléshez igazíthatja a teljesítményt, így csökkentheti az energiafelhasználást."
+  },
+  {
+    question: "Mi az a csavarkompresszor, és mire használják ipari környezetben?",
+    answer:
+      "A csavarkompresszor sűrített levegő előállítására szolgáló ipari gép. Gyártóüzemekben, műhelyekben, élelmiszeriparban, fémmegmunkálásban, autóiparban és gépgyártásban gyakran alapvető energiafogyasztó berendezés."
+  },
+  {
+    question: "Mennyi áramot fogyaszt egy csavarkompresszor?",
+    answer:
+      "A csavarkompresszor áramfogyasztása főként a felvett teljesítménytől, az éves üzemórától, a terhelési profiltól és a villamosenergia díjától függ. Az éves becslés alapja jellemzően: felvett kW x éves üzemóra x Ft/kWh."
+  },
+  {
+    question: "Hogyan csökkenthető egy ipari kompresszor energiaköltsége?",
+    answer:
+      "A kompresszor energiaköltsége csökkenthető korszerűbb géppel, megfelelő méretezéssel, fordulatszám-szabályozott technológiával, szivárgáscsökkentéssel, nyomásszint optimalizálással és rendszeres karbantartással."
+  },
+  {
+    question: "Mikor éri meg fordulatszám-szabályozott csavarkompresszort választani?",
+    answer:
+      "Fordulatszám-szabályozott csavarkompresszor akkor lehet előnyös, ha a levegőigény ingadozó, több műszakban változik a terhelés, vagy a jelenlegi fix fordulatú gép sok időt tölt részterhelésen."
+  },
+  {
+    question: "Miért fontos a felvett teljesítmény a csavarkompresszor megtakarítás számításánál?",
+    answer:
+      "A villamosenergia-költséget nem csak a névleges kW, hanem a ténylegesen felvett teljesítmény határozza meg. Két azonos névleges teljesítményű kompresszor éves fogyasztása eltérhet, ezért a kalkuláció a becsült felvett kW alapján számol."
+  },
+  {
+    question: "Mit jelent a sűrített levegő energiaaudit?",
+    answer:
+      "A sűrített levegő energiaaudit a kompresszor, a csőhálózat, a nyomásszint, a szivárgások és a fogyasztási profil vizsgálata. Célja, hogy megmutassa, hol lehet csökkenteni a sűrített levegő rendszer energiaköltségét."
+  },
+  {
+    question: "Milyen megtakarítást adhat a kompresszor hővisszanyerés?",
+    answer:
+      "A csavarkompresszor működés közben jelentős hulladékhőt termel. Ha ez a hő fűtésre vagy használati melegvíz előállítására hasznosítható, akkor a földgázköltség egy része kiváltható."
+  },
+  {
+    question: "Mi alapján érdemes új csavarkompresszort választani?",
+    answer:
+      "Új csavarkompresszor választásánál a névleges teljesítmény, a tényleges felvett teljesítmény, az éves üzemóra, a terhelési profil, a levegőminőségi igény, a szervizháttér és a várható energiaköltség együtt számít."
+  },
+  {
+    question: "Miért fontos a csavarkompresszor méretezése?",
+    answer:
+      "A túl kicsi kompresszor termelési kockázatot okozhat, a túl nagy gép pedig felesleges energiaköltséget eredményezhet. A jó méretezés a sűrített levegő igényhez, a csúcsterheléshez és a terhelési profilhoz igazodik."
   }
 ];
 

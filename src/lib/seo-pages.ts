@@ -128,7 +128,7 @@ export const seoPages = [
     eyebrow: "Csere előtti döntéstámogatás",
     h1: "Csavarkompresszor csere megtérülése: mikor éri meg korszerűsíteni?",
     lead:
-      "A csere megtérülése akkor válik erőssé, ha a régi gép sokat fut, magas az energiaár, és a korszerű gép felvett teljesítménye érezhetően alacsonyabb.",
+      "A csere megtérülése akkor válik erőssé, ha a régi gép sokat fut, magas az energiaköltség, és a korszerű gép felvett teljesítménye érezhetően alacsonyabb.",
     highlights: [
       { value: "üzemóra", label: "fő tényező" },
       { value: "kWh", label: "mérhető hatás" },
