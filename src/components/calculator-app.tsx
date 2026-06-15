@@ -3,11 +3,13 @@
 import {
   ArrowRight,
   BarChart3,
+  CheckCircle2,
   Clock3,
   FileText,
   Gauge,
   Sparkles,
   Target,
+  TrendingDown,
   Zap
 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -28,7 +30,7 @@ import type {
   LeadFormInput
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
-import { homeFaq, homeSeoLinks } from "@/lib/home-seo";
+import { homeFaq } from "@/lib/home-seo";
 
 const CompressorChat = dynamic(
   () => import("@/components/compressor-chat").then((module) => module.CompressorChat),
@@ -279,6 +281,17 @@ export function CalculatorApp() {
               emailes riport
             </span>
           </div>
+          <div className="trust-row">
+            <div className="trust-item">
+              <CheckCircle2 size={17} /> Független kalkulációs logika
+            </div>
+            <div className="trust-item">
+              <CheckCircle2 size={17} /> RS/VSD modellajánló
+            </div>
+            <div className="trust-item">
+              <TrendingDown size={17} /> Energiafogyasztási összevetés
+            </div>
+          </div>
         </div>
 
         <div className="hero-roi-card" aria-label="Megtakarítási példa">
@@ -288,7 +301,6 @@ export function CalculatorApp() {
           </div>
           <strong>{formatHuf(result.annualHufSaved)}</strong>
           <p>becsült éves megtakarítás a jelenlegi alapbeállításokkal</p>
-          <BlueprintCompressorIllustration />
           <div className="roi-card-grid">
             <span>
               Régi
@@ -925,10 +937,6 @@ export function CalculatorApp() {
       <section className="seo-support-band" aria-labelledby="szakmai-valaszok">
         <div className="container seo-support-grid">
           <div className="seo-support-copy">
-            <span className="panel-kicker">
-              <span>SEO</span>
-              Szakmai válaszok
-            </span>
             <h2 id="szakmai-valaszok">Csavarkompresszor fogyasztás és megtakarítás röviden</h2>
             <p>
               Egy ipari csavarkompresszor éves energiaköltsége a felvett teljesítmény,
@@ -953,17 +961,6 @@ export function CalculatorApp() {
             </div>
           </div>
 
-          <div className="legal-card">
-            <h2>Kapcsolódó szakmai oldalak</h2>
-            <div className="seo-link-grid">
-              {homeSeoLinks.map((link) => (
-                <a href={link.href} key={link.href}>
-                  {link.label}
-                  <ArrowRight size={16} />
-                </a>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1003,44 +1000,6 @@ function MiniScrewCompressorLogo() {
       <path d="M23 21.5v2.7" />
       <path d="M9 24.2h3.4" />
       <path d="M22 24.2h3.4" />
-    </svg>
-  );
-}
-
-function BlueprintCompressorIllustration() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="blueprint-compressor"
-      focusable="false"
-      viewBox="0 0 360 190"
-    >
-      <g className="blueprint-grid-lines">
-        <path d="M16 26h326M16 74h326M16 122h326M16 170h326" />
-        <path d="M48 12v166M102 12v166M156 12v166M210 12v166M264 12v166M318 12v166" />
-      </g>
-      <g className="blueprint-dimensions">
-        <path d="M52 18h206M52 18v12M258 18v12" />
-        <path d="M286 42v96M274 42h12M274 138h12" />
-        <path d="M82 158h164M82 146v12M246 146v12" />
-      </g>
-      <g className="blueprint-machine">
-        <path d="M86 62h118l30 26v60H86z" />
-        <path d="M204 62v86M204 62l30 26H204" />
-        <path d="M104 78h76M104 96h76M104 114h76" />
-        <path d="M102 148v17M218 148v17M94 165h28M210 165h30" />
-        <circle cx="275" cy="101" r="44" />
-        <circle cx="275" cy="101" r="25" />
-        <path d="M234 83h-20M234 119h-20M275 57v-22M275 145v23" />
-        <path d="M250 101h50M275 76v50" />
-        <path d="M132 50h42M153 38v24" />
-      </g>
-      <g className="blueprint-callouts">
-        <path d="M76 56 42 36M226 76l62-34M241 138l64 28" />
-        <circle cx="42" cy="36" r="3" />
-        <circle cx="288" cy="42" r="3" />
-        <circle cx="305" cy="166" r="3" />
-      </g>
     </svg>
   );
 }
