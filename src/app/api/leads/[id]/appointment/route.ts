@@ -5,7 +5,7 @@ import { getLead } from "@/lib/leads/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const consultationThankYouUrl = "https://iparikompresszor.hu/konzultaciokeres";
+const consultationThankYouUrl = "https://www.iparikalkulator.hu/konzultaciokeres";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

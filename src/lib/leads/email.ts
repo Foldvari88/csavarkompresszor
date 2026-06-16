@@ -33,7 +33,7 @@ type SequenceScheduleResult =
 let resend: Resend | null = null;
 
 const defaultNotificationTo = "info@iparikalkulator.hu";
-const defaultConsultationNotificationTo = "info@iparikompresszor.hu";
+const defaultConsultationNotificationTo = "info@iparikalkulator.hu";
 const recommendedProductImageContentId = "recommended-product-image";
 
 const sequenceSteps = [
@@ -882,20 +882,19 @@ function getTrackedAppointmentUrl(lead: LeadRecord, source: string) {
 }
 
 function getPublicBaseUrl() {
+  const canonicalBaseUrl = "https://www.iparikalkulator.hu";
   const configured =
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.SITE_URL ??
-    "https://www.iparikalkulator.hu";
+    canonicalBaseUrl;
 
   const normalized = configured.replace(/\/+$/, "");
 
   try {
     const url = new URL(normalized);
-    if (
-      url.hostname === "iparikalkulator.hu" ||
-      url.hostname === "iparikompresszor.hu" ||
-      url.hostname === "www.iparikompresszor.hu"
-    ) {
+    const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+
+    if (!isLocalHost) {
       url.hostname = "www.iparikalkulator.hu";
       return url.toString().replace(/\/+$/, "");
     }

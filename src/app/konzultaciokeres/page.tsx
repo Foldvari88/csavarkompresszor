@@ -4,12 +4,12 @@ import { ArrowRight, CheckCircle2, PhoneCall, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Konzultációs visszahívás rögzítve | iparikompresszor.hu"
+    absolute: "Konzultációs visszahívás rögzítve | iparikalkulator.hu"
   },
   description:
     "Ingyenes konzultációs visszahívási igényét megkaptuk, kollégáink hamarosan keresni fogják a megadott elérhetőségeken.",
   alternates: {
-    canonical: "https://iparikompresszor.hu/konzultaciokeres"
+    canonical: "https://www.iparikalkulator.hu/konzultaciokeres"
   },
   robots: {
     index: false,
@@ -55,7 +55,7 @@ export default function ConsultationRequestThankYouPage() {
           </div>
         </div>
 
-        <Link className="hero-cta thank-you-cta" href="https://iparikompresszor.hu">
+        <Link className="hero-cta thank-you-cta" href="https://www.iparikalkulator.hu">
           Vissza az oldalra
           <ArrowRight size={18} />
         </Link>

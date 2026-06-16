@@ -9,7 +9,7 @@ describe("report heat recovery rendering", () => {
     const previousSiteUrl = process.env.SITE_URL;
     const previousNextPublicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     process.env.SITE_URL = "https://iparikalkulator.hu";
-    process.env.NEXT_PUBLIC_SITE_URL = "https://iparikompresszor.hu";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://example.com";
 
     try {
       const html = renderCustomerEmail(createPreviewLead());
@@ -21,7 +21,7 @@ describe("report heat recovery rendering", () => {
         "https://iparikalkulator.hu/api/reports/preview-lead-20260604/download"
       );
       expect(html).not.toContain(
-        "https://iparikompresszor.hu/api/reports/preview-lead-20260604/download"
+        "https://example.com/api/reports/preview-lead-20260604/download"
       );
     } finally {
       if (previousSiteUrl === undefined) {
