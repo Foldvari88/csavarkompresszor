@@ -48,12 +48,12 @@ export function CookieBanner() {
         <div className="cookie-banner-copy">
           <span className="cookie-kicker">
             <ShieldCheck size={15} />
-            Ipari adatkezelési kontroll
+            Süti beállítások
           </span>
-          <h2>Süti beállítások</h2>
+          <h2>Sütik kezelése</h2>
           <p>
-            A szükséges sütik a kalkulátor üzembiztos működését segítik. Az analitikai
-            és kampánymérési sütiket csak hozzájárulással kapcsoljuk be.
+            A szükséges sütik a weboldal működéséhez kellenek. Az analitikai és
+            kampánymérési sütik csak hozzájárulással kapcsolhatók be.
           </p>
           <a href="/sutik">Részletes süti tájékoztató</a>
         </div>
@@ -63,14 +63,14 @@ export function CookieBanner() {
             <label className="cookie-option locked">
               <span>
                 <strong>Szükséges</strong>
-                <small>Űrlap, biztonság, alap működés</small>
+                <small>Alap működés és biztonság</small>
               </span>
               <input checked disabled type="checkbox" />
             </label>
             <label className="cookie-option">
               <span>
                 <strong>Analitika</strong>
-                <small>Használati útvonalak és teljesítménymérés</small>
+                <small>Használati és teljesítménymérés</small>
               </span>
               <input
                 checked={analytics}
@@ -81,7 +81,7 @@ export function CookieBanner() {
             <label className="cookie-option">
               <span>
                 <strong>Kampánymérés</strong>
-                <small>UTM és csatorna-hatékonyság</small>
+                <small>Hivatkozási és kampányforrások mérése</small>
               </span>
               <input
                 checked={campaign}

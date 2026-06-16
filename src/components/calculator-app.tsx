@@ -749,7 +749,8 @@ export function CalculatorApp() {
               />
               <span>
                 Elfogadom, hogy a megadott adatok alapján elkészüljön és emailben
-                megérkezzen a kalkuláció. <b className="required-mark">*</b>
+                megérkezzen a kalkuláció, valamint elolvastam az adatkezelési tájékoztatót.{" "}
+                <b className="required-mark">*</b>
               </span>
             </label>
             <FieldError
@@ -765,8 +766,8 @@ export function CalculatorApp() {
                 }
               />
               <span>
-                Kérem a kalkulációhoz kapcsolódó szakmai utánkövetést és ajánlat-előkészítő
-                emaileket.
+                Hozzájárulok, hogy marketingcélú megkereséseket kapjak, és adataim ilyen
+                célból szerződött szakmai partnerek részére továbbíthatók legyenek.
               </span>
             </label>
             <button
@@ -1299,7 +1300,7 @@ function LegalFooterClean() {
         </div>
         <nav aria-label="Jogi információk">
           <a href="/adatkezeles">Adatkezelés</a>
-          <a href="/aszf">ÁSZF</a>
+          <a href="/aszf">Felhasználási feltételek</a>
           <a href="/impresszum">Impresszum</a>
           <a href="/sutik">Süti tájékoztató</a>
         </nav>

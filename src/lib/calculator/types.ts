@@ -195,6 +195,8 @@ export type LeadEmailEngagement = {
   emailClickCount: number;
   reportDownloadedAt: string | null;
   reportDownloadCount: number;
+  consultationRequestedAt: string | null;
+  consultationRequestCount: number;
   lastEmailEventAt: string | null;
   lastEmailEventType: string | null;
 };

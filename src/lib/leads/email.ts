@@ -50,7 +50,7 @@ const sequenceSteps = [
       "Ingadozó fogyasztásnál az RS/VSD gép gyakran jobb üzemi ponton dolgozik.",
       "Egy rövid helyszíni vagy telefonos adatpontosítás csökkenti a rossz gépválasztás kockázatát."
     ],
-    cta: "Kérek műszaki adatpontosítást"
+    cta: "Ingyenes konzultáció kérése"
   },
   {
     id: "02-business-case",
@@ -65,7 +65,7 @@ const sequenceSteps = [
       "A gép árának megadásával a megtérülési ablak pontosítható.",
       "Több gép esetén érdemes priorizálni, melyik csere hozza a leggyorsabb hatást."
     ],
-    cta: "Átbeszélem a megtérülési érvrendszert"
+    cta: "Ingyenes konzultáció kérése"
   },
   {
     id: "03-leakage-and-load",
@@ -80,7 +80,7 @@ const sequenceSteps = [
       "A túl magas nyomás minden üzemórában felesleges energiát kérhet.",
       "A terhelési profil alapján dönthető el, mennyire erős érv az RS/VSD technológia."
     ],
-    cta: "Kérem a rendszeroldali ellenőrzést"
+    cta: "Ingyenes konzultáció kérése"
   },
   {
     id: "04-model-fit",
@@ -95,7 +95,7 @@ const sequenceSteps = [
       "Több műszakos vagy ingadozó üzemnél fontos a részterhelési viselkedés.",
       "A rosszul méretezett gép csökkentheti a várt megtakarítást."
     ],
-    cta: "Ellenőrizzük az ajánlott modellt"
+    cta: "Ingyenes konzultáció kérése"
   },
   {
     id: "05-final-consult",
@@ -110,7 +110,7 @@ const sequenceSteps = [
       "Ha nincs elég potenciál, azt is gyorsan ki lehet mondani.",
       "Ha van, a beszerzés már pontosabb gép- és ROI-iránnyal indulhat."
     ],
-    cta: "Konzultációs visszahívás kérése"
+    cta: "Ingyenes konzultáció kérése"
   }
 ] as const;
 
@@ -240,7 +240,7 @@ export async function sendLeadEngagementNotification({
   detail?: string;
 }) {
   const client = getResend();
-  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultConsultationNotificationTo;
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultNotificationTo;
 
   if (!client) {
     return { mode: "skipped" as const };
@@ -593,7 +593,7 @@ export function renderCustomerEmail(lead: LeadRecord, options: RenderEmailOption
     <p>A részletes PDF riportot csatoltuk az emailhez.</p>
     <p><a class="secondary-cta" href="${escapeHtml(reportDownloadUrl)}">PDF riport letöltése</a></p>
     <p>${escapeHtml(personalizedNextStep)}</p>
-    <p><a class="cta" href="${escapeHtml(appointmentUrl)}">Konzultációs visszahívás kérése</a></p>
+    <p><a class="cta" href="${escapeHtml(appointmentUrl)}">Ingyenes konzultáció kérése</a></p>
     ${renderCustomerEmailSignature()}
     <p class="fine">${result.assumptions.map(escapeHtml).join("<br>")}</p>
   `);

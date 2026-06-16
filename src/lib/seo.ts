@@ -1,4 +1,4 @@
-export const siteUrl = "https://iparikalkulator.hu";
+export const siteUrl = "https://www.iparikalkulator.hu";
 
 export const siteName = "iparikalkulator.hu";
 

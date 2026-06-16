@@ -45,6 +45,8 @@ export function createPreviewLead(): LeadRecord {
       emailClickCount: 1,
       reportDownloadedAt: new Date("2026-06-04T10:15:00+02:00").toISOString(),
       reportDownloadCount: 1,
+      consultationRequestedAt: new Date("2026-06-04T10:18:00+02:00").toISOString(),
+      consultationRequestCount: 1,
       lastEmailEventAt: new Date("2026-06-04T10:15:00+02:00").toISOString(),
       lastEmailEventType: "report.downloaded"
     },

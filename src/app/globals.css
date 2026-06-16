@@ -1044,28 +1044,45 @@ a {
 
 .submit-button {
   width: 100%;
-  background: linear-gradient(180deg, var(--red-strong), #24266d);
+  min-height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background:
+    linear-gradient(180deg, rgba(92, 96, 218, 0.98), rgba(35, 37, 118, 1)),
+    linear-gradient(90deg, #303184, #0057b8);
   color: #fff;
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0;
   box-shadow:
-    0 18px 38px rgba(48, 49, 132, 0.28),
-    0 0 0 0 rgba(48, 49, 132, 0.28);
-  animation: submit-cta-pulse 2.8s ease-in-out infinite;
+    0 24px 54px rgba(48, 49, 132, 0.46),
+    0 0 0 6px rgba(48, 49, 132, 0.1),
+    0 0 0 1px rgba(107, 195, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  text-shadow: 0 1px 0 rgba(15, 23, 42, 0.24);
+  animation: submit-cta-pulse 2.35s ease-in-out infinite;
 }
 
 .submit-button:not(:disabled)::before {
-  opacity: 0.86;
-  animation: submit-cta-sweep 3.4s ease-in-out infinite;
+  opacity: 0.92;
+  animation: submit-cta-sweep 2.8s ease-in-out infinite;
 }
 
 .submit-button:not(:disabled)::after {
-  opacity: 0.34;
+  opacity: 0.56;
   transform: scaleX(1) scaleY(1);
-  animation: submit-cta-border 2.8s ease-in-out infinite;
+  animation: submit-cta-border 2.35s ease-in-out infinite;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: linear-gradient(180deg, #3f42b8, #20225f);
-  animation-duration: 1.7s;
+  background:
+    linear-gradient(180deg, rgba(108, 112, 244, 1), rgba(30, 33, 109, 1)),
+    linear-gradient(90deg, #303184, #0057b8);
+  animation-duration: 1.45s;
+  box-shadow:
+    0 34px 72px rgba(48, 49, 132, 0.54),
+    0 0 0 8px rgba(48, 49, 132, 0.13),
+    0 0 0 1px rgba(107, 195, 255, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
 .submit-button:hover:not(:disabled)::before {
@@ -1102,6 +1119,20 @@ a {
 .submit-button:disabled::after {
   animation: none;
   opacity: 0;
+}
+
+@media (max-width: 699px) {
+  .submit-button {
+    min-height: 68px;
+    border-radius: 10px;
+    font-size: 17px;
+    padding: 0 16px;
+    box-shadow:
+      0 22px 48px rgba(48, 49, 132, 0.5),
+      0 0 0 7px rgba(48, 49, 132, 0.12),
+      0 0 0 1px rgba(107, 195, 255, 0.24),
+      inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  }
 }
 
 .secondary-button,
@@ -2281,6 +2312,13 @@ a {
   background: linear-gradient(180deg, #34369a, #24266d);
   color: #fff;
   box-shadow: 0 14px 30px rgba(48, 49, 132, 0.28);
+  overflow: hidden;
+}
+
+.thank-you-logo {
+  display: block;
+  width: 42px;
+  height: 42px;
 }
 
 .thank-you-copy {

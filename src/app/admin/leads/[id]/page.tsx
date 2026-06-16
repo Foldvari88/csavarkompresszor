@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Eye, FileCheck, Mail, MousePointerClick, Phone, Zap } from "lucide-react";
+import { ArrowLeft, Eye, FileCheck, Mail, MousePointerClick, Phone, PhoneCall, Zap } from "lucide-react";
 import { StatusForm } from "@/components/status-form";
 import { getLead } from "@/lib/leads/store";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
@@ -67,6 +67,11 @@ export default async function LeadDetailPage({
                   lead.engagement.reportDownloadCount
                 )}
                 icon={<FileCheck size={15} />}
+              />
+              <Kv
+                label="Kért konzultációs visszahívást?"
+                value={formatConsultationRequest(lead.engagement.consultationRequestedAt)}
+                icon={<PhoneCall size={15} />}
               />
               <Kv
                 label="Utolsó email esemény"
@@ -180,6 +185,11 @@ export default async function LeadDetailPage({
 function formatEngagementDate(value: string | null, count: number) {
   if (!value) return "nem történt még";
   return `${formatDateTime(value)} (${count}x)`;
+}
+
+function formatConsultationRequest(value: string | null) {
+  if (!value) return "nem";
+  return `igen, ${formatDateTime(value)}`;
 }
 
 function formatDateTime(value: string) {

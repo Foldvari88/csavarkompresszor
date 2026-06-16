@@ -10,6 +10,7 @@ import {
   Linkedin,
   LogOut,
   Mail,
+  PhoneCall,
   Search,
   Star,
   Trash2
@@ -154,6 +155,7 @@ export function AdminDashboard({
               <th>Email</th>
               <th>Email megnyitás</th>
               <th>Riport letöltés</th>
+              <th>Konzultációs visszahívás</th>
               <th>Telefon</th>
               <th>Score</th>
               <th>Csillag</th>
@@ -172,7 +174,7 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={21}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={22}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -212,6 +214,12 @@ export function AdminDashboard({
                       count={lead.engagement.reportDownloadCount}
                       icon={<FileCheck size={15} />}
                       timestamp={lead.engagement.reportDownloadedAt}
+                    />
+                  </td>
+                  <td>
+                    <ConsultationBadge
+                      count={lead.engagement.consultationRequestCount}
+                      timestamp={lead.engagement.consultationRequestedAt}
                     />
                   </td>
                   <td>{lead.input.phone || "-"}</td>
@@ -281,6 +289,21 @@ function EngagementBadge({
       {icon}
       <strong>{formatDateTime(timestamp)}</strong>
       <small>{count}x</small>
+    </span>
+  );
+}
+
+function ConsultationBadge({ count, timestamp }: { count: number; timestamp: string | null }) {
+  if (!timestamp) {
+    return <span className="engagement-badge empty">nem</span>;
+  }
+
+  return (
+    <span className="engagement-badge active">
+      <PhoneCall size={15} />
+      <strong>igen</strong>
+      <small>{formatDateTime(timestamp)}</small>
+      {count > 1 ? <small>{count}x</small> : null}
     </span>
   );
 }

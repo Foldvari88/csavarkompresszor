@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, MailCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, MailCheck, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Kalkuláció rögzítve | iparikalkulator.hu",
@@ -27,8 +28,8 @@ export default async function ThankYouPage({
     <main className="thank-you-shell">
       <section className="thank-you-panel" aria-labelledby="thank-you-title">
         <div className="thank-you-status">
-          <span className="thank-you-icon">
-            <CheckCircle2 size={30} />
+          <span className="thank-you-icon" aria-hidden="true">
+            <Image className="thank-you-logo" src="/icon.svg" alt="" width={42} height={42} />
           </span>
           <span>{isCallbackRequest ? "Visszahívási kérés rögzítve" : "Kalkuláció rögzítve"}</span>
         </div>

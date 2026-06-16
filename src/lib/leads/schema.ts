@@ -11,6 +11,8 @@ export const leads = pgTable("leads", {
   emailClickCount: integer("email_click_count").notNull().default(0),
   reportDownloadedAt: timestamp("report_downloaded_at", { withTimezone: true }),
   reportDownloadCount: integer("report_download_count").notNull().default(0),
+  consultationRequestedAt: timestamp("consultation_requested_at", { withTimezone: true }),
+  consultationRequestCount: integer("consultation_request_count").notNull().default(0),
   lastEmailEventAt: timestamp("last_email_event_at", { withTimezone: true }),
   lastEmailEventType: text("last_email_event_type"),
   email: text("email").notNull(),

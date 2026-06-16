@@ -44,10 +44,7 @@ export function LegalPage({
             </div>
           ) : null}
         </header>
-        <div className="legal-note">
-          A szöveg vázlatként szolgál. Élesítés előtt a szolgáltató pontos cégadataival,
-          adatfeldolgozóival és jogi ellenőrzéssel kell véglegesíteni.
-        </div>
+        <div className="legal-note">Utolsó frissítés: 2026. június 16.</div>
         <div className="legal-sections">
           {sections.map((section) => (
             <section className="legal-card" key={section.title}>

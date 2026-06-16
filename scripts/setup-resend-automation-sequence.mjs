@@ -144,7 +144,7 @@ function renderTemplateHtml(step) {
         ${step.bullets.map((bullet) => `<li>${bullet}</li>`).join("")}
       </ul>
       <p style="margin-top:22px;">
-        <a href="{{{callbackUrl|https://iparikalkulator.hu}}}" style="background:#d92d20;color:#fff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">Konzultációs visszahívás kérése</a>
+        <a href="{{{callbackUrl|https://iparikalkulator.hu}}}" style="background:#d92d20;color:#fff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">Ingyenes konzultáció kérése</a>
       </p>
       <p>
         <a href="{{{reportUrl|https://iparikalkulator.hu}}}">PDF riport újbóli megnyitása</a>
@@ -172,7 +172,7 @@ function renderTemplateText(step) {
     "",
     ...step.bullets.map((bullet) => `- ${bullet}`),
     "",
-    "Konzultációs visszahívás: {{{callbackUrl|https://iparikalkulator.hu}}}",
+    "Ingyenes konzultáció: {{{callbackUrl|https://iparikalkulator.hu}}}",
     "PDF riport: {{{reportUrl|https://iparikalkulator.hu}}}"
   ].join("\n");
 }

@@ -3,53 +3,52 @@ import { LegalPage } from "@/components/legal-page";
 
 export const metadata: Metadata = {
   title: "Süti tájékoztató | iparikalkulator.hu",
-  description:
-    "Az iparikalkulator.hu sütikezelési tájékoztatója ipari energiahatékonysági kalkulációkhoz."
+  description: "Az iparikalkulator.hu süti tájékoztatója."
 };
 
 export default function CookiesPage() {
   return (
     <LegalPage
       variant="industrial"
-      eyebrow="Adatkezelési kontrollpanel"
+      eyebrow="Süti kezelés"
       title="Süti tájékoztató"
-      lead="Átlátható összefoglaló arról, milyen technikai, mérési és hozzájáruláshoz kötött sütiket használhat az ipari csavarkompresszor kalkulátor."
+      lead="A weboldalon használt sütik és hasonló technológiák kötelező tájékoztatója."
       highlights={[
-        { value: "Alap", label: "technikai működés" },
-        { value: "Opt-in", label: "analitika és kampánymérés" },
-        { value: "Kontroll", label: "böngészőben bármikor törölhető" }
+        { value: "Mindig aktív", label: "szükséges sütik" },
+        { value: "Hozzájárulás", label: "analitika" },
+        { value: "Hozzájárulás", label: "kampánymérés" }
       ]}
       sections={[
         {
-          title: "Üzembiztos működéshez szükséges sütik",
+          title: "Szükséges sütik",
           items: [
-            "Ezek a sütik a kalkulátor alapvető működéséhez, biztonságához, űrlap-kezeléséhez és munkamenet-stabilitásához szükségesek.",
-            "Céljuk, hogy a megadott kompresszoradatok, kalkulációs lépések és adminisztratív funkciók megbízhatóan működjenek.",
-            "Jogalap: a weboldal működtetéséhez fűződő jogos érdek vagy a kért online szolgáltatás biztosítása."
+            "A szükséges sütik a weboldal alapvető működéséhez, biztonságához, űrlapkezeléséhez és a süti beállítások mentéséhez szükségesek.",
+            "Ezek nélkül a weboldal egyes funkciói nem működnének megfelelően.",
+            "Jogalap: a weboldal működtetéséhez fűződő jogos érdek, illetve a felhasználó által kért online szolgáltatás biztosítása."
           ]
         },
         {
-          title: "Teljesítménymérés és analitika",
+          title: "Analitikai sütik",
           items: [
-            "Analitikai eszköz csak akkor használható, ha az adott mérési megoldás ténylegesen be van kapcsolva és a látogató hozzájárulása szükség esetén megtörtént.",
-            "Mérhető például az oldalbetöltés, a kalkulátor használati útvonala, a hibaarány és az, hogy mely lépéseknél kell javítani a felhasználói élményt.",
-            "A mérési adatok célja az oldal ipari döntéstámogató minőségének javítása, nem pedig a megadott műszaki adatok rejtett továbbértékesítése."
+            "Analitikai sütik csak a látogató előzetes hozzájárulása esetén használhatók.",
+            "Céljuk a weboldal látogatottságának, használatának és technikai teljesítményének mérése.",
+            "Használt analitikai szolgáltatások: [kitöltendő, ha van ilyen]."
           ]
         },
         {
-          title: "Kampány és forrásazonosítás",
+          title: "Kampánymérési sütik",
           items: [
-            "A weboldal UTM paramétereket és hivatkozó forrást rögzíthet annak megértésére, hogy a látogató mely szakmai vagy hirdetési csatornából érkezett.",
-            "Ezek az adatok a lead minőségének és a kampányok hatékonyságának elemzését segítik.",
-            "Ha egy kampánymérési eszköz nem szükséges sütit helyez el, az csak megfelelő hozzájárulási beállítás mellett aktiválható."
+            "Kampánymérési vagy hirdetési sütik csak a látogató előzetes hozzájárulása esetén használhatók.",
+            "Céljuk annak mérése, hogy a látogató milyen hivatkozásból, kampányból vagy hirdetési csatornából érkezett.",
+            "Használt kampánymérési vagy hirdetési szolgáltatások: [kitöltendő, ha van ilyen]."
           ]
         },
         {
-          title: "Felhasználói kontroll",
+          title: "Beállítás és visszavonás",
           items: [
-            "A nem szükséges sütik csak hozzájárulás után aktiválhatók.",
-            "A látogató a böngésző beállításaiban bármikor törölheti, blokkolhatja vagy korlátozhatja a sütiket.",
-            "Éles üzemben a használt mérő- és marketingeszközök pontos listáját a ténylegesen bekapcsolt szolgáltatások szerint kell véglegesíteni."
+            "A nem szükséges sütik a süti panelen engedélyezhetők vagy elutasíthatók.",
+            "A hozzájárulás a böngészőben tárolt süti beállítás törlésével vagy a böngésző süti beállításain keresztül módosítható.",
+            "A böngészőben a sütik bármikor törölhetők vagy blokkolhatók."
           ]
         }
       ]}

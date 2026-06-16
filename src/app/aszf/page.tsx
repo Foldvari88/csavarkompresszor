@@ -2,46 +2,53 @@ import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal-page";
 
 export const metadata: Metadata = {
-  title: "ÁSZF | iparikalkulator.hu"
+  title: "Felhasználási feltételek | iparikalkulator.hu"
 };
 
 export default function TermsPage() {
   return (
     <LegalPage
-      title="Általános szerződési feltételek"
-      lead="A weboldal és a kalkulátor használatának alapfeltételei, a szolgáltatás jellege és korlátai."
+      title="Felhasználási feltételek"
+      lead="A weboldal és a kalkulátor használatának alapvető feltételei."
       sections={[
         {
           title: "Szolgáltató",
           items: [
-            "Cégnév: [kitöltendő]",
+            "Név: Földvári István egyéni vállalkozó",
             "Székhely: [kitöltendő]",
-            "Cégjegyzékszám / nyilvántartási szám: [kitöltendő]",
+            "Nyilvántartási szám: [kitöltendő]",
+            "Adószám: [kitöltendő]",
             "Email: [kitöltendő]"
           ]
         },
         {
           title: "A szolgáltatás tárgya",
           items: [
-            "A weboldal ipari csavarkompresszor energiahatékonysági előkalkulációt biztosít.",
-            "Az eredmények becslésen és a felhasználó által megadott adatokon alapulnak.",
-            "A kalkuláció nem minősül kötelező erejű műszaki szakvéleménynek vagy ajánlatnak."
+            "A weboldal csavarkompresszorok energiafelhasználásához és megtakarítási lehetőségeihez kapcsolódó előkalkulációt biztosít.",
+            "A kalkuláció a felhasználó által megadott adatokból és általános számítási feltételekből készül.",
+            "Az eredmény tájékoztató jellegű, nem minősül ajánlatnak, mérnöki szakvéleménynek vagy megtakarítási garanciának."
           ]
         },
         {
-          title: "Felhasználói felelősség",
+          title: "Felhasználói kötelezettségek",
           items: [
-            "A felhasználó felel a megadott adatok pontosságáért.",
-            "A kalkulációs eredmény értelmezéséhez helyszíni műszaki felmérés vagy részletes mérés szükséges lehet.",
-            "A weboldal rendeltetésszerű használata elvárt."
+            "A felhasználó felel a megadott adatok pontosságáért és jogszerű megadásáért.",
+            "A kalkulátor rendeltetésszerűen, a weboldal működését nem zavaró módon használható.",
+            "A riport és a kalkuláció eredménye üzleti döntés előtt helyszíni felméréssel vagy egyedi szakmai vizsgálattal ellenőrizhető."
           ]
         },
         {
           title: "Felelősségi korlátok",
           items: [
-            "A szolgáltató nem vállal felelősséget a hibásan megadott adatokból eredő pontatlan eredményekért.",
-            "A weboldal üzemeltetője törekszik a folyamatos elérhetőségre, de megszakítás vagy technikai hiba előfordulhat.",
-            "A végleges műszaki döntéshez egyedi vizsgálat szükséges."
+            "A szolgáltató nem felel a hibás, hiányos vagy pontatlanul megadott adatokból eredő eltérésekért.",
+            "A szolgáltató törekszik a weboldal elérhetőségére, de az időszakos technikai hiba, karbantartás vagy kiesés lehetőségét nem zárja ki.",
+            "A weboldalon szereplő információk nem helyettesítik az egyedi műszaki, energetikai vagy gazdasági vizsgálatot."
+          ]
+        },
+        {
+          title: "Kapcsolat",
+          items: [
+            "A weboldallal, riporttal vagy adatkezeléssel kapcsolatos megkeresések az alábbi email címen tehetők meg: [kitöltendő]."
           ]
         }
       ]}

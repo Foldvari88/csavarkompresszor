@@ -64,6 +64,7 @@ export async function createLead(input: LeadFormInput, result: CalculationResult
       emailOpenCount: lead.engagement.emailOpenCount,
       emailClickCount: lead.engagement.emailClickCount,
       reportDownloadCount: lead.engagement.reportDownloadCount,
+      consultationRequestCount: lead.engagement.consultationRequestCount,
       email: input.email,
       companyName: input.companyName,
       input,
@@ -174,7 +175,7 @@ export async function recordLeadEngagementEvent({
 }: {
   id?: string;
   leadId: string;
-  type: "email.opened" | "email.clicked" | "report.downloaded";
+  type: EngagementEventType;
   occurredAt?: Date;
   metadata?: Record<string, unknown>;
 }): Promise<{ recorded: boolean; lead: LeadRecord | null }> {
@@ -243,6 +244,8 @@ async function ensureLeadTable() {
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_click_count integer NOT NULL DEFAULT 0`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS report_downloaded_at timestamptz`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS report_download_count integer NOT NULL DEFAULT 0`);
+  await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consultation_requested_at timestamptz`);
+  await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS consultation_request_count integer NOT NULL DEFAULT 0`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_email_event_at timestamptz`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS last_email_event_type text`);
 
@@ -304,7 +307,7 @@ function normalizeLeadRecord(lead: LeadRecord): LeadRecord {
 
 async function updateLeadEngagementSummary(
   leadId: string,
-  type: "email.opened" | "email.clicked" | "report.downloaded",
+  type: EngagementEventType,
   occurredAt: Date
 ) {
   const db = getDb();
@@ -340,6 +343,17 @@ async function updateLeadEngagementSummary(
     return;
   }
 
+  if (type === "consultation.requested") {
+    await db
+      .update(leads)
+      .set({
+        consultationRequestedAt: sql`COALESCE(${leads.consultationRequestedAt}, ${occurredAt})`,
+        consultationRequestCount: sql`${leads.consultationRequestCount} + 1`
+      })
+      .where(eq(leads.id, leadId));
+    return;
+  }
+
   await db
     .update(leads)
     .set({
@@ -352,16 +366,19 @@ async function updateLeadEngagementSummary(
 
 function applyEngagementEvent(
   lead: LeadRecord,
-  type: "email.opened" | "email.clicked" | "report.downloaded",
+  type: EngagementEventType,
   occurredAt: Date
 ): LeadRecord {
   const occurredAtIso = occurredAt.toISOString();
   const engagement = normalizeEngagement(lead.engagement);
-  const next: LeadEmailEngagement = {
-    ...engagement,
-    lastEmailEventAt: latestIso(engagement.lastEmailEventAt, occurredAtIso),
-    lastEmailEventType: type
-  };
+  const next: LeadEmailEngagement =
+    type === "consultation.requested"
+      ? { ...engagement }
+      : {
+          ...engagement,
+          lastEmailEventAt: latestIso(engagement.lastEmailEventAt, occurredAtIso),
+          lastEmailEventType: type
+        };
 
   if (type === "email.opened") {
     next.emailOpenedAt = engagement.emailOpenedAt ?? occurredAtIso;
@@ -369,9 +386,12 @@ function applyEngagementEvent(
   } else if (type === "email.clicked") {
     next.emailClickedAt = engagement.emailClickedAt ?? occurredAtIso;
     next.emailClickCount = engagement.emailClickCount + 1;
-  } else {
+  } else if (type === "report.downloaded") {
     next.reportDownloadedAt = engagement.reportDownloadedAt ?? occurredAtIso;
     next.reportDownloadCount = engagement.reportDownloadCount + 1;
+  } else {
+    next.consultationRequestedAt = engagement.consultationRequestedAt ?? occurredAtIso;
+    next.consultationRequestCount = engagement.consultationRequestCount + 1;
   }
 
   return normalizeLeadRecord({ ...lead, engagement: next });
@@ -385,6 +405,8 @@ function engagementFromRow(row: typeof leads.$inferSelect): LeadEmailEngagement 
     emailClickCount: row.emailClickCount,
     reportDownloadedAt: row.reportDownloadedAt?.toISOString() ?? null,
     reportDownloadCount: row.reportDownloadCount,
+    consultationRequestedAt: row.consultationRequestedAt?.toISOString() ?? null,
+    consultationRequestCount: row.consultationRequestCount,
     lastEmailEventAt: row.lastEmailEventAt?.toISOString() ?? null,
     lastEmailEventType: row.lastEmailEventType ?? null
   });
@@ -398,6 +420,8 @@ function normalizeEngagement(engagement?: Partial<LeadEmailEngagement>): LeadEma
     emailClickCount: engagement?.emailClickCount ?? 0,
     reportDownloadedAt: engagement?.reportDownloadedAt ?? null,
     reportDownloadCount: engagement?.reportDownloadCount ?? 0,
+    consultationRequestedAt: engagement?.consultationRequestedAt ?? null,
+    consultationRequestCount: engagement?.consultationRequestCount ?? 0,
     lastEmailEventAt: engagement?.lastEmailEventAt ?? null,
     lastEmailEventType: engagement?.lastEmailEventType ?? null
   };
@@ -411,3 +435,9 @@ function latestIso(current: string | null, next: string) {
   if (!current) return next;
   return new Date(current).getTime() >= new Date(next).getTime() ? current : next;
 }
+
+type EngagementEventType =
+  | "email.opened"
+  | "email.clicked"
+  | "report.downloaded"
+  | "consultation.requested";

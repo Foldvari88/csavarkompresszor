@@ -9,19 +9,18 @@ export default function ImpressumPage() {
   return (
     <LegalPage
       title="Impresszum"
-      lead="A weboldal üzemeltetőjének és tárhelyszolgáltatójának kötelezően megjelenítendő adatai."
+      lead="A weboldal üzemeltetőjének és tárhelyszolgáltatójának kötelező adatai."
       sections={[
         {
           title: "Weboldal üzemeltetője",
           items: [
-            "Cégnév: [kitöltendő]",
+            "Név: Földvári István egyéni vállalkozó",
             "Székhely: [kitöltendő]",
-            "Levelezési cím: [kitöltendő]",
+            "Levelezési cím: [kitöltendő, ha eltér a székhelytől]",
+            "Nyilvántartási szám: [kitöltendő]",
             "Adószám: [kitöltendő]",
-            "Cégjegyzékszám / nyilvántartási szám: [kitöltendő]",
-            "Képviselő: [kitöltendő]",
             "Email: [kitöltendő]",
-            "Telefon: [kitöltendő]"
+            "Telefon: [kitöltendő, ha van nyilvános ügyfélszolgálati telefonszám]"
           ]
         },
         {
@@ -29,15 +28,14 @@ export default function ImpressumPage() {
           items: [
             "Név: [kitöltendő]",
             "Székhely: [kitöltendő]",
-            "Email vagy ügyfélszolgálati elérhetőség: [kitöltendő]"
+            "Kapcsolat: [kitöltendő email vagy ügyfélszolgálati elérhetőség]"
           ]
         },
         {
-          title: "Hatósági és szakmai adatok",
+          title: "Panaszkezelés",
           items: [
-            "Engedélyező vagy nyilvántartó hatóság, ha releváns: [kitöltendő]",
-            "Kamara vagy szakmai szervezet, ha releváns: [kitöltendő]",
-            "Fogyasztói panaszkezelési elérhetőség: [kitöltendő]"
+            "A weboldallal kapcsolatos panasz vagy megkeresés az üzemeltető email címén nyújtható be.",
+            "Fogyasztói jogvita esetén az illetékes békéltető testülethez lehet fordulni, ha a felhasználó fogyasztónak minősül."
           ]
         }
       ]}

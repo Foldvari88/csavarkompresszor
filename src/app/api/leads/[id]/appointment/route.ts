@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendConsultationRequestNotification } from "@/lib/leads/email";
-import { getLead } from "@/lib/leads/store";
+import { getLead, recordLeadEngagementEvent } from "@/lib/leads/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +14,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (lead) {
     const occurredAt = new Date();
     const source = request.nextUrl.searchParams.get("source") ?? "appointment-cta";
+
+    try {
+      await recordLeadEngagementEvent({
+        id: `consultation-requested:${lead.id}:${source}:${occurredAt.toISOString()}`,
+        leadId: lead.id,
+        type: "consultation.requested",
+        occurredAt,
+        metadata: { source }
+      });
+    } catch (error) {
+      console.error("Consultation request tracking failed.", { leadId: lead.id, error });
+    }
 
     try {
       await sendConsultationRequestNotification({
