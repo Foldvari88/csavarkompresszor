@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { notFound } from "next/navigation";
 import { sendLeadEngagementNotification } from "@/lib/leads/email";
 import { generateLeadPdf } from "@/lib/leads/pdf";
 import { getLead, recordLeadEngagementEvent } from "@/lib/leads/store";
@@ -12,7 +11,38 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const lead = await getLead(id);
 
   if (!lead) {
-    notFound();
+    return new Response(
+      `<!doctype html>
+      <html lang="hu">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Riport nem található</title>
+          <style>
+            body { margin:0; background:#f3f6f8; color:#17202a; font-family:Arial,sans-serif; }
+            main { max-width:680px; margin:64px auto; padding:28px; background:#fff; border:1px solid #d7dee8; border-radius:12px; }
+            h1 { font-size:24px; margin:0 0 12px; }
+            p { color:#334155; line-height:1.65; margin:0 0 18px; }
+            a { color:#d92d20; font-weight:700; }
+          </style>
+        </head>
+        <body>
+          <main>
+            <h1>A PDF riport nem található</h1>
+            <p>Ez a letöltési link nem érvényes, vagy a riport már nem érhető el ebben a környezetben.</p>
+            <p>Kérjük, nyissa meg az emailhez csatolt PDF-et, vagy kérjen új riportot a kalkulátorból.</p>
+            <a href="/">Vissza a kalkulátorhoz</a>
+          </main>
+        </body>
+      </html>`,
+      {
+        status: 404,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   }
 
   const pdf = generateLeadPdf(lead);

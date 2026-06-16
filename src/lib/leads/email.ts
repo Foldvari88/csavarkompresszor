@@ -883,9 +883,25 @@ function getPublicBaseUrl() {
   const configured =
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.SITE_URL ??
-    "https://iparikalkulator.hu";
+    "https://www.iparikalkulator.hu";
 
-  return configured.replace(/\/+$/, "");
+  const normalized = configured.replace(/\/+$/, "");
+
+  try {
+    const url = new URL(normalized);
+    if (
+      url.hostname === "iparikalkulator.hu" ||
+      url.hostname === "iparikompresszor.hu" ||
+      url.hostname === "www.iparikompresszor.hu"
+    ) {
+      url.hostname = "www.iparikalkulator.hu";
+      return url.toString().replace(/\/+$/, "");
+    }
+  } catch {
+    return normalized;
+  }
+
+  return normalized;
 }
 
 function formatEngagementEventType(type: "email.opened" | "email.clicked" | "report.downloaded") {

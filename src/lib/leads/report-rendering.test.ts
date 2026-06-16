@@ -5,6 +5,39 @@ import { getLeadReportLines } from "./pdf";
 import { createPreviewLead } from "./preview";
 
 describe("report heat recovery rendering", () => {
+  it("uses the canonical www host for report download links", () => {
+    const previousSiteUrl = process.env.SITE_URL;
+    const previousNextPublicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.SITE_URL = "https://iparikalkulator.hu";
+    process.env.NEXT_PUBLIC_SITE_URL = "https://iparikompresszor.hu";
+
+    try {
+      const html = renderCustomerEmail(createPreviewLead());
+
+      expect(html).toContain(
+        "https://www.iparikalkulator.hu/api/reports/preview-lead-20260604/download"
+      );
+      expect(html).not.toContain(
+        "https://iparikalkulator.hu/api/reports/preview-lead-20260604/download"
+      );
+      expect(html).not.toContain(
+        "https://iparikompresszor.hu/api/reports/preview-lead-20260604/download"
+      );
+    } finally {
+      if (previousSiteUrl === undefined) {
+        delete process.env.SITE_URL;
+      } else {
+        process.env.SITE_URL = previousSiteUrl;
+      }
+
+      if (previousNextPublicSiteUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_SITE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_SITE_URL = previousNextPublicSiteUrl;
+      }
+    }
+  });
+
   it("hides HMV and heat recovery details when the checkbox was not selected", () => {
     const previewLead = createPreviewLead();
     const lead = {
