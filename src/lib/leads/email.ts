@@ -32,8 +32,8 @@ type SequenceScheduleResult =
 
 let resend: Resend | null = null;
 
-const defaultConsultationNotificationTo = "info@iparikalkulator.hu";
-const consultationNotificationTo = "info@iparikalkulator.hu";
+const defaultNotificationTo = "info@iparikalkulator.hu";
+const defaultConsultationNotificationTo = "info@iparikompresszor.hu";
 const recommendedProductImageContentId = "recommended-product-image";
 
 const sequenceSteps = [
@@ -124,7 +124,7 @@ function getResend() {
 }
 
 function getReplyTo() {
-  return normalizeOptionalEmail(process.env.EMAIL_REPLY_TO) ?? defaultConsultationNotificationTo;
+  return normalizeOptionalEmail(process.env.EMAIL_REPLY_TO) ?? defaultNotificationTo;
 }
 
 function normalizeOptionalEmail(value: string | undefined) {
@@ -143,7 +143,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
   const client = getResend();
   const from = process.env.EMAIL_FROM ?? "iparikalkulator.hu <onboarding@resend.dev>";
   const replyTo = getReplyTo();
-  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultConsultationNotificationTo;
+  const notificationTo = process.env.REPORT_NOTIFICATION_TO ?? defaultNotificationTo;
 
   if (!client) {
     console.info("RESEND_API_KEY is not configured; lead emails were skipped.", {
@@ -285,7 +285,9 @@ export async function sendConsultationRequestNotification({
   source: string;
 }) {
   const client = getResend();
-  const notificationTo = consultationNotificationTo;
+  const notificationTo =
+    normalizeOptionalEmail(process.env.CONSULTATION_NOTIFICATION_TO) ??
+    defaultConsultationNotificationTo;
 
   if (!client) {
     return { mode: "skipped" as const };
@@ -300,7 +302,7 @@ export async function sendConsultationRequestNotification({
       from,
       replyTo,
       to: getEmailRecipients(notificationTo),
-      subject: "visszahívást kértek",
+      subject: "lead konzultációs visszahívást kért.",
       html,
       text: renderPlainTextFromHtml(html),
       tags: [

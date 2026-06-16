@@ -5,6 +5,8 @@ import { getLead } from "@/lib/leads/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const consultationThankYouUrl = "https://iparikompresszor.hu/konzultaciokeres";
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const lead = await getLead(id);
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
   }
 
-  return NextResponse.redirect(new URL("/koszonjuk?visszahivas=1", request.nextUrl), {
+  return NextResponse.redirect(consultationThankYouUrl, {
     status: 302
   });
 }
