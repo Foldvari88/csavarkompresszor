@@ -14,21 +14,21 @@ export default function ImpressumPage() {
         {
           title: "Weboldal üzemeltetője",
           items: [
-            "Név: Földvári István egyéni vállalkozó",
-            "Székhely: [kitöltendő]",
-            "Levelezési cím: [kitöltendő, ha eltér a székhelytől]",
-            "Nyilvántartási szám: [kitöltendő]",
-            "Adószám: [kitöltendő]",
-            "Email: [kitöltendő]",
-            "Telefon: [kitöltendő, ha van nyilvános ügyfélszolgálati telefonszám]"
+            "Név: Földvári István EV",
+            "Székhely: 5008 Szolnok, Körte utca 51.",
+            "Nyilvántartási szám: 57818731",
+            "Nyilvántartást vezető szerv: Nemzeti Adó- és Vámhivatal",
+            "Adószám: 59775793-1-36",
+            "Email: info@iparikalkulator.hu"
           ]
         },
         {
           title: "Tárhelyszolgáltató",
           items: [
-            "Név: [kitöltendő]",
-            "Székhely: [kitöltendő]",
-            "Kapcsolat: [kitöltendő email vagy ügyfélszolgálati elérhetőség]"
+            "Név: Rackhost Zrt.",
+            "Székhely: 6722 Szeged, Tisza Lajos körút 41.",
+            "Kapcsolat: info@rackhost.hu",
+            "Ügyfélszolgálat: +36 1 445 1200"
           ]
         },
         {

@@ -70,7 +70,7 @@ export function CookieBanner() {
             <label className="cookie-option">
               <span>
                 <strong>Analitika</strong>
-                <small>Használati és teljesítménymérés</small>
+                <small>Google Analytics mérés</small>
               </span>
               <input
                 checked={analytics}
@@ -81,7 +81,7 @@ export function CookieBanner() {
             <label className="cookie-option">
               <span>
                 <strong>Kampánymérés</strong>
-                <small>Hivatkozási és kampányforrások mérése</small>
+                <small>Google Ads és Meta Pixel</small>
               </span>
               <input
                 checked={campaign}

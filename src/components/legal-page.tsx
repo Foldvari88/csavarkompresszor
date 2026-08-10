@@ -44,7 +44,7 @@ export function LegalPage({
             </div>
           ) : null}
         </header>
-        <div className="legal-note">Utolsó frissítés: 2026. június 16.</div>
+        <div className="legal-note">Utolsó frissítés: 2026. augusztus 10.</div>
         <div className="legal-sections">
           {sections.map((section) => (
             <section className="legal-card" key={section.title}>

@@ -9,24 +9,43 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Felhasználási feltételek"
-      lead="A weboldal és a kalkulátor használatának alapvető feltételei."
+      lead="A weboldal és az ingyenes B2B kalkulátor használatának alapvető feltételei."
       sections={[
         {
           title: "Szolgáltató",
           items: [
-            "Név: Földvári István egyéni vállalkozó",
-            "Székhely: [kitöltendő]",
-            "Nyilvántartási szám: [kitöltendő]",
-            "Adószám: [kitöltendő]",
-            "Email: [kitöltendő]"
+            "Név: Földvári István EV",
+            "Székhely: 5008 Szolnok, Körte utca 51.",
+            "Nyilvántartási szám: 57818731",
+            "Nyilvántartást vezető szerv: Nemzeti Adó- és Vámhivatal",
+            "Adószám: 59775793-1-36",
+            "Email: info@iparikalkulator.hu"
           ]
         },
         {
           title: "A szolgáltatás tárgya",
           items: [
-            "A weboldal csavarkompresszorok energiafelhasználásához és megtakarítási lehetőségeihez kapcsolódó előkalkulációt biztosít.",
+            "A weboldal csavarkompresszorok energiafelhasználásához és megtakarítási lehetőségeihez kapcsolódó előkalkulációt biztosít céges, B2B érdeklődőknek.",
             "A kalkuláció a felhasználó által megadott adatokból és általános számítási feltételekből készül.",
+            "A beküldés után a rendszer automatikus emailes riportot küld a megadott email címre.",
             "Az eredmény tájékoztató jellegű, nem minősül ajánlatnak, mérnöki szakvéleménynek vagy megtakarítási garanciának."
+          ]
+        },
+        {
+          title: "Díj, rendelés és szerződéskötés",
+          items: [
+            "A kalkulátor használata ingyenes.",
+            "A weboldalon nincs online fizetés és nincs online rendelés.",
+            "A kalkuláció beküldése és az automatikus riport kiküldése önmagában nem minősül megrendelésnek vagy szerződéskötésnek, és nem hoz létre fizetési kötelezettséget.",
+            "Egyedi ajánlat, helyszíni felmérés, gépértékesítés vagy szervizszolgáltatás csak külön egyeztetés alapján jöhet létre."
+          ]
+        },
+        {
+          title: "B2B felhasználás",
+          items: [
+            "A kalkulátor cégek, intézmények és egyéni vállalkozók üzleti, B2B tájékozódását támogatja.",
+            "A szolgáltatás nem fogyasztói online rendelési felület, és fogyasztói szerződéskötésre nem irányul.",
+            "A felhasználó a beküldéssel tudomásul veszi, hogy az eredmény üzleti előkalkuláció és ajánlat-előkészítési célú megkeresés alapja lehet."
           ]
         },
         {
@@ -48,7 +67,7 @@ export default function TermsPage() {
         {
           title: "Kapcsolat",
           items: [
-            "A weboldallal, riporttal vagy adatkezeléssel kapcsolatos megkeresések az alábbi email címen tehetők meg: [kitöltendő]."
+            "A weboldallal, riporttal vagy adatkezeléssel kapcsolatos megkeresések az info@iparikalkulator.hu email címen tehetők meg."
           ]
         }
       ]}

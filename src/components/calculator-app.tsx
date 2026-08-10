@@ -748,8 +748,9 @@ export function CalculatorApp() {
                 }
               />
               <span>
-                Elfogadom, hogy a megadott adatok alapján elkészüljön és emailben
-                megérkezzen a kalkuláció, valamint elolvastam az adatkezelési tájékoztatót.{" "}
+                Elfogadom, hogy a megadott adatok alapján elkészüljön és automatikus
+                emailes riportként megérkezzen a kalkuláció, valamint elolvastam az
+                adatkezelési tájékoztatót.{" "}
                 <b className="required-mark">*</b>
               </span>
             </label>
@@ -766,8 +767,9 @@ export function CalculatorApp() {
                 }
               />
               <span>
-                Hozzájárulok, hogy marketingcélú megkereséseket kapjak, és adataim ilyen
-                célból szerződött szakmai partnerek részére továbbíthatók legyenek.
+                Hozzájárulok, hogy marketingcélú megkereséseket kapjak emailben vagy
+                telefonon, és adataim ilyen célból kézi előszűrés után szerződött szakmai
+                partnerek részére továbbíthatók legyenek.
               </span>
             </label>
             <button

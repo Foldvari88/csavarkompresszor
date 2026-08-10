@@ -12,7 +12,7 @@ export default function CookiesPage() {
       variant="industrial"
       eyebrow="Süti kezelés"
       title="Süti tájékoztató"
-      lead="A weboldalon használt sütik és hasonló technológiák kötelező tájékoztatója."
+      lead="A weboldalon használt sütik és hasonló technológiák tájékoztatója."
       highlights={[
         { value: "Mindig aktív", label: "szükséges sütik" },
         { value: "Hozzájárulás", label: "analitika" },
@@ -32,15 +32,17 @@ export default function CookiesPage() {
           items: [
             "Analitikai sütik csak a látogató előzetes hozzájárulása esetén használhatók.",
             "Céljuk a weboldal látogatottságának, használatának és technikai teljesítményének mérése.",
-            "Használt analitikai szolgáltatások: [kitöltendő, ha van ilyen]."
+            "Használt analitikai szolgáltatás: Google Analytics.",
+            "A Google Analytics címkék kezelése Google Tag Manageren keresztül történhet."
           ]
         },
         {
-          title: "Kampánymérési sütik",
+          title: "Kampánymérési adatok",
           items: [
             "Kampánymérési vagy hirdetési sütik csak a látogató előzetes hozzájárulása esetén használhatók.",
-            "Céljuk annak mérése, hogy a látogató milyen hivatkozásból, kampányból vagy hirdetési csatornából érkezett.",
-            "Használt kampánymérési vagy hirdetési szolgáltatások: [kitöltendő, ha van ilyen]."
+            "A weboldal a lead beküldésekor rögzítheti az URL-ben érkező kampányparamétereket, például UTM, gclid, gbraid, wbraid vagy li_fat_id paramétert.",
+            "Használt kampánymérési és hirdetési szolgáltatások: Google Ads conversion tracking, Google Ads remarketing és Meta Pixel.",
+            "A hirdetési és remarketing címkék kezelése Google Tag Manageren keresztül történhet."
           ]
         },
         {
