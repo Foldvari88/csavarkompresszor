@@ -7385,11 +7385,19 @@ body:has(.campaign-shell) .campaign-submit:active:not(:disabled)::after {
   animation: campaign-cta-sweep 720ms ease-out 1;
 }
 
-/* Clean CompAir product visual: no bottom label card or decorative stripes. */
+/* Clean CompAir product visual: no grid, bottom label card, or decorative stripes. */
 body:has(.campaign-shell) .campaign-stage-stripe,
 body:has(.campaign-shell) .campaign-product-note,
+body:has(.campaign-shell) .campaign-product-stage::before,
 body:has(.campaign-shell) .campaign-machine-card::after {
   display: none;
+}
+
+body:has(.campaign-shell) .campaign-product-stage,
+body:has(.campaign-shell) .campaign-machine-card {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 body:has(.campaign-shell) .campaign-machine-card {
