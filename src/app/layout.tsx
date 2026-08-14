@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CookieBanner } from "@/components/cookie-banner";
+import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/google-tag-manager";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
@@ -81,7 +82,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hu" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <GoogleTagManager />
       <body>
+        <GoogleTagManagerNoScript />
         {children}
         <CookieBanner />
       </body>
