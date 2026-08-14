@@ -7513,3 +7513,99 @@ body:has(.campaign-shell) .campaign-submit:disabled {
     0 0 0 8px rgba(148, 163, 184, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.36);
 }
+
+/* Prominent header call CTA. */
+body:has(.campaign-shell) .campaign-header-phone {
+  --campaign-cta-halo: rgba(251, 191, 36, 0.2);
+  --campaign-cta-shadow: rgba(2, 6, 23, 0.36);
+  position: relative;
+  min-height: 54px;
+  gap: 12px;
+  border-color: rgba(251, 191, 36, 0.72);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(100deg, #0f4f75 0%, #143c5b 48%, #0b1119 100%);
+  padding: 0 18px 0 16px;
+  box-shadow:
+    0 0 0 7px rgba(251, 191, 36, 0.13),
+    0 16px 40px rgba(2, 6, 23, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -2px 0 rgba(251, 191, 36, 0.28);
+}
+
+body:has(.campaign-shell) .campaign-header-phone::after {
+  position: absolute;
+  inset: 7px auto 7px 7px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fde68a, #fbbf24 54%, #f59e0b);
+  content: "";
+}
+
+body:has(.campaign-shell) .campaign-header-phone svg {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(254, 243, 199, 0.72);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, #fde68a, #fbbf24 62%, #f59e0b);
+  color: #0b1119;
+  padding: 7px;
+  box-shadow:
+    0 0 0 4px rgba(251, 191, 36, 0.16),
+    0 8px 18px rgba(2, 6, 23, 0.24);
+}
+
+body:has(.campaign-shell) .campaign-header-phone em {
+  border-color: rgba(254, 243, 199, 0.8);
+  background:
+    linear-gradient(180deg, #fde68a, #fbbf24);
+  color: #0b1119;
+  padding: 5px 9px;
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.18);
+  font-size: 10px;
+  font-weight: 950;
+}
+
+body:has(.campaign-shell) .campaign-header-phone strong {
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1;
+  text-shadow: 0 1px 10px rgba(125, 211, 252, 0.36);
+}
+
+body:has(.campaign-shell) .campaign-header-phone:hover,
+body:has(.campaign-shell) .campaign-header-phone:focus-visible {
+  border-color: rgba(253, 230, 138, 0.98);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 38%),
+    linear-gradient(100deg, #0e5f8b 0%, #164c71 48%, #0b1119 100%);
+  box-shadow:
+    0 0 0 9px rgba(251, 191, 36, 0.18),
+    0 22px 52px rgba(2, 6, 23, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -2px 0 rgba(251, 191, 36, 0.34);
+}
+
+@media (max-width: 699px) {
+  body:has(.campaign-shell) .campaign-header-phone {
+    min-height: 48px;
+    gap: 9px;
+    padding: 0 12px 0 14px;
+  }
+
+  body:has(.campaign-shell) .campaign-header-phone::after {
+    inset: 7px auto 7px 6px;
+    width: 3px;
+  }
+
+  body:has(.campaign-shell) .campaign-header-phone svg {
+    width: 17px;
+    height: 17px;
+    padding: 6px;
+  }
+
+  body:has(.campaign-shell) .campaign-header-phone strong {
+    font-size: 13px;
+  }
+}
