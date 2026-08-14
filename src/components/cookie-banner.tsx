@@ -34,7 +34,24 @@ export function CookieBanner() {
       campaign: preferences.campaign,
       savedAt: new Date().toISOString()
     };
+    const trackedWindow = window as typeof window & {
+      dataLayer?: Array<unknown>;
+      gtag?: (...args: Array<unknown>) => void;
+    };
+    const consentUpdate = {
+      ad_storage: preferences.campaign ? "granted" : "denied",
+      ad_user_data: preferences.campaign ? "granted" : "denied",
+      ad_personalization: preferences.campaign ? "granted" : "denied",
+      analytics_storage: preferences.analytics ? "granted" : "denied"
+    };
+
     window.localStorage.setItem(storageKey, JSON.stringify(payload));
+    trackedWindow.dataLayer = trackedWindow.dataLayer || [];
+    trackedWindow.dataLayer.push({
+      event: "cookie_consent_update",
+      ...consentUpdate
+    });
+    trackedWindow.gtag?.("consent", "update", consentUpdate);
     setIsVisible(false);
   }
 

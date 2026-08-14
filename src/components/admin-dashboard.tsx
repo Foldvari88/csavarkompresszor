@@ -21,6 +21,10 @@ import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
 import { formatStatus, leadStatusOptions } from "@/lib/status-label";
 
 const statuses: Array<LeadStatus | "all"> = ["all", ...leadStatusOptions];
+const compairCampaignSource = "compairkampany";
+const compairCampaignUtm = "compair-cserepromocio-2026";
+
+type AdminLeadTab = "calculator" | "compairCampaign";
 
 type StorageInfo = {
   mode: "database" | "local";
@@ -39,10 +43,27 @@ export function AdminDashboard({
   const [leadRows, setLeadRows] = useState(leads);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<LeadStatus | "all">("all");
+  const [activeTab, setActiveTab] = useState<AdminLeadTab>("calculator");
+
+  const compairCampaignLeadCount = useMemo(
+    () => leadRows.filter(isCompairCampaignLead).length,
+    [leadRows]
+  );
+  const calculatorLeadCount = leadRows.length - compairCampaignLeadCount;
+
+  const activeTabLeads = useMemo(
+    () =>
+      leadRows.filter((lead) =>
+        activeTab === "compairCampaign"
+          ? isCompairCampaignLead(lead)
+          : !isCompairCampaignLead(lead)
+      ),
+    [activeTab, leadRows]
+  );
 
   const filteredLeads = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return leadRows.filter((lead) => {
+    return activeTabLeads.filter((lead) => {
       const statusMatches = status === "all" || lead.status === status;
       if (!statusMatches) return false;
       if (!normalizedQuery) return true;
@@ -62,6 +83,12 @@ export function AdminDashboard({
         lead.input.tracking?.wbraid,
         lead.input.tracking?.liFatId,
         lead.input.tracking?.referrer,
+        lead.input.campaignLanding?.source,
+        lead.input.campaignLanding?.promotionWindow,
+        lead.input.campaignLanding?.requestType,
+        lead.input.campaignLanding?.nameplateStatus,
+        lead.input.campaignLanding?.productRange,
+        lead.input.campaignLanding?.message,
         lead.status
       ]
         .filter(Boolean)
@@ -69,7 +96,15 @@ export function AdminDashboard({
         .toLowerCase()
         .includes(normalizedQuery);
     });
-  }, [leadRows, query, status]);
+  }, [activeTabLeads, query, status]);
+
+  const activeTabLabel =
+    activeTab === "compairCampaign" ? "CompAir kampány leadek" : "Kalkulátor leadek";
+  const visibleColumnCount = activeTab === "compairCampaign" ? 26 : 22;
+  const searchPlaceholder =
+    activeTab === "compairCampaign"
+      ? "Keresés: cég, email, telefon, kérés, adattábla, gépméret, kampány..."
+      : "Keresés: cég, weboldal, iparág, email, telefon, kampány...";
 
   return (
     <>
@@ -80,7 +115,9 @@ export function AdminDashboard({
             Admin dashboard
           </span>
           <h1>Lead tracker</h1>
-          <p>Beküldött leadek, kapcsolati adatok és kampányazonosítók egy helyen.</p>
+          <p>
+            Beküldött leadek, kapcsolati adatok és kampányazonosítók külön admin füleken.
+          </p>
         </div>
         <div className="admin-actions">
           <Link className="secondary-button" href="/admin/email-preview">
@@ -113,12 +150,35 @@ export function AdminDashboard({
         </div>
       ) : null}
 
+      <div className="admin-tabs" role="tablist" aria-label="Lead kategóriák">
+        <button
+          aria-selected={activeTab === "calculator"}
+          className={`admin-tab ${activeTab === "calculator" ? "is-active" : ""}`}
+          role="tab"
+          type="button"
+          onClick={() => setActiveTab("calculator")}
+        >
+          <span>Kalkulátor leadek</span>
+          <strong>{calculatorLeadCount}</strong>
+        </button>
+        <button
+          aria-selected={activeTab === "compairCampaign"}
+          className={`admin-tab ${activeTab === "compairCampaign" ? "is-active" : ""}`}
+          role="tab"
+          type="button"
+          onClick={() => setActiveTab("compairCampaign")}
+        >
+          <span>CompAir kampány leadek</span>
+          <strong>{compairCampaignLeadCount}</strong>
+        </button>
+      </div>
+
       <section className="admin-toolbar" aria-label="Lead keresés és szűrés">
         <label className="admin-search">
           <Search size={17} />
           <input
             aria-label="Lead keresése"
-            placeholder="Keresés: cég, weboldal, iparág, email, telefon, kampány..."
+            placeholder={searchPlaceholder}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -142,9 +202,15 @@ export function AdminDashboard({
       <div className="admin-panel">
         <div className="admin-table-head">
           <strong>{filteredLeads.length} lead látható</strong>
-          <span>{status === "all" ? "Minden státusz" : formatStatus(status)}</span>
+          <span>
+            {activeTabLabel} / {status === "all" ? "Minden státusz" : formatStatus(status)}
+          </span>
         </div>
-        <table className="lead-table lead-table-wide">
+        <table
+          className={`lead-table lead-table-wide ${
+            activeTab === "compairCampaign" ? "lead-table-campaign" : ""
+          }`}
+        >
           <thead>
             <tr>
               <th>Dátum</th>
@@ -159,6 +225,14 @@ export function AdminDashboard({
               <th>Telefon</th>
               <th>Score</th>
               <th>Csillag</th>
+              {activeTab === "compairCampaign" ? (
+                <>
+                  <th>Kampány kérés</th>
+                  <th>Adattábla</th>
+                  <th>Gépméret</th>
+                  <th>Megjegyzés</th>
+                </>
+              ) : null}
               <th>UTM source</th>
               <th>UTM campaign</th>
               <th>GCLID</th>
@@ -174,7 +248,9 @@ export function AdminDashboard({
           <tbody>
             {filteredLeads.length === 0 ? (
               <tr>
-                <td colSpan={22}>Nincs találat. Próbálj más keresést vagy státusz szűrőt.</td>
+                <td colSpan={visibleColumnCount}>
+                  Nincs találat. Próbálj más keresést vagy státusz szűrőt.
+                </td>
               </tr>
             ) : (
               filteredLeads.map((lead) => (
@@ -232,6 +308,16 @@ export function AdminDashboard({
                   <td>
                     <StarRating leadId={lead.id} initialRating={lead.customerRating} />
                   </td>
+                  {activeTab === "compairCampaign" ? (
+                    <>
+                      <td>{lead.input.campaignLanding?.requestType ?? "-"}</td>
+                      <td>{lead.input.campaignLanding?.nameplateStatus ?? "-"}</td>
+                      <td>{lead.input.campaignLanding?.productRange ?? "-"}</td>
+                      <td className="admin-note-cell">
+                        {lead.input.campaignLanding?.message ?? "-"}
+                      </td>
+                    </>
+                  ) : null}
                   <td>{lead.input.tracking?.utmSource ?? "organikus"}</td>
                   <td>{lead.input.tracking?.utmCampaign ?? "-"}</td>
                   <td className="tracking-cell">{lead.input.tracking?.gclid ?? "-"}</td>
@@ -265,6 +351,13 @@ export function AdminDashboard({
       </div>
     </>
   );
+}
+
+function isCompairCampaignLead(lead: LeadRecord) {
+  const source = lead.input.campaignLanding?.source?.trim().toLowerCase();
+  const utmCampaign = lead.input.tracking?.utmCampaign?.trim().toLowerCase();
+
+  return source === compairCampaignSource || utmCampaign === compairCampaignUtm;
 }
 
 function formatWebsiteHref(value: string) {

@@ -17,6 +17,15 @@ const campaignTrackingSchema = z.object({
   referrer: z.string().max(500).optional()
 });
 
+const campaignLandingSchema = z.object({
+  source: z.string().trim().max(80).optional(),
+  promotionWindow: z.string().trim().max(80).optional(),
+  requestType: z.string().trim().max(120).optional(),
+  nameplateStatus: z.string().trim().max(120).optional(),
+  productRange: z.string().trim().max(120).optional(),
+  message: z.string().trim().max(900).optional()
+});
+
 const heatRecoverySchema = z.object({
   enabled: z.coerce.boolean().default(false),
   gasPriceHufPerM3: z.coerce.number().min(1).max(5000).optional(),
@@ -72,7 +81,8 @@ export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   name: z.string().min(2).max(120),
   phone: z.string().regex(/^\+36\d{9}$/),
   consentMarketing: z.coerce.boolean().default(false),
-  consentPrivacy: z.literal(true)
+  consentPrivacy: z.literal(true),
+  campaignLanding: campaignLandingSchema.optional()
 }).transform(withExcelCategory);
 
 function withExcelCategory<

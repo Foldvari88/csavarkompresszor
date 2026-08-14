@@ -15,6 +15,8 @@ Másold a `.env.example` értékeit Vercel project environment variable-ként:
 - `EMAIL_SEQUENCE_ENABLED`: `true` vagy `false`; kikapcsolja a follow-up sorozat időzítését
 - `EMAIL_SEQUENCE_MODE`: `automation` esetben Resend Automation eventet küld, és Resend Automation kezeli a szekvenciát
 - `RESEND_AUTOMATION_EVENT_NAME`: Resend Automation trigger event neve
+- `RESEND_COMPAIR_AUTOMATION_EVENT_NAME`: CompAir kampány landing opt-in trigger event neve
+- `RESEND_AUTOMATION_SUPERSEDED_EVENT_NAME`: ugyanarra az email címre érkező új kalkuláció leállítja vele a korábbi várakozó automation futást
 - `RESEND_MARKETING_SEGMENT_ID`: Resend Segment ID a broadcast szekvencia kontaktjaihoz
 - `RESEND_MARKETING_SEGMENT_NAME`: opcionális Segment név a broadcast setup scripthez
 - `REPORT_NOTIFICATION_TO`: belső kalkulációs és aktivitási értesítések címzettje
@@ -37,11 +39,13 @@ Az admin lead cockpit innen olvas:
 
 Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, `automation` módban az app Resend eventet küld. A szekvencia emailjei publikált Resend Template-ek, a sorrendet és delayeket pedig egy Resend Automation kezeli, így a Resend felületen szerkeszthetők:
 
-- 1 nap: műszaki adatpontosítás
+A CompAir kampány automatizáció külön `lead.compair_campaign.marketing_opt_in` eventre indul, és az app csak akkor küldi ezt az eventet, ha a lead a CompAir landingről érkezett (`campaignLanding.source=compairkampany`) és marketing opt-int adott.
+
+- 2 óra: friss riport utáni CompAir csereelőszűrési CTA
+- 1 nap: CompAir Air Audit szemléletű mini esettanulmány
 - 3 nap: vezetői/ROI döntési anyag
-- 6 nap: szivárgás, nyomás és terhelési profil
-- 10 nap: ajánlott modell ellenőrzése
-- 18 nap: végső egyeztetési CTA
+- 6 nap: fix vagy RS/VSD CompAir modellilleszkedés
+- 10 nap: promóciós határidő előtti záró visszahívási CTA
 
 Első beállítás teljes jogosultságú Resend API kulccsal:
 
@@ -51,9 +55,13 @@ pnpm resend:setup-automation
 
 A script létrehozza az event schemát, az 5 publikált Template-et és a disabled állapotú Automation workflow-t. Send-only Resend API kulccsal ez nem fut le, mert az Event, Template és Automation létrehozáshoz bővebb jogosultság kell. A Resend felületen szerkeszd át a Template-eket és az Automation sorrendet/delayeket, majd te aktiváld az Automationt.
 
+Ha egy email címről több kalkuláció érkezik, a következő automation mindig csak a legfrissebb kalkuláció adataival fut tovább. Az app minden új automation trigger előtt elküld egy `lead.calculator.superseded` eventet ugyanarra az email címre, amire a Resend workflow régi várakozó ágai leállnak.
+
 ```env
 EMAIL_SEQUENCE_MODE=automation
 RESEND_AUTOMATION_EVENT_NAME=lead.calculator.marketing_opt_in
+RESEND_COMPAIR_AUTOMATION_EVENT_NAME=lead.compair_campaign.marketing_opt_in
+RESEND_AUTOMATION_SUPERSEDED_EVENT_NAME=lead.calculator.superseded
 ```
 
 Az eredmény és follow-up emailek konzultációs CTA-ja saját tracking route-ra megy. Kattintás után az app elküldi a belső visszahívás-kérés értesítést a `CONSULTATION_NOTIFICATION_TO` címre, majd a `https://www.iparikalkulator.hu/konzultaciokeres` köszönő oldalra irányít.

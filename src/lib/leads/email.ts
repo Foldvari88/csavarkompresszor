@@ -35,6 +35,7 @@ let resend: Resend | null = null;
 const defaultNotificationTo = "info@iparikalkulator.hu";
 const defaultConsultationNotificationTo = "info@iparikalkulator.hu";
 const recommendedProductImageContentId = "recommended-product-image";
+const compairCampaignSource = "compairkampany";
 
 const sequenceSteps = [
   {
@@ -403,7 +404,7 @@ async function scheduleLeadSequence({
 function getEmailSequenceMode() {
   if (process.env.EMAIL_SEQUENCE_MODE === "automation") return "automation";
   if (process.env.EMAIL_SEQUENCE_MODE === "broadcast") return "broadcast";
-  return "scheduled";
+  return "automation";
 }
 
 async function triggerLeadAutomationSequence({
@@ -413,9 +414,23 @@ async function triggerLeadAutomationSequence({
   client: Resend;
   lead: LeadRecord;
 }): Promise<SequenceScheduleResult> {
-  const eventName = process.env.RESEND_AUTOMATION_EVENT_NAME ?? "lead.calculator.marketing_opt_in";
+  const eventName = getLeadAutomationEventName(lead);
+  const supersededEventName =
+    process.env.RESEND_AUTOMATION_SUPERSEDED_EVENT_NAME ?? "lead.calculator.superseded";
 
   try {
+    const supersededResponse = await client.events.send({
+      event: supersededEventName,
+      email: lead.input.email,
+      payload: {
+        leadId: lead.id
+      }
+    });
+
+    if (supersededResponse.error) {
+      throw new Error(getResendErrorMessage(supersededResponse.error));
+    }
+
     const response = await client.events.send({
       event: eventName,
       email: lead.input.email,
@@ -440,6 +455,21 @@ async function triggerLeadAutomationSequence({
       reason: error instanceof Error ? error.message : "unknown-error"
     };
   }
+}
+
+function getLeadAutomationEventName(lead: LeadRecord) {
+  if (isCompairCampaignLead(lead)) {
+    return (
+      process.env.RESEND_COMPAIR_AUTOMATION_EVENT_NAME ??
+      "lead.compair_campaign.marketing_opt_in"
+    );
+  }
+
+  return process.env.RESEND_AUTOMATION_EVENT_NAME ?? "lead.calculator.marketing_opt_in";
+}
+
+function isCompairCampaignLead(lead: LeadRecord) {
+  return lead.input.campaignLanding?.source?.trim().toLowerCase() === compairCampaignSource;
 }
 
 async function enrollLeadInBroadcastSequence({

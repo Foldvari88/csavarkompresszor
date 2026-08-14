@@ -17,7 +17,6 @@ export default function PrivacyPage() {
             "Név: Földvári István EV",
             "Székhely: 5008 Szolnok, Körte utca 51.",
             "Nyilvántartási szám: 57818731",
-            "Nyilvántartást vezető szerv: Nemzeti Adó- és Vámhivatal",
             "Adószám: 59775793-1-36",
             "Kapcsolat adatvédelmi ügyekben: info@iparikalkulator.hu",
             "Marketing leiratkozás és hozzájárulás visszavonása: info@iparikalkulator.hu"

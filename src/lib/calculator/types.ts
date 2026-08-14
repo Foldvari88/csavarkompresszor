@@ -176,6 +176,14 @@ export type LeadFormInput = CalculatorInput & {
   phone: string;
   consentMarketing: boolean;
   consentPrivacy: boolean;
+  campaignLanding?: {
+    source?: string;
+    promotionWindow?: string;
+    requestType?: string;
+    nameplateStatus?: string;
+    productRange?: string;
+    message?: string;
+  };
 };
 
 export type LeadRecord = {

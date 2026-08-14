@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { CookieBanner } from "@/components/cookie-banner";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/google-tag-manager";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"]
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"]
-});
 
 const verification = {
   ...(process.env.GOOGLE_SITE_VERIFICATION
@@ -81,7 +70,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="hu" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="hu">
       <GoogleTagManager />
       <body>
         <GoogleTagManagerNoScript />

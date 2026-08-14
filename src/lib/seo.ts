@@ -40,6 +40,11 @@ export const coreSeoRoutes = [
     path: "/ipari-kompresszor-energia-megtakaritas",
     priority: 0.78,
     changeFrequency: "monthly" as const
+  },
+  {
+    path: "/compairkampany",
+    priority: 0.72,
+    changeFrequency: "weekly" as const
   }
 ];
 
