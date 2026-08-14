@@ -174,7 +174,7 @@ export default function CompairCampaignPage() {
           <h1>
             <span>Akár 15% extra</span>{" "}
             <span>kedvezmény</span>{" "}
-            <span>ipari csavarkompresszor</span>{" "}
+            <span>CompAir csavarkompresszor</span>{" "}
             <span>cserére</span>
           </h1>
           <p>
