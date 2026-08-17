@@ -7617,3 +7617,30 @@ body:has(.campaign-shell) .campaign-header-phone:focus-visible {
     font-size: 13px;
   }
 }
+
+/* Keep the complete hero content visually inside the dark hero area. */
+body:has(.campaign-shell) .campaign-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+body:has(.campaign-shell) .campaign-hero::before {
+  position: absolute;
+  top: 0;
+  right: calc((100vw - 100%) / -2);
+  bottom: 0;
+  left: calc((100vw - 100%) / -2);
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(245, 158, 11, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(96, 165, 250, 0.08) 1px, transparent 1px),
+    #0b1119;
+  background-size: 20px 20px, 20px 20px, auto;
+  content: "";
+}
+
+@media (max-width: 699px) {
+  body:has(.campaign-shell) .campaign-hero {
+    padding-bottom: 38px;
+  }
+}
