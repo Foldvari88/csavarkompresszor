@@ -5220,36 +5220,6 @@ body {
   font-weight: 950;
 }
 
-.compair-symbol {
-  position: relative;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  transform: skewY(-12deg);
-}
-
-.compair-symbol i {
-  position: absolute;
-  width: 8px;
-  height: 30px;
-  border-radius: 6px 6px 2px 2px;
-  background: #004b87;
-  transform-origin: bottom center;
-}
-
-.compair-symbol i:nth-child(1) {
-  transform: translateX(-10px) rotate(-34deg);
-}
-
-.compair-symbol i:nth-child(2) {
-  transform: rotate(0deg);
-}
-
-.compair-symbol i:nth-child(3) {
-  transform: translateX(10px) rotate(34deg);
-}
-
 .campaign-nav-cta {
   display: none;
   min-height: 42px;
@@ -6057,11 +6027,6 @@ body {
   color: #f8fafc;
 }
 
-.compair-symbol i {
-  background: #38bdf8;
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.18);
-}
-
 .campaign-nav-cta {
   display: inline-flex;
   width: 42px;
@@ -6465,11 +6430,6 @@ body {
   .campaign-hero h1 {
     font-size: 2.1rem;
     hyphens: none;
-  }
-
-  .compair-symbol {
-    width: 30px;
-    height: 30px;
   }
 
   .campaign-conversion-panel {
@@ -7642,5 +7602,62 @@ body:has(.campaign-shell) .campaign-hero::before {
 @media (max-width: 699px) {
   body:has(.campaign-shell) .campaign-hero {
     padding-bottom: 38px;
+  }
+}
+
+/* Official logo stays visible alongside the call action on small screens. */
+body:has(.campaign-shell) .campaign-nav {
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-block: 12px;
+}
+
+body:has(.campaign-shell) .campaign-brand-lockup {
+  position: static;
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-left: 0;
+  border-radius: 4px;
+  background: #fff;
+  padding: 6px;
+  transform: none;
+}
+
+.campaign-brand-logo {
+  display: block;
+  width: 90px;
+  max-width: 100%;
+  height: auto;
+}
+
+body:has(.campaign-shell) .campaign-header-phone {
+  min-width: 0;
+  flex-shrink: 1;
+  margin-left: auto;
+}
+
+body:has(.campaign-shell) .campaign-header-phone strong {
+  overflow: visible;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+@media (min-width: 400px) {
+  .campaign-brand-logo {
+    width: 126px;
+  }
+}
+
+@media (min-width: 900px) {
+  body:has(.campaign-shell) .campaign-brand-lockup {
+    margin-left: auto;
+  }
+
+  .campaign-brand-logo {
+    width: 160px;
+  }
+
+  body:has(.campaign-shell) .campaign-header-phone {
+    margin-left: 12px;
   }
 }

@@ -56,33 +56,33 @@ export const metadata: Metadata = {
 };
 
 const eligibilityItems = [
-  "A jelenlegi kompresszor versenytárs márka és legalább 5 éves.",
-  "Bármely meglévő kompresszor márka vizsgálható a csereelőszűrésben.",
-  "Fókusz: olajbefecskendezéses csavarkompresszorok 37-160 kW között.",
-  "250 kW-ig egyedi projektként, külön egyeztetéssel kezelhető.",
-  "A promóciós időszak: 2026. július 1. - szeptember 30."
+  "Legalább 5 éves, más márkájú kompresszorát cserélné CompAir modellre.",
+  "A lecserélendő gép bármely más gyártó kompresszora lehet.",
+  "A kedvezmény 37-160 kW-os, olajbefecskendezéses csavarkompresszorokra vonatkozik.",
+  "160 kW felett, 250 kW-ig egyedi ajánlat kérhető.",
+  "A promóció a 2026. július 1. és szeptember 30. között leadott megrendelésekre érvényes."
 ];
 
 const customerBenefits = [
   {
     icon: Gauge,
     title: "Alacsonyabb energiafelhasználás",
-    text: "A régi gép adatai alapján előzetesen láthatóvá válik, mekkora éves kWh- és költségkülönbség lehet reális."
+    text: "A gép adatai és az üzemeltetési körülmények alapján megbecsüljük, mennyit takaríthat meg évente az áramköltségen."
   },
   {
     icon: Wrench,
     title: "Kisebb üzemeltetési kockázat",
-    text: "Az idős kompresszorok cseréje nem csak beruházás: termelésbiztonsági és szervizköltség oldalon is döntési pont."
+    text: "Egy korszerű kompresszor csökkentheti a váratlan leállások és a költséges javítások kockázatát."
   },
   {
     icon: LineChart,
-    title: "Adatalapú méretezés",
-    text: "Az audit vagy adattábla információ segít elkerülni a túlméretezett, feleslegesen drága sűrített levegő kapacitást."
+    title: "Az üzeméhez illő teljesítmény",
+    text: "A gép adatai és a felmért levegőigény alapján segítünk megfelelő méretű kompresszort választani."
   },
   {
     icon: BadgeCheck,
-    title: "Jobban védhető ROI",
-    text: "Az ajánlat nem pusztán kedvezményről szól, hanem számszerűsített megtakarítási és megtérülési előszűrésről."
+    title: "Becsült megtérülés",
+    text: "Az ajánlat és a várható energiamegtakarítás alapján kiszámítható, mennyi idő alatt térülhet meg a kompresszorcsere."
   }
 ];
 
@@ -90,20 +90,20 @@ const processSteps = [
   {
     icon: FileSearch,
     eyebrow: "01",
-    title: "Air-Insite audit vagy adattábla",
-    text: "A helyszíni felmérés vagy a régi gép adattáblája megadja a márkát, teljesítményt, kort és azonosítókat."
+    title: "A jelenlegi gép felmérése",
+    text: "Első lépésként egyeztetjük a kompresszor adattábláján szereplő adatokat, vagy helyszíni Air-Insite felmérést szervezünk."
   },
   {
     icon: ClipboardCheck,
     eyebrow: "02",
-    title: "Energia- és gépelőszűrés",
-    text: "A megadott adatokból becsült fogyasztási különbség, gépkategória és csereprioritás készül."
+    title: "Gépválasztás és megtakarítás",
+    text: "Az üzem levegőigénye és a megadott adatok alapján gépet javasolunk, és megbecsüljük a várható energiamegtakarítást."
   },
   {
     icon: PhoneCall,
     eyebrow: "03",
     title: "CompAir csereajánlat",
-    text: "A promóciós jogosultság ellenőrzése után jöhet a pontos műszaki egyeztetés és az ajánlat."
+    text: "Ellenőrizzük a kedvezmény feltételeit, egyeztetjük a műszaki részleteket, majd elkészítjük az ajánlatot."
   }
 ];
 
@@ -116,7 +116,7 @@ const jsonLd = {
   description: campaignDescription,
   about: {
     "@type": "Service",
-    name: "CompAir csavarkompresszor csereelőszűrés",
+    name: "Ajánlatkérés CompAir csavarkompresszorra",
     areaServed: "HU",
     provider: {
       "@type": "Organization",
@@ -152,13 +152,15 @@ export default function CompairCampaignPage() {
             <span>iparikalkulator.hu</span>
           </Link>
 
-          <div className="campaign-brand-lockup" aria-label="CompAir kampány">
-            <span className="compair-symbol" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-            <strong>CompAir</strong>
+          <div className="campaign-brand-lockup">
+            <Image
+              alt="CompAir"
+              className="campaign-brand-logo"
+              height={98}
+              priority
+              src="/images/compair-products/compair-logo.png"
+              width={266}
+            />
           </div>
 
           <CompairPhoneCta className="campaign-header-phone" location="header" />
@@ -179,13 +181,14 @@ export default function CompairCampaignPage() {
           </h1>
           <p>
             Régi ipari csavarkompresszor cseréjén gondolkodik? Ha 5 évnél
-            idősebb gépét energiahatékony CompAir modellre cseréli, jogosult
-            projekt esetén extra kedvezmény nyílhat. Audit vagy
-            adattábla-adatok alapján előszűrjük, milyen gépkategória és
-            megtakarítási potenciál lehet reális kiindulópont.
+            idősebb gépét energiahatékony CompAir modellre cseréli, a promóció
+            feltételeinek teljesülése esetén akár 15% extra kedvezményt kaphat.
+            Adja meg jelenlegi gépe adatait, vagy kérjen helyszíni felmérést!
+            Segítünk kiválasztani az üzeméhez illő kompresszort, és megbecsüljük
+            a várható energiamegtakarítást.
           </p>
 
-          <div className="campaign-conversion-panel" aria-label="Előszűrési előnyök">
+          <div className="campaign-conversion-panel" aria-label="A promóció fő feltételei">
             <div>
               <span>akár</span>
               <strong>15 % extra kedvezmény</strong>
@@ -210,10 +213,10 @@ export default function CompairCampaignPage() {
             </a>
           </div>
 
-          <div className="campaign-proof-row" aria-label="Kampány fókuszpontok">
+          <div className="campaign-proof-row" aria-label="A kompresszorcsere előnyei és feltételei">
             <span>
               <Gauge size={17} />
-              37-160 kW fókusz
+              37-160 kW teljesítmény
             </span>
             <span>
               <ShieldCheck size={17} />
@@ -226,8 +229,8 @@ export default function CompairCampaignPage() {
           </div>
 
           <p className="campaign-urgency-strip">
-            A promóció szeptember 30-ig érvényes, jogosult CompAir
-            csereprojektekre vonatkozik.
+            A kedvezmény a feltételeknek megfelelő kompresszorcserére,
+            2026. szeptember 30-ig leadott megrendelés esetén érvényes.
           </p>
         </div>
 
@@ -253,25 +256,25 @@ export default function CompairCampaignPage() {
               <BadgeCheck size={15} />
               Ajánlatkérés
             </span>
-            <h2>Kérjen CompAir csereelőszűrést vagy audit egyeztetést</h2>
+            <h2>Kérjen ajánlatot kompresszora cseréjére</h2>
             <p>
-              A beküldés után a lead a meglévő iparikalkulator.hu folyamatba
-              érkezik: előzetes fogyasztási számítás, gépkategória-javaslat és
-              kampánykontextus kerül a háttérbe.
+              Adja meg elérhetőségét és jelenlegi kompresszora adatait!
+              Felvesszük Önnel a kapcsolatot, egyeztetjük a kedvezmény
+              feltételeit, és segítünk kiválasztani a megfelelő CompAir
+              modellt. Helyszíni felmérést is kérhet.
             </p>
             <ul className="campaign-check-list">
               <li>
                 <CheckCircle2 size={17} />
-                Versenytárs gép adattábla vagy helyszíni audit alapján indul.
+                Első lépésként a kompresszor adattábláján szereplő adatok is elegendők.
               </li>
               <li>
                 <CheckCircle2 size={17} />
-                A 37-160 kW-os tartomány a fő kampányfókusz.
+                A promóció 37-160 kW-os csavarkompresszorokra vonatkozik.
               </li>
               <li>
                 <CheckCircle2 size={17} />
-                Változó levegőigénynél a fordulatszám-szabályozott irányt is
-                előszűri.
+                Változó levegőigény esetén fordulatszám-szabályozott modellt is ajánlunk.
               </li>
             </ul>
           </div>
@@ -285,22 +288,24 @@ export default function CompairCampaignPage() {
           <div className="campaign-section-intro">
             <span className="campaign-eyebrow compact">
               <SearchCheck size={15} />
-              Kulcsüzenet
+              Megtakarítás
             </span>
-            <h2>Audit vagy adattábla alapján nyitható meg a csereelőny</h2>
+            <h2>Tudja meg, mennyit takaríthat meg a kompresszorcserével</h2>
             <p>
-              A kampány célja, hogy a lassuló ipari piacon a meglévő,
-              elöregedő kompresszorok cseréjét ne csak árkedvezmény, hanem
-              mérhető energia- és üzemeltetési érv támogassa.
+              Egy korszerű CompAir kompresszorral csökkenhet az
+              energiafogyasztás és az üzemeltetési költség. A jelenlegi gép
+              adatai és használati körülményei alapján megbecsüljük a várható
+              megtakarítást, és ellenőrizzük, milyen kedvezményt vehet igénybe.
             </p>
           </div>
 
           <div className="campaign-message-panel">
             <strong>Mit kell megadni?</strong>
             <p>
-              Air-Insite audit eredmény vagy a lecserélendő versenytárs gép
-              adattábla információja: márka, típus, névleges teljesítmény,
-              sorozatszám és kor.
+              A jelenlegi kompresszor márkáját, típusát, névleges
+              teljesítményét, sorozatszámát és korát. Ezeket jellemzően az
+              adattáblán találja. Ha rendelkezik Air-Insite felmérés
+              eredményével, azt is felhasználhatjuk.
             </p>
           </div>
         </div>
@@ -323,7 +328,7 @@ export default function CompairCampaignPage() {
         <div className="campaign-section-head">
           <span className="campaign-eyebrow compact">
             <ShieldCheck size={15} />
-            Jogosultság és scope
+            A promóció feltételei
           </span>
           <h2>Kinek szól a CompAir cserepromóció?</h2>
         </div>
@@ -344,7 +349,7 @@ export default function CompairCampaignPage() {
             <ClipboardCheck size={15} />
             Folyamat
           </span>
-          <h2>Három lépésben lesz a kampányérdeklődésből validált csereprojekt</h2>
+          <h2>Így kérhet ajánlatot a kompresszorcserére</h2>
         </div>
 
         <div className="container campaign-process-grid">
@@ -368,28 +373,28 @@ export default function CompairCampaignPage() {
             <SearchCheck size={15} />
             Gyakori kérdések
           </span>
-          <h2 id="compair-faq">Rövid válaszok a kampányhoz</h2>
+          <h2 id="compair-faq">Kérdések a CompAir cserepromócióról</h2>
         </div>
         <div className="campaign-faq-grid">
           <details>
-            <summary>Mi számít versenytárs kompresszornak?</summary>
+            <summary>Milyen márkájú kompresszort cserélhetek le?</summary>
             <p>
-              Minden nem CompAir márkájú, meglévő ipari csavarkompresszor
-              vizsgálható, ha legalább 5 éves és a csere műszakilag indokolt.
+              Bármely más gyártó ipari csavarkompresszorát, ha a gép legalább
+              5 éves és megfelel a promóció feltételeinek.
             </p>
           </details>
           <details>
             <summary>Elég az adattábla, vagy kötelező a helyszíni audit?</summary>
             <p>
-              Első lépésben az adattábla is elég lehet az előszűréshez. Pontos
+              Első lépésben az adattábla adatai is elegendők. Pontos
               méretezéshez és végleges ajánlathoz helyszíni ellenőrzés javasolt.
             </p>
           </details>
           <details>
             <summary>Mi történik 160 kW feletti gépnél?</summary>
             <p>
-              250 kW-ig egyedi projektként kezelhető az érdeklődés, külön
-              műszaki és kereskedelmi egyeztetéssel.
+              160 kW felett, 250 kW-ig egyedi ajánlatot adunk a műszaki
+              igények és a kedvezmény feltételeinek egyeztetése után.
             </p>
           </details>
         </div>
@@ -400,8 +405,8 @@ export default function CompairCampaignPage() {
           <div>
             <strong>iparikalkulator.hu</strong>
             <p>
-              Független ipari energiahatékonysági előkalkuláció. A kampányjogosultság
-              végleges ellenőrzése egyedi egyeztetés alapján történik.
+              Független ipari energiahatékonysági előkalkuláció. A kedvezmény
+              pontos mértékét és feltételeit az ajánlatadás során egyeztetjük.
             </p>
           </div>
           <nav aria-label="Jogi információk">

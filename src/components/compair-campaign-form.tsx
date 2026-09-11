@@ -108,7 +108,7 @@ export function CompairCampaignForm() {
     if (Object.keys(nextErrors).length > 0) {
       setForm(nextForm);
       setFormError(
-        "Kérlek, ellenőrizd a kötelező mezőket. A telefonszám formátuma például: +36701234567."
+        "Kérjük, ellenőrizze a kötelező mezőket. A telefonszám formátuma például: +36701234567."
       );
       window.requestAnimationFrame(() => {
         document
@@ -172,16 +172,16 @@ export function CompairCampaignForm() {
   return (
     <form className="campaign-lead-form" onSubmit={submitCampaignLead}>
       <div className="campaign-form-head">
-        <span>Gyors előszűrés</span>
-        <h3>Indítsa el a CompAir csereelőszűrést</h3>
+        <span>CompAir ajánlatkérés</span>
+        <h3>Adja meg elérhetőségét és a gép adatait</h3>
         <p>
-          A legfontosabb üzemi és gépadatokból előkészítjük a kampány szerinti
-          jogosultsági és megtakarítási ellenőrzést.
+          Az adatok alapján ellenőrizzük, igénybe veheti-e a kedvezményt,
+          és előzetes számítást készítünk a várható energiamegtakarításról.
         </p>
         <div className="campaign-form-assurance" aria-label="Űrlap előnyök">
           <span>nincs kötelezettség</span>
-          <span>audit vagy adattábla</span>
-          <span>ipari csereprojekt</span>
+          <span>helyszíni felmérés is kérhető</span>
+          <span>személyre szabott ajánlat</span>
         </div>
       </div>
 
@@ -210,7 +210,7 @@ export function CompairCampaignForm() {
           />
         </CampaignField>
 
-        <CampaignField error={visibleErrors.email} id="email" label="Email cím">
+        <CampaignField error={visibleErrors.email} id="email" label="E-mail-cím">
           <input
             aria-describedby={visibleErrors.email ? "email-error" : undefined}
             aria-invalid={Boolean(visibleErrors.email)}
@@ -257,7 +257,7 @@ export function CompairCampaignForm() {
             value={form.companyActivity}
             onChange={(event) => updateField("companyActivity", event.target.value)}
           >
-            <option value="">Válassz tevékenységet</option>
+            <option value="">Válasszon tevékenységet</option>
             {companyActivityOptions.map((activity) => (
               <option key={activity} value={activity}>
                 {activity}
@@ -317,7 +317,7 @@ export function CompairCampaignForm() {
 
         <CampaignField
           error={visibleErrors.annualHours}
-          hint="Ha nem ismert, hagyd az alap 5500 órán."
+          hint="Ha nem ismert, a becsléshez használhatja az 5500 órás alapértéket."
           id="annualHours"
           label="Éves üzemóra"
         >
@@ -340,7 +340,7 @@ export function CompairCampaignForm() {
           error={visibleErrors.energyPriceHufKwh}
           hint="Ha nincs kéznél, az alapérték 35 Ft/kWh."
           id="energyPriceHufKwh"
-          label="Villamosenergia díj"
+          label="Villamos energia ára"
         >
           <input
             aria-describedby={
@@ -372,7 +372,7 @@ export function CompairCampaignForm() {
           </select>
         </CampaignField>
 
-        <CampaignField id="requestType" label="Mit kérsz első lépésként?">
+        <CampaignField id="requestType" label="Miben segíthetünk?">
           <select
             id="requestType"
             value={form.requestType}
@@ -386,7 +386,7 @@ export function CompairCampaignForm() {
       </div>
 
       <div className="campaign-form-grid single">
-        <CampaignField id="nameplateStatus" label="Adattábla információ">
+        <CampaignField id="nameplateStatus" label="Rendelkezésre állnak az adattábla adatai?">
           <select
             id="nameplateStatus"
             value={form.nameplateStatus}
@@ -427,7 +427,7 @@ export function CompairCampaignForm() {
           onChange={(event) => updateField("consentPrivacy", event.target.checked)}
         />
         <span>
-          Elfogadom, hogy a megadott adatok alapján elkészüljön az előszűrés, és
+          Elfogadom, hogy a megadott adatok alapján elkészüljön az előzetes számítás, és
           elolvastam az adatkezelési tájékoztatót.
         </span>
       </label>
@@ -446,7 +446,7 @@ export function CompairCampaignForm() {
       </label>
 
       <button className="campaign-submit" disabled={isSubmitting || (hasTriedSubmit && !isValid)}>
-        {isSubmitting ? "Beküldés folyamatban..." : "Kérem a CompAir előszűrést"}
+        {isSubmitting ? "Beküldés folyamatban..." : "Kérem a CompAir ajánlatot"}
         <ArrowRight size={18} />
       </button>
 
@@ -454,7 +454,7 @@ export function CompairCampaignForm() {
 
       <p className="campaign-form-note">
         <CheckCircle2 size={16} />
-        A kampányfeltételek végleges ellenőrzése az audit vagy az adattábla-adatok alapján történik.
+        A kedvezmény pontos mértékét a gép adatai vagy a helyszíni felmérés alapján egyeztetjük.
       </p>
     </form>
   );
@@ -505,27 +505,27 @@ function getCampaignFormErrors(form: CampaignFormState): CampaignFormErrors {
   const errors: CampaignFormErrors = {};
 
   if (form.companyName.trim().length < 2) {
-    errors.companyName = "Add meg a cégnevet legalább 2 karakterrel.";
+    errors.companyName = "Adja meg a cégnevet legalább 2 karakterrel.";
   }
 
   if (form.name.trim().length < 2) {
-    errors.name = "Add meg a kapcsolattartó nevét.";
+    errors.name = "Adja meg a kapcsolattartó nevét.";
   }
 
   if (!isValidEmail(form.email)) {
-    errors.email = "Adj meg érvényes email címet.";
+    errors.email = "Adjon meg érvényes e-mail-címet.";
   }
 
   if (!isValidHungarianPhone(normalizeHungarianPhone(form.phone))) {
-    errors.phone = "Adj meg magyar mobilszámot +36 formátumban.";
+    errors.phone = "Adjon meg magyar mobilszámot +36 formátumban.";
   }
 
   if (form.companyActivity.trim().length < 2) {
-    errors.companyActivity = "Válaszd ki a tevékenységet.";
+    errors.companyActivity = "Válassza ki a tevékenységet.";
   }
 
   if (form.currentBrand.trim().length < 2) {
-    errors.currentBrand = "Válaszd ki a jelenlegi márkát.";
+    errors.currentBrand = "Válassza ki a jelenlegi márkát.";
   }
 
   if (!isBoundedNumber(form.annualHours, 100, 8760)) {
@@ -533,7 +533,7 @@ function getCampaignFormErrors(form: CampaignFormState): CampaignFormErrors {
   }
 
   if (!isBoundedNumber(form.energyPriceHufKwh, 1, 500)) {
-    errors.energyPriceHufKwh = "A villamosenergia díj 1 és 500 Ft/kWh között lehet.";
+    errors.energyPriceHufKwh = "A villamos energia ára 1 és 500 Ft/kWh között lehet.";
   }
 
   if (form.message.trim().length > 900) {
@@ -541,7 +541,7 @@ function getCampaignFormErrors(form: CampaignFormState): CampaignFormErrors {
   }
 
   if (!form.consentPrivacy) {
-    errors.consentPrivacy = "Az előszűréshez ezt az elfogadást be kell jelölni.";
+    errors.consentPrivacy = "A beküldéshez kérjük, jelölje be az adatkezelés elfogadását.";
   }
 
   return errors;
