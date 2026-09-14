@@ -10,7 +10,7 @@ type CookiePreferences = {
   savedAt: string;
 };
 
-const storageKey = "csavarkompresszor-cookie-preferences-v1";
+const storageKey = "csavarkompresszor-cookie-preferences-v2";
 
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
