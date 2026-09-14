@@ -20,7 +20,11 @@ export function CookieBanner() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      setIsVisible(!window.localStorage.getItem(storageKey));
+      try {
+        setIsVisible(!window.localStorage.getItem(storageKey));
+      } catch {
+        setIsVisible(true);
+      }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -45,7 +49,11 @@ export function CookieBanner() {
       analytics_storage: preferences.analytics ? "granted" : "denied"
     };
 
-    window.localStorage.setItem(storageKey, JSON.stringify(payload));
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(payload));
+    } catch {
+      // The choice still applies to the current page if storage is unavailable.
+    }
     trackedWindow.dataLayer = trackedWindow.dataLayer || [];
     trackedWindow.dataLayer.push({
       event: "cookie_consent_update",
@@ -56,38 +64,47 @@ export function CookieBanner() {
   }
 
   return (
-    <section className="cookie-banner" aria-label="Süti hozzájárulási panel">
+    <section
+      aria-describedby="cookie-banner-description"
+      aria-labelledby="cookie-banner-title"
+      className="cookie-banner"
+      role="dialog"
+    >
       <div className="cookie-banner-shell">
-        <div className="cookie-banner-icon" aria-hidden="true">
-          <Cookie size={22} />
+        <div className="cookie-banner-heading">
+          <div className="cookie-banner-icon" aria-hidden="true">
+            <Cookie size={22} />
+          </div>
+          <div className="cookie-banner-copy">
+            <span className="cookie-kicker">
+              <ShieldCheck size={15} />
+              Adatvédelem
+            </span>
+            <h2 id="cookie-banner-title">Ön dönt a sütikről</h2>
+          </div>
         </div>
 
-        <div className="cookie-banner-copy">
-          <span className="cookie-kicker">
-            <ShieldCheck size={15} />
-            Süti beállítások
-          </span>
-          <h2>Sütik kezelése</h2>
-          <p>
-            A szükséges sütik a weboldal működéséhez kellenek. Az analitikai és
-            kampánymérési sütik csak hozzájárulással kapcsolhatók be.
+        <div className="cookie-banner-copy cookie-banner-details">
+          <p id="cookie-banner-description">
+            Az oldal működéséhez szükséges sütik mindig aktívak. Az analitikai
+            és hirdetési sütiket csak az Ön engedélyével használjuk.
           </p>
-          <a href="/sutik">Részletes süti tájékoztató</a>
+          <a href="/sutik">Részletek és süti tájékoztató</a>
         </div>
 
         {isCustomizing ? (
           <div className="cookie-options" aria-label="Süti kategóriák">
             <label className="cookie-option locked">
               <span>
-                <strong>Szükséges</strong>
-                <small>Alap működés és biztonság</small>
+                <strong>Szükséges sütik</strong>
+                <small>Az oldal alap működése és biztonsága</small>
               </span>
               <input checked disabled type="checkbox" />
             </label>
             <label className="cookie-option">
               <span>
                 <strong>Analitika</strong>
-                <small>Google Analytics mérés</small>
+                <small>Az oldal használatának mérése</small>
               </span>
               <input
                 checked={analytics}
@@ -97,8 +114,8 @@ export function CookieBanner() {
             </label>
             <label className="cookie-option">
               <span>
-                <strong>Kampánymérés</strong>
-                <small>Google Ads és Meta Pixel</small>
+                <strong>Hirdetések és kampánymérés</strong>
+                <small>Google Ads és remarketing</small>
               </span>
               <input
                 checked={campaign}
