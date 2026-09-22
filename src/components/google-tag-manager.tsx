@@ -1,4 +1,5 @@
 import Script from "next/script";
+import { GOOGLE_ADS_ID } from "@/lib/tracking/google";
 
 const gtmId = "GTM-KRCLFCGK";
 
@@ -34,5 +35,29 @@ export function GoogleTagManagerNoScript() {
         width="0"
       />
     </noscript>
+  );
+}
+
+export function GoogleAdsTag() {
+  return (
+    <>
+      <Script
+        id="google-ads-tag"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script
+        id="google-ads-config"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+window.dataLayer = window.dataLayer || [];
+window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
+window.gtag('js', new Date());
+window.gtag('config', '${GOOGLE_ADS_ID}');
+`.trim()
+        }}
+      />
+    </>
   );
 }

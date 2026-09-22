@@ -32,6 +32,7 @@ import type {
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { homeFaq } from "@/lib/home-seo";
+import { trackSuccessfulLead } from "@/lib/tracking/google";
 
 const CompressorChat = dynamic(
   () => import("@/components/compressor-chat").then((module) => module.CompressorChat),
@@ -249,6 +250,11 @@ export function CalculatorApp() {
         throw new Error("A beküldés sikerült, de az azonosító nem érkezett meg.");
       }
 
+      trackSuccessfulLead({
+        leadId: payload.leadId,
+        email: lead.email,
+        phone: lead.phone
+      });
       router.push("/koszonjuk");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");

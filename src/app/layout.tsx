@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { CookieBanner } from "@/components/cookie-banner";
-import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/google-tag-manager";
+import {
+  GoogleAdsTag,
+  GoogleTagManager,
+  GoogleTagManagerNoScript
+} from "@/components/google-tag-manager";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
@@ -71,9 +75,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hu">
-      <GoogleTagManager />
+      <head>
+        <GoogleTagManager />
+      </head>
       <body>
         <GoogleTagManagerNoScript />
+        <GoogleAdsTag />
         {children}
         <CookieBanner />
       </body>

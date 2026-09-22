@@ -2,15 +2,12 @@
 
 import { Cookie, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
-
-type CookiePreferences = {
-  necessary: true;
-  analytics: boolean;
-  campaign: boolean;
-  savedAt: string;
-};
-
-const storageKey = "csavarkompresszor-cookie-preferences-v2";
+import {
+  applyGoogleConsent,
+  COOKIE_PREFERENCES_STORAGE_KEY,
+  readCookiePreferences,
+  type CookiePreferences
+} from "@/lib/tracking/google";
 
 export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -20,9 +17,13 @@ export function CookieBanner() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      try {
-        setIsVisible(!window.localStorage.getItem(storageKey));
-      } catch {
+      const savedPreferences = readCookiePreferences(window.localStorage);
+      if (savedPreferences) {
+        setAnalytics(savedPreferences.analytics);
+        setCampaign(savedPreferences.campaign);
+        applyGoogleConsent(savedPreferences);
+        setIsVisible(false);
+      } else {
         setIsVisible(true);
       }
     });
@@ -38,28 +39,15 @@ export function CookieBanner() {
       campaign: preferences.campaign,
       savedAt: new Date().toISOString()
     };
-    const trackedWindow = window as typeof window & {
-      dataLayer?: Array<unknown>;
-      gtag?: (...args: Array<unknown>) => void;
-    };
-    const consentUpdate = {
-      ad_storage: preferences.campaign ? "granted" : "denied",
-      ad_user_data: preferences.campaign ? "granted" : "denied",
-      ad_personalization: preferences.campaign ? "granted" : "denied",
-      analytics_storage: preferences.analytics ? "granted" : "denied"
-    };
-
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(payload));
+      window.localStorage.setItem(
+        COOKIE_PREFERENCES_STORAGE_KEY,
+        JSON.stringify(payload)
+      );
     } catch {
       // The choice still applies to the current page if storage is unavailable.
     }
-    trackedWindow.dataLayer = trackedWindow.dataLayer || [];
-    trackedWindow.dataLayer.push({
-      event: "cookie_consent_update",
-      ...consentUpdate
-    });
-    trackedWindow.gtag?.("consent", "update", consentUpdate);
+    applyGoogleConsent(payload);
     setIsVisible(false);
   }
 
