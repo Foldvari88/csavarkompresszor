@@ -19,10 +19,11 @@ export const metadata: Metadata = {
 export default async function ThankYouPage({
   searchParams
 }: {
-  searchParams: Promise<{ visszahivas?: string }>;
+  searchParams: Promise<{ visszahivas?: string; email?: string }>;
 }) {
   const params = await searchParams;
   const isCallbackRequest = params.visszahivas === "1";
+  const emailDelayed = params.email === "kesik";
 
   return (
     <main className="thank-you-shell">
@@ -48,9 +49,9 @@ export default async function ThankYouPage({
             </p>
           ) : (
             <p>
-              A megadott adatok alapján elkészített részletes riportot emailben kiküldtük
-              a megadott címre. A dokumentum tartalmazza a számítás fő bemeneti adatait,
-              a becsült energia-megtakarítást és a javasolt műszaki irányt.
+              {emailDelayed
+                ? "A kalkulációt és az elérhetőségeit rögzítettük. Az e-mailes riport küldése most nem sikerült; kérjük, ne küldje be újra az űrlapot. A rögzített adatok az ügyintéző számára visszakereshetők."
+                : "A kalkulációt rögzítettük, az e-mailes riport küldését elindítottuk. A dokumentum a számítás adatait, a becsült energiamegtakarítást és a javasolt műszaki irányt tartalmazza."}
             </p>
           )}
         </div>
@@ -58,10 +59,9 @@ export default async function ThankYouPage({
         <div className="thank-you-grid" aria-label="Következő lépések">
           <div className="thank-you-card">
             <MailCheck size={22} />
-            <strong>Email ellenőrzése</strong>
+            <strong>{emailDelayed ? "A kalkuláció megmarad" : "Email ellenőrzése"}</strong>
             <span>
-              Ha riportot is kért, és néhány percen belül nem találja, kérjük, nézze meg a
-              spam vagy promóciók mappát is.
+              {emailDelayed ? "A küldési hiba nem törli az elmentett kalkulációt és kapcsolati adatokat." : "Ha riportot is kért, és néhány percen belül nem találja, kérjük, nézze meg a spam vagy promóciók mappát is."}
             </span>
           </div>
           <div className="thank-you-card">

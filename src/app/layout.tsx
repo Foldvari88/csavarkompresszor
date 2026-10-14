@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CookieBanner } from "@/components/cookie-banner";
+import { MeasurementSession } from "@/components/measurement-session";
 import {
   GoogleAdsTag,
   GoogleTagManager,
@@ -81,6 +82,7 @@ export default function RootLayout({
       <body>
         <GoogleTagManagerNoScript />
         <GoogleAdsTag />
+        <MeasurementSession />
         {children}
         <CookieBanner />
       </body>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
@@ -20,6 +21,9 @@ import {
 import { CompairCampaignForm } from "@/components/compair-campaign-form";
 import { CompairPhoneCta } from "@/components/compair-phone-cta";
 import { absoluteUrl, siteName } from "@/lib/seo";
+import { isCompairPromotionActive } from "@/lib/promotions";
+
+export const dynamic = "force-dynamic";
 
 const campaignTitle = "Akár 15% extra CompAir cserekedvezmény szeptember 30-ig";
 const campaignDescription =
@@ -135,7 +139,18 @@ const jsonLd = {
   }
 };
 
-export default function CompairCampaignPage() {
+export default async function CompairCampaignPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  if (!isCompairPromotionActive()) {
+    const incoming = await searchParams;
+    const query = new URLSearchParams();
+    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "gbraid", "wbraid", "li_fat_id"]) {
+      const value = incoming[key];
+      if (typeof value === "string") query.set(key, value.slice(0, 300));
+    }
+    if (query.size) redirect(`/kompresszor-csere-ajanlat?${query}`);
+    redirect("/kompresszor-csere-ajanlat");
+  }
+
   return (
     <main className="campaign-shell">
       <script

@@ -45,6 +45,26 @@ export const coreSeoRoutes = [
     path: "/compairkampany",
     priority: 0.72,
     changeFrequency: "weekly" as const
+  },
+  {
+    path: "/ugyfel-ajanlat",
+    priority: 0.74,
+    changeFrequency: "monthly" as const
+  },
+  {
+    path: "/kompresszor-szerviz-ajanlat",
+    priority: 0.76,
+    changeFrequency: "monthly" as const
+  },
+  {
+    path: "/kompresszor-csere-ajanlat",
+    priority: 0.8,
+    changeFrequency: "monthly" as const
+  },
+  {
+    path: "/nitrogen-generator-felulvizsgalat",
+    priority: 0.72,
+    changeFrequency: "monthly" as const
   }
 ];
 

@@ -2,8 +2,12 @@
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import type { AgeBand, CampaignTracking, LoadProfile } from "@/lib/calculator/types";
+import { useMemo, useRef, useState } from "react";
+import type { AgeBand, LoadProfile } from "@/lib/calculator/types";
+import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
+import { getCampaignTracking } from "@/lib/tracking/campaign";
+import { trackSuccessfulLead } from "@/lib/tracking/google";
+import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
 
 type CampaignFormState = {
   companyName: string;
@@ -80,6 +84,8 @@ const initialForm: CampaignFormState = {
 };
 
 export function CompairCampaignForm() {
+  const submittingRef = useRef(false);
+  const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking("compair");
   const router = useRouter();
   const [form, setForm] = useState<CampaignFormState>(initialForm);
   const [hasTriedSubmit, setHasTriedSubmit] = useState(false);
@@ -98,6 +104,8 @@ export function CompairCampaignForm() {
 
   async function submitCampaignLead(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current) return;
+    formTracking.attempt();
     setHasTriedSubmit(true);
     setFormError(null);
 
@@ -106,6 +114,7 @@ export function CompairCampaignForm() {
     const nextErrors = getCampaignFormErrors(nextForm);
 
     if (Object.keys(nextErrors).length > 0) {
+      formTracking.errors(Object.keys(nextErrors));
       setForm(nextForm);
       setFormError(
         "Kérjük, ellenőrizze a kötelező mezőket. A telefonszám formátuma például: +36701234567."
@@ -119,6 +128,7 @@ export function CompairCampaignForm() {
     }
 
     setForm(nextForm);
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -142,7 +152,7 @@ export function CompairCampaignForm() {
           phone: nextForm.phone,
           consentMarketing: nextForm.consentMarketing,
           consentPrivacy: nextForm.consentPrivacy,
-          tracking: getCampaignTracking(nextForm),
+          tracking: getCampaignTracking(),
           campaignLanding: {
             source: "compairkampany",
             promotionWindow: "2026-07-01/2026-09-30",
@@ -154,23 +164,26 @@ export function CompairCampaignForm() {
         })
       });
       const payload = (await response.json().catch(() => null)) as
-        | { leadId?: string; error?: string }
+        | { leadId?: string; error?: string; email?: { customer?: { status?: string } } }
         | null;
 
-      if (!response.ok) {
+      if (!response.ok || !payload?.leadId) {
         throw new Error(payload?.error ?? "A beküldés nem sikerült.");
       }
 
-      router.push("/koszonjuk");
+      trackSuccessfulLead({ leadId: payload.leadId, email: nextForm.email, phone: nextForm.phone, formType: "compair" });
+      router.push(`/koszonjuk${payload.email?.customer?.status === "accepted" ? "" : "?email=kesik"}`);
     } catch (caught) {
+      formTracking.errors(["submission"], "server");
       setFormError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }
 
   return (
-    <form className="campaign-lead-form" onSubmit={submitCampaignLead}>
+    <form ref={leadFormRef} onFocusCapture={startLeadForm} className="campaign-lead-form" onSubmit={submitCampaignLead} noValidate>
       <div className="campaign-form-head">
         <span>CompAir ajánlatkérés</span>
         <h3>Adja meg elérhetőségét és a gép adatait</h3>
@@ -517,7 +530,7 @@ function getCampaignFormErrors(form: CampaignFormState): CampaignFormErrors {
   }
 
   if (!isValidHungarianPhone(normalizeHungarianPhone(form.phone))) {
-    errors.phone = "Adjon meg magyar mobilszámot +36 formátumban.";
+    errors.phone = "Adjon meg magyar mobil- vagy vezetékes telefonszámot.";
   }
 
   if (form.companyActivity.trim().length < 2) {
@@ -554,42 +567,4 @@ function isBoundedNumber(value: string, min: number, max: number) {
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
-}
-
-function isValidHungarianPhone(phone: string) {
-  return /^\+36\d{9}$/.test(phone.trim());
-}
-
-function normalizeHungarianPhone(phone: string) {
-  const digitsAndPlus = phone.trim().replace(/[^\d+]/g, "");
-  if (digitsAndPlus.startsWith("+36")) return digitsAndPlus;
-  if (digitsAndPlus.startsWith("06")) return `+36${digitsAndPlus.slice(2)}`;
-  if (digitsAndPlus.startsWith("36")) return `+${digitsAndPlus}`;
-  return digitsAndPlus;
-}
-
-function getCampaignTracking(form: CampaignFormState): CampaignTracking {
-  if (typeof window === "undefined") {
-    return {
-      utmSource: "iparikalkulator",
-      utmMedium: "landing",
-      utmCampaign: "compair-cserepromocio-2026",
-      utmContent: form.requestType
-    };
-  }
-
-  const params = new URLSearchParams(window.location.search);
-
-  return {
-    utmSource: params.get("utm_source") ?? "iparikalkulator",
-    utmMedium: params.get("utm_medium") ?? "landing",
-    utmCampaign: params.get("utm_campaign") ?? "compair-cserepromocio-2026",
-    utmContent: params.get("utm_content") ?? `${form.requestType} | ${form.nameplateStatus}`,
-    utmTerm: params.get("utm_term") ?? undefined,
-    gclid: params.get("gclid") ?? undefined,
-    gbraid: params.get("gbraid") ?? undefined,
-    wbraid: params.get("wbraid") ?? undefined,
-    liFatId: params.get("li_fat_id") ?? params.get("liFatId") ?? undefined,
-    referrer: document.referrer || undefined
-  };
 }

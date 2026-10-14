@@ -2,6 +2,8 @@
 
 import { Cookie, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { getCampaignTracking } from "@/lib/tracking/campaign";
 import {
   applyGoogleConsent,
   COOKIE_PREFERENCES_STORAGE_KEY,
@@ -10,6 +12,7 @@ import {
 } from "@/lib/tracking/google";
 
 export function CookieBanner() {
+  const pathname = usePathname();
   const [isVisible, setIsVisible] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [analytics, setAnalytics] = useState(false);
@@ -17,7 +20,8 @@ export function CookieBanner() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const savedPreferences = readCookiePreferences(window.localStorage);
+      let savedPreferences: CookiePreferences | null = null;
+      try { savedPreferences = readCookiePreferences(window.localStorage); } catch { /* Storage may be blocked. */ }
       if (savedPreferences) {
         setAnalytics(savedPreferences.analytics);
         setCampaign(savedPreferences.campaign);
@@ -30,7 +34,8 @@ export function CookieBanner() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  if (!isVisible) return null;
+  if (pathname.startsWith("/admin")) return null;
+  if (!isVisible) return <button type="button" className="cookie-settings-trigger" aria-haspopup="dialog" onClick={() => { setIsCustomizing(true); setIsVisible(true); }}>Sütibeállítások</button>;
 
   function savePreferences(preferences: Omit<CookiePreferences, "necessary" | "savedAt">) {
     const payload: CookiePreferences = {
@@ -48,6 +53,7 @@ export function CookieBanner() {
       // The choice still applies to the current page if storage is unavailable.
     }
     applyGoogleConsent(payload);
+    getCampaignTracking();
     setIsVisible(false);
   }
 

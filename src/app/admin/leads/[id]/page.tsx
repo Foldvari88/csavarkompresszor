@@ -4,6 +4,7 @@ import { ArrowLeft, Eye, FileCheck, Mail, MousePointerClick, Phone, PhoneCall, Z
 import { StatusForm } from "@/components/status-form";
 import { getLead } from "@/lib/leads/store";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
+import { EmailDeliveryStatus } from "@/components/email-delivery-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,6 +50,7 @@ export default async function LeadDetailPage({
 
           <section className="lead-card">
             <h2>Email aktivitás</h2>
+            <EmailDeliveryStatus report={lead.emailDelivery} />
             <div className="kv-grid">
               <Kv
                 label="Email megnyitva"

@@ -1,3 +1,5 @@
+import { normalizeHungarianPhone } from "@/lib/phone";
+
 export const GOOGLE_ADS_ID = "AW-17711633820";
 export const GOOGLE_ADS_LEAD_DESTINATION =
   "AW-17711633820/J6JBCIui-IccEJyryP1B";
@@ -24,13 +26,33 @@ type Gtag = (...args: Array<unknown>) => void;
 type TrackingWindow = Window & {
   dataLayer?: Array<unknown>;
   gtag?: Gtag;
+  __ipariTrackedLeads?: Set<string>;
 };
 
 type SuccessfulLead = {
   leadId: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
+  formType?: string;
 };
+
+export function isMeasurementAllowed(targetWindow: TrackingWindow) {
+  if (!targetWindow.location) return true; // Unit-test targets do not have a DOM.
+  return !targetWindow.location.pathname.startsWith("/admin") &&
+    (["iparikalkulator.hu", "www.iparikalkulator.hu"].includes(targetWindow.location.hostname) ||
+      process.env.NEXT_PUBLIC_MEASUREMENT_DEBUG === "true");
+}
+
+export function trackLeadFormEvent(
+  name: "lead_form_view" | "lead_form_start" | "lead_form_attempt" | "lead_form_error" | "phone_click",
+  formType: string,
+  detail: { field_name?: string; error_type?: "validation" | "server" } = {}
+) {
+  const target = getBrowserWindow();
+  if (!target || !isMeasurementAllowed(target)) return false;
+  ensureGtag(target)("event", name, { send_to: GOOGLE_ANALYTICS_ID, form_type: formType, ...detail });
+  return true;
+}
 
 export function parseCookiePreferences(value: string | null): CookiePreferences | null {
   if (!value) return null;
@@ -86,6 +108,7 @@ export function applyGoogleConsent(
 
   // Consent must be updated before the custom event reaches GTM.
   gtag("consent", "update", consentUpdate);
+  if (!preferences.campaign) gtag("set", "user_data", {});
   targetWindow.dataLayer?.push({
     event: "cookie_consent_update",
     ...consentUpdate
@@ -99,22 +122,24 @@ export function trackSuccessfulLead(
   targetWindow: TrackingWindow | undefined = getBrowserWindow(),
   preferences?: CookiePreferences | null
 ) {
-  if (!targetWindow) return false;
+  if (!targetWindow || !isMeasurementAllowed(targetWindow) || !lead.leadId || lead.leadId === "accepted") return false;
 
   try {
+    const tracked = targetWindow.__ipariTrackedLeads ??= new Set();
+    if (tracked.has(lead.leadId)) return false;
     const gtag = ensureGtag(targetWindow);
-    const savedPreferences =
-      preferences === undefined
-        ? readCookiePreferences(targetWindow.localStorage)
-        : preferences;
+    let savedPreferences = preferences ?? null;
+    if (preferences === undefined) {
+      try { savedPreferences = readCookiePreferences(targetWindow.localStorage); } catch { /* Treat blocked storage as no consent. */ }
+    }
     const enhancedConversionData = savedPreferences?.campaign
       ? {
-          email: lead.email.trim().toLowerCase(),
-          phone_number: normalizePhone(lead.phone)
+          ...(lead.email ? { email: lead.email.trim().toLowerCase() } : {}),
+          ...(lead.phone ? { phone_number: normalizeHungarianPhone(lead.phone) } : {})
         }
       : null;
 
-    if (enhancedConversionData) {
+    if (enhancedConversionData && Object.keys(enhancedConversionData).length > 0) {
       gtag("set", "user_data", enhancedConversionData);
     }
 
@@ -126,15 +151,17 @@ export function trackSuccessfulLead(
 
     targetWindow.dataLayer?.push({
       event: "lead_submit_success",
+      form_type: lead.formType ?? "calculator",
       lead_id: lead.leadId,
       ...eventParameters,
-      ...(enhancedConversionData
+      ...(enhancedConversionData && Object.keys(enhancedConversionData).length > 0
         ? { enhanced_conversion_data: enhancedConversionData }
         : {})
     });
 
     gtag("event", "generate_lead", {
       send_to: GOOGLE_ANALYTICS_ID,
+      form_type: lead.formType ?? "calculator",
       lead_id: lead.leadId,
       ...eventParameters
     });
@@ -142,6 +169,8 @@ export function trackSuccessfulLead(
       send_to: GOOGLE_ADS_LEAD_DESTINATION,
       ...eventParameters
     });
+
+    tracked.add(lead.leadId);
 
     return true;
   } catch {
@@ -162,8 +191,4 @@ function ensureGtag(targetWindow: TrackingWindow): Gtag {
 
 function getBrowserWindow(): TrackingWindow | undefined {
   return typeof window === "undefined" ? undefined : (window as TrackingWindow);
-}
-
-function normalizePhone(phone: string) {
-  return phone.trim().replace(/[^\d+]/g, "");
 }

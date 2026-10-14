@@ -21,6 +21,18 @@ Másold a `.env.example` értékeit Vercel project environment variable-ként:
 - `RESEND_MARKETING_SEGMENT_NAME`: opcionális Segment név a broadcast setup scripthez
 - `REPORT_NOTIFICATION_TO`: belső kalkulációs és aktivitási értesítések címzettje
 - `CONSULTATION_NOTIFICATION_TO`: konzultációs visszahívás kattintások értesítési címe, alapértelmezetten `info@iparikalkulator.hu`
+- `CAMPAIGN_INQUIRY_NOTIFICATION_TO`: szerviz-, kompresszorcsere- és nitrogéngenerátor-ajánlatkérések belső címzettje; több címzett vesszővel adható meg
+
+## Meglévő ügyfelek ajánlatkérő oldalai
+
+Az ügyfél-újraaktiválási kampányhoz négy útvonal tartozik:
+
+- `/ugyfel-ajanlat`: közös választóoldal szegmentálatlan listához
+- `/kompresszor-szerviz-ajanlat`: kompresszorszerviz-ajánlatkérés
+- `/kompresszor-csere-ajanlat`: evergreen csere-előszűrés
+- `/nitrogen-generator-felulvizsgalat`: nitrogénellátási műszaki előszűrés
+
+A beküldések a `campaign_inquiries` táblába kerülnek, e-mail-értesítést küldenek, és az adminban az `/admin/ajanlatkeresek` oldalon, illetve CSV-ként az `/api/admin/campaign-inquiries-export` útvonalon érhetők el. A `/compairkampany` 2026. szeptember 30. után automatikusan az evergreen csereoldalra irányít.
 
 ## Neon adatbázis
 
@@ -35,7 +47,19 @@ Az admin lead cockpit innen olvas:
 - 1-5 csillagos ügyfélminősítés
 - Google Ads click ID tracking adatok
 
-## Resend email flow
+## Mérési és beküldési ellenőrzés
+
+A sikeres szerveres mentés után az űrlap egyszer küld `generate_lead` GA4-eseményt és közvetlen Ads-konverziót, közös `lead_id` / `transaction_id` azonosítóval. A GA4-importot ugyanarra a leadre ne állítsd be második elsődleges Ads-konverziónak. Az űrlaptípus `form_type` paraméterrel különül el; a megtekintés, kezdés, beküldési kísérlet és mezőhiba külön diagnosztikai esemény. A `phone_click` csak kattintást jelent, nem létrejött hívást.
+
+A kampányforrás hozzájárulás esetén a munkamenet alatt, 30 perces inaktivitási korláttal megmarad. Hozzájárulás visszavonásakor a mentett forrás törlődik. Az adminoldalakról és az alapértelmezett helyi/előnézeti környezetből nem indulnak üzleti mérési események. A sütibeállítások a nyilvános oldalak alján újranyithatók.
+
+A telefonszámok magyar mobil és vezetékes formátumban is megadhatók, a szerver egységes `+36` formára normalizálja őket. Az e-mailes kalkulációs riporthoz telefon nem kötelező.
+
+A már mentett lead e-mail-hiba esetén is sikeres beküldés marad. A szolgáltatói elfogadás, részleges hiba, hiba és kihagyás az `email_delivery` mezőben látszik az adminban. A szolgáltatói elfogadás nem igazolja a postaládába kézbesítést; azt a Resend eseménynaplójában és a címzett postaládájában kell ellenőrizni. A belső értesítési címeknek működő postafiókra kell mutatniuk.
+
+Kiadás előtt: `pnpm test`, `pnpm lint`, `pnpm build`, majd jelölt tesztlead. Egyeztesd a mentett azonosítót, a levelek státuszát, a GA4-eseményt és a Tag Assistantben az Ads küldést. Organikus tesztből nem feltétlenül keletkezik hirdetéshez rendelt kampánykonverzió.
+
+## Resend automatikus riport és utánkövetés
 
 Lead beküldés után az app Resenddel azonnal kiküldi a kalkulációs eredményt PDF csatolmánnyal. Ha a felhasználó külön hozzájárul a szakmai utánkövetéshez, `automation` módban az app Resend eventet küld. A szekvencia emailjei publikált Resend Template-ek, a sorrendet és delayeket pedig egy Resend Automation kezeli, így a Resend felületen szerkeszthetők:
 

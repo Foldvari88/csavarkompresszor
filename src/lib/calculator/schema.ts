@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getBrandCategory } from "./brand-category";
+import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
 
 export const ageBandSchema = z.enum(["5-10", "10-15", "15+"]);
 export const loadProfileSchema = z.enum(["continuous", "fluctuating"]);
@@ -79,7 +80,8 @@ export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
   }),
   companyActivity: z.string().trim().min(2).max(180),
   name: z.string().min(2).max(120),
-  phone: z.string().regex(/^\+36\d{9}$/),
+  phone: z.string().max(40).optional().default("").transform(normalizeHungarianPhone)
+    .refine(value => !value || isValidHungarianPhone(value), { message: "Érvényes magyar telefonszám szükséges." }),
   consentMarketing: z.coerce.boolean().default(false),
   consentPrivacy: z.literal(true),
   campaignLanding: campaignLandingSchema.optional()

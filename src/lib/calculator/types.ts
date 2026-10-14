@@ -194,6 +194,7 @@ export type LeadRecord = {
   engagement: LeadEmailEngagement;
   input: LeadFormInput;
   result: CalculationResult;
+  emailDelivery?: import("@/lib/email-delivery").EmailDeliveryReport | null;
 };
 
 export type LeadEmailEngagement = {

@@ -26,13 +26,15 @@ import { getBrandCategory } from "@/lib/calculator/brand-category";
 import type {
   AgeBand,
   CalculatorInput,
-  CampaignTracking,
   HeatRecoveryResult,
   LeadFormInput
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { homeFaq } from "@/lib/home-seo";
 import { trackSuccessfulLead } from "@/lib/tracking/google";
+import { getCampaignTracking } from "@/lib/tracking/campaign";
+import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
+import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
 
 const CompressorChat = dynamic(
   () => import("@/components/compressor-chat").then((module) => module.CompressorChat),
@@ -127,6 +129,8 @@ const initialLead: LeadFields = {
 };
 
 export function CalculatorApp() {
+  const submittingRef = useRef(false);
+  const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking<HTMLDivElement>("calculator");
   const router = useRouter();
   const [calculator, setCalculator] = useState<CalculatorInput>(initialCalculator);
   const [lead, setLead] = useState<LeadFields>(initialLead);
@@ -182,7 +186,7 @@ export function CalculatorApp() {
     lead.companyActivity.trim().length > 1,
     lead.name.trim().length > 1,
     isValidEmail(lead.email),
-    isValidHungarianPhone(lead.phone),
+    !lead.phone.trim() || isValidHungarianPhone(lead.phone),
     lead.consentPrivacy
   ];
   const completionPercent = Math.round(
@@ -212,10 +216,13 @@ export function CalculatorApp() {
   }
 
   async function submitLead() {
+    if (submittingRef.current) return;
+    formTracking.attempt();
     setHasTriedSubmit(true);
     setError(null);
 
     if (!isLeadFormValid) {
+      formTracking.errors(Object.keys(leadFieldErrors));
       setError(
         "Minden kötelező mezőt ki kell tölteni. Add meg a tevékenységet is. Az email legyen érvényes, a telefonszám formátuma például: +36701234567."
       );
@@ -225,6 +232,7 @@ export function CalculatorApp() {
       return;
     }
 
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -235,11 +243,13 @@ export function CalculatorApp() {
                   ...calculator,
                   tracking: getCampaignTracking(),
                   ...lead,
+                  email: lead.email.trim(),
+                  phone: normalizeHungarianPhone(lead.phone),
                   companyWebsite: ""
                 })
       });
       const payload = (await response.json().catch(() => null)) as
-        | { leadId?: string; error?: string }
+        | { leadId?: string; error?: string; email?: { customer?: { status?: string } } }
         | null;
 
       if (!response.ok) {
@@ -255,10 +265,12 @@ export function CalculatorApp() {
         email: lead.email,
         phone: lead.phone
       });
-      router.push("/koszonjuk");
+      router.push(`/koszonjuk${payload.email?.customer?.status === "accepted" ? "" : "?email=kesik"}`);
     } catch (caught) {
+      formTracking.errors(["submission"], "server");
       setError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   }
@@ -593,7 +605,7 @@ export function CalculatorApp() {
             ) : null}
           </div>
 
-          <div className={`lead-gate-section ${isCalculatorSectionReady ? "is-ready" : ""}`}>
+          <div ref={leadFormRef} onFocusCapture={startLeadForm} className={`lead-gate-section ${isCalculatorSectionReady ? "is-ready" : ""}`}>
             <div className="lead-gate-status">
               <span />
               Következő lépés: mérnöki riport adatok
@@ -620,13 +632,9 @@ export function CalculatorApp() {
               <div>
                 <span>Ami csak az e-mail riportban elérhető:</span>
                 <strong>előszűrt gépkategória a megadott üzemadatok alapján</strong>
-                <p>
-                  A riportban a névleges teljesítmény, az éves üzemóra, a terhelési profil és
-                  a becsült felvett teljesítmény alapján megadjuk, milyen csavarkompresszor
-                  kategória vagy modellirány lehet műszakilag reális kiindulópont. Ez nem
-                  végleges ajánlat: a pontos méretezéshez a helyszíni levegőigényt, nyomást,
-                  vezérlést és üzemi ciklusokat is ellenőrizni kell.
-                </p>
+                <p>A PDF-ben elküldjük a megtakarítási számítást és a javasolt gépkategóriát.
+                  A riport tájékoztató előszűrés, nem végleges gépajánlat.</p>
+                <p><a href="/kompresszor-csere-ajanlat">Konkrét gépajánlatot szeretnék kérni</a></p>
                 <div className="report-conversion-points" aria-label="Riport tartalma">
                   <span>
                     <CheckCircle2 size={15} />
@@ -682,15 +690,14 @@ export function CalculatorApp() {
               ) : null}
             </Field>
 
-            <Field label="Telefonszám">
+            <OptionalField label="Telefonszám">
               <input
                 id="phone"
                 aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
                 aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
                 inputMode="tel"
-                pattern="[+]36[0-9]{9}"
-                required
-                title="Formátum: +36701234567"
+                autoComplete="tel"
+                title="Magyar mobil vagy vezetékes telefonszám"
                 value={lead.phone}
                 onChange={(event) =>
                   setLead((current) => ({ ...current, phone: event.target.value }))
@@ -699,7 +706,8 @@ export function CalculatorApp() {
                 type="tel"
               />
               <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
-            </Field>
+              <p className="field-hint">Opcionális. Mobil és vezetékes szám is megadható.</p>
+            </OptionalField>
 
             <Field label="Iparág / tevékenység">
               <IndustrialSelect
@@ -1191,10 +1199,8 @@ function getLeadFieldErrors(lead: LeadFields): LeadFieldErrors {
     errors.name = "Add meg a kapcsolattartó nevét, legalább 2 karakterrel.";
   }
 
-  if (lead.phone.trim().length === 0) {
-    errors.phone = "Add meg a telefonszámot.";
-  } else if (!isValidHungarianPhone(lead.phone)) {
-    errors.phone = "A telefonszám formátuma nem jó. Példa: +36701234567";
+  if (lead.phone.trim() && !isValidHungarianPhone(lead.phone)) {
+    errors.phone = "Adjon meg magyar mobil- vagy vezetékes számot. Példa: +36 56 514 720";
   }
 
   if (!lead.consentPrivacy) {
@@ -1225,9 +1231,6 @@ function isBusinessEmail(email: string) {
   return Boolean(domain && !freeDomains.has(domain));
 }
 
-function isValidHungarianPhone(phone: string) {
-  return /^\+36\d{9}$/.test(phone.trim());
-}
 
 function MetricTile({ label, value }: { label: string; value: string }) {
   return (
@@ -1270,22 +1273,6 @@ function syncPrimaryUnit(input: CalculatorInput): CalculatorInput {
   };
 }
 
-function getCampaignTracking(): CampaignTracking {
-  if (typeof window === "undefined") return {};
-  const params = new URLSearchParams(window.location.search);
-  return {
-    utmSource: params.get("utm_source") ?? undefined,
-    utmMedium: params.get("utm_medium") ?? undefined,
-    utmCampaign: params.get("utm_campaign") ?? undefined,
-    utmContent: params.get("utm_content") ?? undefined,
-    utmTerm: params.get("utm_term") ?? undefined,
-    gclid: params.get("gclid") ?? undefined,
-    gbraid: params.get("gbraid") ?? undefined,
-    wbraid: params.get("wbraid") ?? undefined,
-    liFatId: params.get("li_fat_id") ?? params.get("liFatId") ?? undefined,
-    referrer: document.referrer || undefined
-  };
-}
 
 function getHeatRecoverySeasonLabel(heatRecovery: HeatRecoveryResult) {
   if (heatRecovery.canUseRecoveredHeatOutsideHeatingSeason) {
@@ -1327,5 +1314,3 @@ function getPublicAssumptions(assumptions: string[]) {
     );
   });
 }
-
-

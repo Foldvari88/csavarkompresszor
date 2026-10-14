@@ -7,6 +7,7 @@ import {
   Eye,
   FileCheck,
   Filter,
+  Inbox,
   Linkedin,
   LogOut,
   Mail,
@@ -19,6 +20,7 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
 import { formatStatus, leadStatusOptions } from "@/lib/status-label";
+import { EmailDeliveryStatus } from "@/components/email-delivery-status";
 
 const statuses: Array<LeadStatus | "all"> = ["all", ...leadStatusOptions];
 const compairCampaignSource = "compairkampany";
@@ -120,6 +122,10 @@ export function AdminDashboard({
           </p>
         </div>
         <div className="admin-actions">
+          <Link className="secondary-button" href="/admin/ajanlatkeresek">
+            <Inbox size={17} />
+            Kampányajánlatok
+          </Link>
           <Link className="secondary-button" href="/admin/email-preview">
             <Mail size={17} />
             Email preview
@@ -277,7 +283,7 @@ export function AdminDashboard({
                   <td>
                     <strong>{lead.input.name || "-"}</strong>
                   </td>
-                  <td>{lead.input.email}</td>
+                  <td>{lead.input.email}<EmailDeliveryStatus report={lead.emailDelivery} /></td>
                   <td>
                     <EngagementBadge
                       count={lead.engagement.emailOpenCount}

@@ -7,6 +7,7 @@ import {
 } from "@/lib/product-images";
 import type { CalculationResult, LeadRecord } from "@/lib/calculator/types";
 import { generateLeadPdf } from "./pdf";
+import { attemptEmailSend, getDeliveryMode, type EmailOutcome } from "@/lib/email-delivery";
 
 type RenderEmailOptions = {
   inlineProductImages?: boolean;
@@ -166,7 +167,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
   };
   const customerAttachments = [pdfAttachment, productImageAttachment];
   const customerHtml = renderCustomerEmail(lead, productImageRenderOptions);
-  const customerEmail = await client.emails.send(
+  const customerEmail = await attemptEmailSend(() => client.emails.send(
     {
       from,
       replyTo,
@@ -185,9 +186,9 @@ export async function sendLeadEmails(lead: LeadRecord) {
         "Idempotency-Key": `lead-result-${lead.id}`
       }
     }
-  );
+  ));
 
-  let notificationEmailId: string | null = null;
+  let notificationEmail: EmailOutcome = { status: "skipped" };
 
   if (notificationTo) {
     const notificationHtml = renderInternalNotificationEmail(
@@ -195,7 +196,7 @@ export async function sendLeadEmails(lead: LeadRecord) {
       undefined,
       productImageRenderOptions
     );
-    const notificationEmail = await client.emails.send(
+    notificationEmail = await attemptEmailSend(() => client.emails.send(
       {
         from,
         replyTo,
@@ -214,17 +215,17 @@ export async function sendLeadEmails(lead: LeadRecord) {
           "Idempotency-Key": `lead-notification-${lead.id}`
         }
       }
-    );
-
-    notificationEmailId = notificationEmail.data?.id ?? null;
+    ));
   }
 
   const sequence = await scheduleLeadSequence({ client, from, lead, replyTo });
 
   return {
-    mode: "sent" as const,
-    customerEmailId: customerEmail.data?.id ?? null,
-    notificationEmailId,
+    mode: getDeliveryMode([customerEmail, notificationEmail]),
+    customer: customerEmail,
+    notification: notificationEmail,
+    customerEmailId: customerEmail.id ?? null,
+    notificationEmailId: notificationEmail.id ?? null,
     sequence
   };
 }

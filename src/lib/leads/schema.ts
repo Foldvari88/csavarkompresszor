@@ -5,6 +5,7 @@ export const leads = pgTable("leads", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   status: text("status").notNull().default("new"),
   customerRating: integer("customer_rating"),
+  emailDelivery: jsonb("email_delivery"),
   emailOpenedAt: timestamp("email_opened_at", { withTimezone: true }),
   emailOpenCount: integer("email_open_count").notNull().default(0),
   emailClickedAt: timestamp("email_clicked_at", { withTimezone: true }),
@@ -27,4 +28,16 @@ export const leadEvents = pgTable("lead_events", {
   type: text("type").notNull(),
   occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
   metadata: jsonb("metadata").notNull().default({})
+});
+
+export const campaignInquiries = pgTable("campaign_inquiries", {
+  id: text("id").primaryKey(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  status: text("status").notNull().default("new"),
+  kind: text("kind").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  companyName: text("company_name").notNull(),
+  emailDelivery: jsonb("email_delivery"),
+  input: jsonb("input").notNull()
 });

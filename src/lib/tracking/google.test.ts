@@ -18,6 +18,22 @@ const grantedPreferences: CookiePreferences = {
 };
 
 describe("Google consent and conversion tracking", () => {
+  it("still emits a consent-safe conversion if browser storage is blocked", () => {
+    const calls: unknown[][] = [];
+    const target = { dataLayer: [], get localStorage() { throw new Error("SecurityError"); }, gtag: (...args: unknown[]) => calls.push(args) } as unknown as Window;
+    expect(trackSuccessfulLead({ leadId: "private-browser-lead" }, target)).toBe(true);
+    expect(calls.some(call => call[1] === "conversion")).toBe(true);
+    expect(calls.some(call => call[1] === "user_data")).toBe(false);
+  });
+  it("emits a stored lead once and never counts a honeypot acknowledgement", () => {
+    const calls: unknown[][] = [];
+    const target = { dataLayer: [], localStorage: { getItem: () => null }, gtag: (...args: unknown[]) => calls.push(args) } as unknown as Window;
+    expect(trackSuccessfulLead({ leadId: "accepted" }, target, null)).toBe(false);
+    expect(trackSuccessfulLead({ leadId: "id-unique", formType: "service" }, target, null)).toBe(true);
+    expect(trackSuccessfulLead({ leadId: "id-unique", formType: "service" }, target, null)).toBe(false);
+    expect(calls.filter(call => call[1] === "conversion")).toHaveLength(1);
+    expect(calls.find(call => call[1] === "generate_lead")?.[2]).toMatchObject({ form_type: "service" });
+  });
   it("validates saved cookie preferences", () => {
     expect(parseCookiePreferences(JSON.stringify(grantedPreferences))).toEqual(
       grantedPreferences

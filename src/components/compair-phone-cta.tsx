@@ -1,6 +1,7 @@
 "use client";
 
 import { PhoneCall } from "lucide-react";
+import { trackLeadFormEvent } from "@/lib/tracking/google";
 
 const phoneDisplay = "+36 70 595 0285";
 const phoneHref = "tel:+36705950285";
@@ -20,6 +21,7 @@ type CompairPhoneCtaProps = {
 
 export function CompairPhoneCta({ className, location }: CompairPhoneCtaProps) {
   function trackPhoneClick() {
+    trackLeadFormEvent("phone_click", `compair_${location}`);
     const trackedWindow = window as typeof window & {
       dataLayer?: Array<unknown>;
       gtag?: (...args: Array<unknown>) => void;

@@ -5,6 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { calculateLeadScore } from "@/lib/calculator/calculate";
 import { getDb } from "./db";
 import { leadEvents, leads } from "./schema";
+import type { EmailDeliveryReport } from "@/lib/email-delivery";
 import type {
   CalculationResult,
   LeadEmailEngagement,
@@ -94,6 +95,7 @@ export async function listLeads(): Promise<LeadRecord[]> {
         createdAt: row.createdAt.toISOString(),
         status: row.status as LeadStatus,
         customerRating: row.customerRating ?? null,
+        emailDelivery: row.emailDelivery as EmailDeliveryReport | null,
         engagement: engagementFromRow(row),
         input: row.input as LeadFormInput,
         result: row.result as CalculationResult
@@ -115,6 +117,7 @@ export async function getLead(id: string): Promise<LeadRecord | null> {
       createdAt: row.createdAt.toISOString(),
       status: row.status as LeadStatus,
       customerRating: row.customerRating ?? null,
+      emailDelivery: row.emailDelivery as EmailDeliveryReport | null,
       engagement: engagementFromRow(row),
       input: row.input as LeadFormInput,
       result: row.result as CalculationResult
@@ -135,6 +138,17 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
 
   const records = await readLocalLeads();
   await writeLocalLeads(records.map((lead) => (lead.id === id ? { ...lead, status } : lead)));
+}
+
+export async function recordLeadEmailDelivery(id: string, emailDelivery: EmailDeliveryReport) {
+  const db = getDb();
+  if (db) {
+    await ensureLeadTable();
+    await db.update(leads).set({ emailDelivery }).where(eq(leads.id, id));
+    return;
+  }
+  const records = await readLocalLeads();
+  await writeLocalLeads(records.map(lead => lead.id === id ? { ...lead, emailDelivery } : lead));
 }
 
 export async function updateLeadRating(id: string, customerRating: number | null) {
@@ -238,6 +252,7 @@ async function ensureLeadTable() {
   `);
 
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_rating integer`);
+  await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_delivery jsonb`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_opened_at timestamptz`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_open_count integer NOT NULL DEFAULT 0`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_clicked_at timestamptz`);
