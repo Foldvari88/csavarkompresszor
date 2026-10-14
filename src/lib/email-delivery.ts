@@ -2,6 +2,10 @@ export type EmailOutcome = {
   status: "accepted" | "failed" | "skipped";
   id?: string;
   errorCode?: string;
+  delivery?: {
+    status: "delivered" | "delayed" | "bounced" | "failed" | "suppressed" | "complained";
+    observedAt: string;
+  };
 };
 
 export type EmailDeliveryReport = {

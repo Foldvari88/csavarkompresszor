@@ -253,7 +253,7 @@ export async function sendLeadEngagementNotification({
   const eventLabel = formatEngagementEventType(type);
   const html = renderLeadEngagementNotificationEmail({ lead, type, occurredAt, detail });
 
-  await client.emails.send(
+  const outcome = await attemptEmailSend(() => client.emails.send(
     {
       from,
       replyTo,
@@ -272,9 +272,9 @@ export async function sendLeadEngagementNotification({
         "Idempotency-Key": `lead-engagement-${lead.id}-${type}-${occurredAt.toISOString()}`
       }
     }
-  );
+  ));
 
-  return { mode: "sent" as const };
+  return { mode: outcome.status, email: outcome };
 }
 
 export async function sendConsultationRequestNotification({
@@ -299,7 +299,7 @@ export async function sendConsultationRequestNotification({
   const replyTo = getReplyTo();
   const html = renderConsultationRequestNotificationEmail({ lead, occurredAt, source });
 
-  await client.emails.send(
+  const outcome = await attemptEmailSend(() => client.emails.send(
     {
       from,
       replyTo,
@@ -318,9 +318,9 @@ export async function sendConsultationRequestNotification({
         "Idempotency-Key": `consultation-request-${lead.id}-${source}-${occurredAt.toISOString()}`
       }
     }
-  );
+  ));
 
-  return { mode: "sent" as const };
+  return { mode: outcome.status, email: outcome };
 }
 
 async function scheduleLeadSequence({
@@ -359,7 +359,7 @@ async function scheduleLeadSequence({
 
     for (const step of sequenceSteps) {
       const html = renderSequenceEmail(lead, step, productImageRenderOptions);
-      const response = await client.emails.send(
+      const outcome = await attemptEmailSend(() => client.emails.send(
         {
           from,
           replyTo,
@@ -380,12 +380,16 @@ async function scheduleLeadSequence({
             "Idempotency-Key": `lead-sequence-${lead.id}-${step.id}`
           }
         }
-      );
+      ));
+
+      if (outcome.status !== "accepted") {
+        return { mode: "failed", reason: outcome.errorCode ?? "sequence_send_failed" };
+      }
 
       scheduled.push({
         id: step.id,
         scheduledAt: step.delay,
-        resendId: response.data?.id ?? null
+        resendId: outcome.id ?? null
       });
     }
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Download, Inbox, LogOut } from "lucide-react";
 import { listCampaignInquiries } from "@/lib/campaign-inquiries/store";
 import { EmailDeliveryStatus } from "@/components/email-delivery-status";
+import { refreshEmailDeliveryReports } from "@/lib/email-delivery-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ const kindLabels: Record<string, string> = {
 };
 
 export default async function CampaignInquiriesAdminPage() {
-  const inquiries = await listCampaignInquiries();
+  const inquiries = await refreshEmailDeliveryReports(await listCampaignInquiries());
 
   return (
     <main className="admin-shell">

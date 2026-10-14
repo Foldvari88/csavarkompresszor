@@ -5,6 +5,7 @@ import { StatusForm } from "@/components/status-form";
 import { getLead } from "@/lib/leads/store";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { EmailDeliveryStatus } from "@/components/email-delivery-status";
+import { refreshEmailDeliveryReports } from "@/lib/email-delivery-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +16,12 @@ export default async function LeadDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const lead = await getLead(id);
+  const savedLead = await getLead(id);
 
-  if (!lead) {
+  if (!savedLead) {
     notFound();
   }
+  const [lead] = await refreshEmailDeliveryReports([savedLead]);
 
   return (
     <main className="admin-shell">
