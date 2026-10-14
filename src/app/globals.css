@@ -737,6 +737,24 @@ a {
   line-height: 1.52;
 }
 
+.report-conversion-card p a {
+  display: inline-block;
+  max-width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #b7cddd;
+  border-radius: 7px;
+  color: #1766a3;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .industrial-word-mark {
+    max-width: 100%;
+    font-size: clamp(24px, 7.6vw, 34px);
+    overflow-wrap: anywhere;
+  }
+}
+
 .report-conversion-points {
   display: flex;
   flex-wrap: wrap;
