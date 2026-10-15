@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import type { AgeBand, LoadProfile } from "@/lib/calculator/types";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
 import { getCampaignTracking } from "@/lib/tracking/campaign";
-import { trackSuccessfulLead } from "@/lib/tracking/google";
+import { getLeadMeasurementConsent, trackSuccessfulLead } from "@/lib/tracking/google";
 import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
 
 type CampaignFormState = {
@@ -153,6 +153,7 @@ export function CompairCampaignForm() {
           consentMarketing: nextForm.consentMarketing,
           consentPrivacy: nextForm.consentPrivacy,
           tracking: getCampaignTracking(),
+          measurementConsent: getLeadMeasurementConsent(),
           campaignLanding: {
             source: "compairkampany",
             promotionWindow: "2026-07-01/2026-09-30",

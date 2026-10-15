@@ -8,6 +8,7 @@ import { leadEvents, leads } from "./schema";
 import type { EmailDeliveryReport } from "@/lib/email-delivery";
 import type {
   CalculationResult,
+  AdQualification,
   LeadEmailEngagement,
   LeadFormInput,
   LeadRecord,
@@ -96,6 +97,7 @@ export async function listLeads(): Promise<LeadRecord[]> {
         status: row.status as LeadStatus,
         customerRating: row.customerRating ?? null,
         emailDelivery: row.emailDelivery as EmailDeliveryReport | null,
+        adQualification: row.adQualification as AdQualification | null,
         engagement: engagementFromRow(row),
         input: row.input as LeadFormInput,
         result: row.result as CalculationResult
@@ -118,6 +120,7 @@ export async function getLead(id: string): Promise<LeadRecord | null> {
       status: row.status as LeadStatus,
       customerRating: row.customerRating ?? null,
       emailDelivery: row.emailDelivery as EmailDeliveryReport | null,
+      adQualification: row.adQualification as AdQualification | null,
       engagement: engagementFromRow(row),
       input: row.input as LeadFormInput,
       result: row.result as CalculationResult
@@ -138,6 +141,19 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
 
   const records = await readLocalLeads();
   await writeLocalLeads(records.map((lead) => (lead.id === id ? { ...lead, status } : lead)));
+}
+
+export async function updateLeadAdQualification(id: string, adQualification: AdQualification | null) {
+  const db = getDb();
+  if (db) {
+    await ensureLeadTable();
+    const updated = await db.update(leads).set({ adQualification }).where(eq(leads.id, id)).returning({ id: leads.id });
+    return updated.length === 1;
+  }
+  const records = await readLocalLeads();
+  if (!records.some(lead => lead.id === id)) return false;
+  await writeLocalLeads(records.map(lead => lead.id === id ? { ...lead, adQualification } : lead));
+  return true;
 }
 
 export async function recordLeadEmailDelivery(id: string, emailDelivery: EmailDeliveryReport) {
@@ -253,6 +269,7 @@ async function ensureLeadTable() {
 
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS customer_rating integer`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_delivery jsonb`);
+  await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS ad_qualification jsonb`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_opened_at timestamptz`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_open_count integer NOT NULL DEFAULT 0`);
   await db.execute(sql`ALTER TABLE leads ADD COLUMN IF NOT EXISTS email_clicked_at timestamptz`);

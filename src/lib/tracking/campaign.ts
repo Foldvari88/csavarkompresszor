@@ -13,7 +13,7 @@ type CampaignBrowser = Pick<Window, "location" | "sessionStorage" | "localStorag
 
 export function getCampaignTracking(defaults: CampaignTracking = {}, target?: CampaignBrowser, now = Date.now()): CampaignTracking {
   const browser = target ?? (typeof window === "undefined" ? undefined : window);
-  if (!browser) return defaults;
+  if (!browser) return withoutAdIdentifiers(defaults);
   let consent: ReturnType<typeof readCookiePreferences> = null;
   try { consent = readCookiePreferences(browser.localStorage); } catch { /* Storage blocked. */ }
   const params = new URLSearchParams(browser.location.search);
@@ -49,7 +49,14 @@ export function getCampaignTracking(defaults: CampaignTracking = {}, target?: Ca
   } else {
     try { browser.sessionStorage.removeItem(STORAGE_KEY); } catch { /* Private browsing. */ }
     // Never reuse previously stored attribution after consent has been withdrawn.
-    return { ...defaults, ...current };
+    return withoutAdIdentifiers({ ...defaults, ...current });
   }
-  return { ...defaults, ...result };
+  const combined = { ...defaults, ...result };
+  return consent?.campaign ? combined : withoutAdIdentifiers(combined);
+}
+
+function withoutAdIdentifiers(tracking: CampaignTracking): CampaignTracking {
+  const result = { ...tracking };
+  delete result.gclid; delete result.gbraid; delete result.wbraid; delete result.liFatId;
+  return result;
 }

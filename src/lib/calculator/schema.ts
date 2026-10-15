@@ -84,6 +84,7 @@ export const leadInputSchema = extendedCalculatorInputBaseSchema.extend({
     .refine(value => !value || isValidHungarianPhone(value), { message: "Érvényes magyar telefonszám szükséges." }),
   consentMarketing: z.coerce.boolean().default(false),
   consentPrivacy: z.literal(true),
+  measurementConsent: z.object({ campaign: z.boolean(), savedAt: z.string().datetime({ offset: true }) }).optional(),
   campaignLanding: campaignLandingSchema.optional()
 }).transform(withExcelCategory);
 

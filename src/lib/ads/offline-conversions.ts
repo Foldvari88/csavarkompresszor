@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { LeadRecord, LeadStatus } from "@/lib/calculator/types";
 import { formatStatus } from "@/lib/status-label";
+import { getGoogleOfflineQualification } from "./google-offline-qualification";
 
 export const adConversionCurrency = "HUF";
 export const googleAdsQualifiedLeadConversionName = "Csavarkompresszor minositett lead";
@@ -31,9 +32,7 @@ export function getLeadAdQuality(lead: LeadRecord) {
   const ratingValue = rating * 20000;
   const multiplier = statusMultipliers[lead.status] ?? 1;
   const conversionValueHuf = Math.round((potentialValue + scoreValue + ratingValue) * multiplier);
-  const hasGoogleClickId = Boolean(
-    lead.input.tracking?.gclid || lead.input.tracking?.gbraid || lead.input.tracking?.wbraid
-  );
+  const googleQualification = getGoogleOfflineQualification(lead);
 
   return {
     status: lead.status,
@@ -43,7 +42,7 @@ export function getLeadAdQuality(lead: LeadRecord) {
     score,
     annualPotential,
     conversionValueHuf,
-    readyForGoogleAds: hasGoogleClickId && conversionValueHuf > 0,
+    readyForGoogleAds: googleQualification.ready,
     readyForLinkedInAds: Boolean(
       lead.input.tracking?.liFatId || lead.input.email || lead.input.phone
     ) && conversionValueHuf > 0,

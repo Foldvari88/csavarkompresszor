@@ -176,6 +176,7 @@ export type LeadFormInput = CalculatorInput & {
   phone: string;
   consentMarketing: boolean;
   consentPrivacy: boolean;
+  measurementConsent?: { campaign: boolean; savedAt: string };
   campaignLanding?: {
     source?: string;
     promotionWindow?: string;
@@ -195,6 +196,13 @@ export type LeadRecord = {
   input: LeadFormInput;
   result: CalculationResult;
   emailDelivery?: import("@/lib/email-delivery").EmailDeliveryReport | null;
+  adQualification?: AdQualification | null;
+};
+
+export type AdQualification = {
+  qualifiedAt: string;
+  recordedAt: string;
+  valueHuf?: number;
 };
 
 export type LeadEmailEngagement = {

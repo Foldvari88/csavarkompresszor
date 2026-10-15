@@ -8836,3 +8836,14 @@ body:has(.campaign-shell) .campaign-header-phone strong {
     padding-block: 45px 65px;
   }
 }
+.offline-qualification-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+.offline-qualification-fields label {
+  display: grid;
+  gap: 8px;
+}
+.offline-qualification-fields input { min-width: 0; width: 100%; }

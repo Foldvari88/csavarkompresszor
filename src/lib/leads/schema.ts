@@ -6,6 +6,7 @@ export const leads = pgTable("leads", {
   status: text("status").notNull().default("new"),
   customerRating: integer("customer_rating"),
   emailDelivery: jsonb("email_delivery"),
+  adQualification: jsonb("ad_qualification"),
   emailOpenedAt: timestamp("email_opened_at", { withTimezone: true }),
   emailOpenCount: integer("email_open_count").notNull().default(0),
   emailClickedAt: timestamp("email_clicked_at", { withTimezone: true }),

@@ -7,6 +7,7 @@ import {
   sha256
 } from "@/lib/ads/offline-conversions";
 import { listLeads } from "@/lib/leads/store";
+import { getGoogleOfflineQualification } from "@/lib/ads/google-offline-qualification";
 
 export const runtime = "nodejs";
 
@@ -34,33 +35,40 @@ export async function GET() {
       "companyName",
       "annualHufSaved",
       "utmSource",
-      "utmCampaign"
+      "utmCampaign",
+      "exportBlockReason",
+      "qualificationRecordedAt",
+      "valueSource"
     ],
     ...leads.map((lead) => {
       const quality = getLeadAdQuality(lead);
+      const qualification = getGoogleOfflineQualification(lead);
 
       return [
         lead.id,
-        quality.readyForGoogleAds ? "true" : "false",
-        googleAdsQualifiedLeadConversionName,
-        toGoogleAdsDateTime(new Date(lead.createdAt)),
-        String(quality.conversionValueHuf),
-        adConversionCurrency,
-        quality.stage,
+        qualification.ready ? "true" : "false",
+        qualification.ready ? googleAdsQualifiedLeadConversionName : "",
+        qualification.ready ? toGoogleAdsDateTime(new Date(qualification.qualifiedAt!)) : "",
+        qualification.ready && qualification.valueHuf !== null ? String(qualification.valueHuf) : "",
+        qualification.ready ? adConversionCurrency : "",
+        qualification.qualification ? "lead_qualified" : quality.stage,
         quality.status,
         quality.statusLabel,
         quality.rating ? String(quality.rating) : "",
         String(quality.score),
         quality.googleClickIdType,
-        lead.input.tracking?.gclid ?? "",
-        lead.input.tracking?.gbraid ?? "",
-        lead.input.tracking?.wbraid ?? "",
-        sha256(normalizeEmail(lead.input.email)),
-        sha256(normalizePhone(lead.input.phone)),
+        qualification.hasConsent ? lead.input.tracking?.gclid ?? "" : "",
+        qualification.hasConsent ? lead.input.tracking?.gbraid ?? "" : "",
+        qualification.hasConsent ? lead.input.tracking?.wbraid ?? "" : "",
+        qualification.ready && lead.input.email ? sha256(normalizeEmail(lead.input.email)) : "",
+        qualification.ready && lead.input.phone ? sha256(normalizePhone(lead.input.phone)) : "",
         lead.input.companyName,
         String(quality.annualPotential),
         lead.input.tracking?.utmSource ?? "",
-        lead.input.tracking?.utmCampaign ?? ""
+        lead.input.tracking?.utmCampaign ?? "",
+        qualification.blockReason,
+        qualification.qualification?.recordedAt ?? "",
+        qualification.ready && qualification.valueHuf !== null ? "sales_entered_lead_value" : ""
       ];
     })
   ];

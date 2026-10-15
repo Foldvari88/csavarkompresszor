@@ -87,6 +87,17 @@ export function readCookiePreferences(
   }
 }
 
+export function getLeadMeasurementConsent(targetWindow: TrackingWindow | undefined = getBrowserWindow()) {
+  if (!targetWindow) return undefined;
+  try {
+    const preferences = readCookiePreferences(targetWindow.localStorage);
+    if (!preferences || !Number.isFinite(Date.parse(preferences.savedAt))) return undefined;
+    return { campaign: preferences.campaign, savedAt: new Date(preferences.savedAt).toISOString() };
+  } catch {
+    return undefined;
+  }
+}
+
 export function getGoogleConsentUpdate(
   preferences: Pick<CookiePreferences, "analytics" | "campaign">
 ): GoogleConsentUpdate {

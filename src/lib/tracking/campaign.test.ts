@@ -13,6 +13,14 @@ function setup() {
 }
 type Target = NonNullable<Parameters<typeof getCampaignTracking>[1]>;
 describe("campaign continuity with consent", () => {
+  it("does not send click identifiers from the current URL or defaults after refusal", () => {
+    const { browser, deny } = setup(); deny();
+    browser.location.search = "?utm_source=google&gclid=unconsented&gbraid=braid&wbraid=web&li_fat_id=linkedin";
+    expect(getCampaignTracking({ gclid: "default-click" }, browser as unknown as Target)).toMatchObject({ utmSource: "google" });
+    for (const key of ["gclid", "gbraid", "wbraid", "liFatId"]) {
+      expect(getCampaignTracking({ gclid: "default-click" }, browser as unknown as Target)).not.toHaveProperty(key);
+    }
+  });
   it("preserves the paid entry during navigation and removes referrer query data", () => {
     const { browser } = setup();
     const first = getCampaignTracking({}, browser as unknown as Target, 1000);

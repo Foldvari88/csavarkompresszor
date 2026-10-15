@@ -132,7 +132,7 @@ export function AdminDashboard({
           </Link>
           <a className="secondary-button" href="/admin/google-ads-export">
             <Download size={17} />
-            Google Ads export
+            Google Ads minősítési CSV
           </a>
           <a className="secondary-button" href="/admin/linkedin-ads-export">
             <Linkedin size={17} />

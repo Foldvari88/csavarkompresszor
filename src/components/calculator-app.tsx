@@ -31,7 +31,7 @@ import type {
 } from "@/lib/calculator/types";
 import { formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { homeFaq } from "@/lib/home-seo";
-import { trackSuccessfulLead } from "@/lib/tracking/google";
+import { getLeadMeasurementConsent, trackSuccessfulLead } from "@/lib/tracking/google";
 import { getCampaignTracking } from "@/lib/tracking/campaign";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
 import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
@@ -243,6 +243,7 @@ export function CalculatorApp() {
                   ...calculator,
                   tracking: getCampaignTracking(),
                   ...lead,
+                  measurementConsent: getLeadMeasurementConsent(),
                   email: lead.email.trim(),
                   phone: normalizeHungarianPhone(lead.phone),
                   companyWebsite: ""

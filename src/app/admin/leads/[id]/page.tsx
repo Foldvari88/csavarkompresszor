@@ -6,6 +6,8 @@ import { getLead } from "@/lib/leads/store";
 import { formatCompressorModel, formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { EmailDeliveryStatus } from "@/components/email-delivery-status";
 import { refreshEmailDeliveryReports } from "@/lib/email-delivery-sync";
+import { LeadQualificationForm } from "@/components/lead-qualification-form";
+import { getGoogleOfflineQualification } from "@/lib/ads/google-offline-qualification";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -173,6 +175,7 @@ export default async function LeadDetailPage({
           ) : null}
         </div>
 
+        <LeadQualificationForm key={lead.id} id={lead.id} qualification={lead.adQualification} blockReason={getGoogleOfflineQualification(lead).blockReason} />
         <section className="lead-card" style={{ marginTop: 16 }}>
           <h2>Feltételezések</h2>
           <ul className="assumption-list">

@@ -4,6 +4,7 @@ import {
   COOKIE_PREFERENCES_STORAGE_KEY,
   GOOGLE_ADS_LEAD_DESTINATION,
   getGoogleConsentUpdate,
+  getLeadMeasurementConsent,
   parseCookiePreferences,
   readCookiePreferences,
   trackSuccessfulLead,
@@ -18,6 +19,12 @@ const grantedPreferences: CookiePreferences = {
 };
 
 describe("Google consent and conversion tracking", () => {
+  it("records the current saved ad choice without inventing consent for legacy or blocked storage", () => {
+    const target = { localStorage: { getItem: () => JSON.stringify(grantedPreferences) } } as unknown as Window;
+    expect(getLeadMeasurementConsent(target)).toEqual({ campaign: true, savedAt: grantedPreferences.savedAt });
+    expect(getLeadMeasurementConsent({ localStorage: { getItem: () => null } } as unknown as Window)).toBeUndefined();
+    expect(getLeadMeasurementConsent({ get localStorage() { throw new Error("blocked"); } } as unknown as Window)).toBeUndefined();
+  });
   it("queues Google-compatible Arguments commands before gtag is available", () => {
     const initialEvent = { event: "gtm.js" };
     const dataLayer: unknown[] = [initialEvent];
