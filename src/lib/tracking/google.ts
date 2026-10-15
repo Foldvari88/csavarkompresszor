@@ -34,6 +34,7 @@ type SuccessfulLead = {
   email?: string;
   phone?: string;
   formType?: string;
+  enhancedConversionConsent?: boolean;
 };
 
 export function isMeasurementAllowed(targetWindow: TrackingWindow) {
@@ -132,7 +133,7 @@ export function trackSuccessfulLead(
     if (preferences === undefined) {
       try { savedPreferences = readCookiePreferences(targetWindow.localStorage); } catch { /* Treat blocked storage as no consent. */ }
     }
-    const enhancedConversionData = savedPreferences?.campaign
+    const enhancedConversionData = savedPreferences?.campaign && lead.enhancedConversionConsent !== false
       ? {
           ...(lead.email ? { email: lead.email.trim().toLowerCase() } : {}),
           ...(lead.phone ? { phone_number: normalizeHungarianPhone(lead.phone) } : {})
@@ -141,6 +142,9 @@ export function trackSuccessfulLead(
 
     if (enhancedConversionData && Object.keys(enhancedConversionData).length > 0) {
       gtag("set", "user_data", enhancedConversionData);
+    } else if (lead.enhancedConversionConsent === false) {
+      // A form-level refusal must also clear data set by a previous submission.
+      gtag("set", "user_data", {});
     }
 
     const eventParameters = {
@@ -183,8 +187,10 @@ function ensureGtag(targetWindow: TrackingWindow): Gtag {
   targetWindow.dataLayer = targetWindow.dataLayer || [];
   targetWindow.gtag =
     targetWindow.gtag ||
-    ((...args: Array<unknown>) => {
-      targetWindow.dataLayer?.push(args);
+    (function () {
+      // Google command queues expect Arguments objects, not ordinary arrays.
+      // eslint-disable-next-line prefer-rest-params -- Preserve Google's command queue format.
+      targetWindow.dataLayer?.push(arguments);
     });
   return targetWindow.gtag;
 }

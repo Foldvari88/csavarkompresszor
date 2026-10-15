@@ -18,6 +18,36 @@ const grantedPreferences: CookiePreferences = {
 };
 
 describe("Google consent and conversion tracking", () => {
+  it("queues Google-compatible Arguments commands before gtag is available", () => {
+    const initialEvent = { event: "gtm.js" };
+    const dataLayer: unknown[] = [initialEvent];
+    const target = { dataLayer } as unknown as Window;
+    applyGoogleConsent({ analytics: true, campaign: false }, target);
+    expect(trackSuccessfulLead({ leadId: "queued-lead" }, target, null)).toBe(true);
+    expect(dataLayer[0]).toBe(initialEvent);
+    const commands = dataLayer.filter(item => Object.prototype.toString.call(item) === "[object Arguments]") as IArguments[];
+    expect(commands.map(command => Array.from(command))).toContainEqual([
+      "consent", "update", getGoogleConsentUpdate({ analytics: true, campaign: false })
+    ]);
+    expect(commands.map(command => Array.from(command))).toContainEqual([
+      "event", "conversion", {
+        send_to: GOOGLE_ADS_LEAD_DESTINATION, currency: "HUF", value: 1, transaction_id: "queued-lead"
+      }
+    ]);
+    expect(dataLayer.some(Array.isArray)).toBe(false);
+  });
+  it("honours an explicit form refusal even when advertising cookies are allowed", () => {
+    const calls: unknown[][] = [];
+    const dataLayer: unknown[] = [];
+    const target = { dataLayer, gtag: (...args: unknown[]) => calls.push(args) } as unknown as Window;
+    expect(trackSuccessfulLead({
+      leadId: "form-refused", email: "test@example.com", phone: "+36700000000", enhancedConversionConsent: false
+    }, target, grantedPreferences)).toBe(true);
+    expect(calls.filter(call => call[1] === "user_data")).toEqual([["set", "user_data", {}]]);
+    expect(dataLayer[0]).not.toHaveProperty("enhanced_conversion_data");
+    expect(calls.some(call => call[1] === "generate_lead")).toBe(true);
+    expect(calls.some(call => call[1] === "conversion")).toBe(true);
+  });
   it("still emits a consent-safe conversion if browser storage is blocked", () => {
     const calls: unknown[][] = [];
     const target = { dataLayer: [], get localStorage() { throw new Error("SecurityError"); }, gtag: (...args: unknown[]) => calls.push(args) } as unknown as Window;

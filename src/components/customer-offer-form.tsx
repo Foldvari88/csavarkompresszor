@@ -117,7 +117,8 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
         leadId: payload.inquiryId,
         email: nextForm.email || undefined,
         phone: nextForm.phone || undefined,
-        formType: config.kind
+        formType: config.kind,
+        enhancedConversionConsent: nextForm.consentAdsPersonalization
       });
       router.push(
         `/ajanlat-koszonjuk?tipus=${encodeURIComponent(config.kind)}&ref=${encodeURIComponent(payload.inquiryId.slice(0, 8))}${nextForm.email && payload.email?.customer?.status !== "accepted" ? "&email=kesik" : ""}`
