@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CSSProperties, FocusEvent, KeyboardEvent } from "react";
+import type { CSSProperties, FocusEvent, KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import {
@@ -129,7 +130,7 @@ const initialLead: LeadFields = {
   consentPrivacy: false
 };
 
-export function CalculatorApp() {
+export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
   const submittingRef = useRef(false);
   const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking<HTMLFormElement>("calculator");
   const calculatorRef = useRef<HTMLElement>(null);
@@ -296,20 +297,23 @@ export function CalculatorApp() {
     <main className="site-shell">
       <header className="page-band">
         <div className="container topbar">
-          <a className="brand-mark" href="/" aria-label="iparikalkulator.hu főoldal">
+          <Link className="brand-mark" href="/" aria-label="iparikalkulator.hu főoldal">
             <span className="brand-blade">
               <MiniScrewCompressorLogo />
             </span>
             <span>iparikalkulator.hu</span>
-          </a>
+          </Link>
           <nav className="conversion-nav" aria-label="Fő navigáció">
             <a href="#kalkulator">Kalkulátor</a>
             <a href="#szakmai-valaszok">Gyakori kérdések</a>
           </nav>
-          <a className="top-cta" href="#kalkulator">
+          <nav className="calculator-top-nav" aria-label="Tudástár és kalkuláció">
+            <Link className="calculator-blog-link" href="/blog">Tudástár</Link>
+            <a className="top-cta" href="#kalkulator">
               Megtakarítás számítása
               <ArrowRight size={15} />
             </a>
+          </nav>
         </div>
       </header>
 
@@ -1079,6 +1083,7 @@ export function CalculatorApp() {
         </div>
       </section>
 
+      {blogSection}
       <LegalFooterClean />
       <CompressorChat
         calculator={calculator}
@@ -1379,6 +1384,7 @@ function LegalFooterClean() {
           </p>
         </div>
         <nav aria-label="Jogi információk">
+          <Link href="/blog">Tudástár</Link>
           <a href="/adatkezeles">Adatkezelés</a>
           <a href="/aszf">Felhasználási feltételek</a>
           <a href="/impresszum">Impresszum</a>

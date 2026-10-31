@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CalculatorApp } from "@/components/calculator-app";
+import { BlogTeaser } from "@/components/blog";
 import { buildHomeJsonLd } from "@/lib/home-seo";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
-      <CalculatorApp />
+      <CalculatorApp blogSection={<BlogTeaser />} />
     </>
   );
 }

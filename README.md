@@ -2,6 +2,12 @@
 
 Next.js alapú, mobile-first ipari csavarkompresszor energiahatékonysági kalkulátor lead riporttal, admin felülettel, PDF riporttal és Neon Postgres tárolással.
 
+## Blog és tudástár
+
+A `/blog` gyűjtőoldalon 10 magyar szakmai cikk található; az egyes cikkek útvonala `/blog/[slug]`. A főoldal fejlécéből, láblécéből és cikkajánlójából is elérhetők. A cikkek CTA-gombjai közvetlenül a `/#kalkulator` szakaszhoz vezetnek.
+
+A cikkek tartalma és kapcsolódó hivatkozásai a `src/lib/blog/posts.ts` fájlban, a szakmai források a `src/lib/blog/types.ts` fájlban szerkeszthetők. A bejegyzések statikusan generálódnak, saját metaadatokkal, kanonikus URL-lel és BlogPosting strukturált adatokkal; az oldaltérkép automatikusan felsorolja őket. Tartalmi módosítás után a publikációs dátumot és a cikkek számát jelző feliratokat is ellenőrizni kell.
+
 ## Környezeti változók
 
 Másold a `.env.example` értékeit Vercel project environment variable-ként:

@@ -1,10 +1,23 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl, coreSeoRoutes, legalRoutes } from "@/lib/seo";
+import { blogPosts, blogPostPath } from "@/lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
   return [
+    {
+      url: absoluteUrl("/blog"),
+      lastModified: new Date(`${blogPosts[0].publishedAt}T12:00:00+01:00`),
+      changeFrequency: "monthly",
+      priority: 0.8
+    },
+    ...blogPosts.map((post) => ({
+      url: absoluteUrl(blogPostPath(post)),
+      lastModified: new Date(`${post.publishedAt}T12:00:00+01:00`),
+      changeFrequency: "monthly" as const,
+      priority: 0.7
+    })),
     ...coreSeoRoutes.map((route) => ({
       url: absoluteUrl(route.path),
       lastModified,
