@@ -13,9 +13,10 @@ import {
   Zap
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { CSSProperties, FocusEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import type { CSSProperties, FocusEvent, KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { calculateSavings } from "@/lib/calculator/calculate";
 import {
   ASSUMPTION_VERSION,
@@ -130,7 +131,8 @@ const initialLead: LeadFields = {
 
 export function CalculatorApp() {
   const submittingRef = useRef(false);
-  const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking<HTMLDivElement>("calculator");
+  const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking<HTMLFormElement>("calculator");
+  const calculatorRef = useRef<HTMLElement>(null);
   const router = useRouter();
   const [calculator, setCalculator] = useState<CalculatorInput>(initialCalculator);
   const [lead, setLead] = useState<LeadFields>(initialLead);
@@ -138,7 +140,21 @@ export function CalculatorApp() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasReachedCalculator, setHasReachedCalculator] = useState(false);
   const recalculationTimeout = useRef<number | null>(null);
+
+  useEffect(() => {
+    const section = calculatorRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setHasReachedCalculator(entry.isIntersecting || entry.boundingClientRect.top < 0);
+    }, { rootMargin: "-80px 0px 0px" });
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+      if (recalculationTimeout.current) window.clearTimeout(recalculationTimeout.current);
+    };
+  }, []);
 
   const result = useMemo(
     () =>
@@ -280,68 +296,93 @@ export function CalculatorApp() {
     <main className="site-shell">
       <header className="page-band">
         <div className="container topbar">
-          <div className="brand-mark">
+          <a className="brand-mark" href="/" aria-label="iparikalkulator.hu főoldal">
             <span className="brand-blade">
               <MiniScrewCompressorLogo />
             </span>
             <span>iparikalkulator.hu</span>
-          </div>
-          <a className="top-cta" href="#kalkulator">
-            Megtakarítás számítása
-            <ArrowRight size={15} />
           </a>
+          <nav className="conversion-nav" aria-label="Fő navigáció">
+            <a href="#kalkulator">Kalkulátor</a>
+            <a href="#szakmai-valaszok">Gyakori kérdések</a>
+          </nav>
+          <a className="top-cta" href="#kalkulator">
+              Megtakarítás számítása
+              <ArrowRight size={15} />
+            </a>
         </div>
       </header>
 
-      <section className="container hero">
-        <div className="hero-copy">
-          <span className="eyebrow">
-            <Zap size={16} />
-            Csavarkompresszor csere megtérülési előkalkuláció
-          </span>
-          <h1>
-            Energiamegtakarítás kalkulátor{" "}
-            <span className="industrial-word-mark">csavarkompresszorok</span> esetén,
-            sűrített levegő rendszereknél
-          </h1>
-          <p>
-            Számolja ki, mennyit csökkenthet az éves villamosenergia-költségen egy
-            korszerű csavarkompresszorral. A részletes eredményt emailben küldjük ki,
-            az alkalmazott feltételekkel és gépajánlással együtt.
-          </p>
-          <div className="hero-actions">
-            <a className="hero-cta" href="#kalkulator">
-              Indítom a kalkulációt
-              <ArrowRight size={18} />
-            </a>
-            <span className="hero-proof">
-              <Clock3 size={17} />
-              kb. 2 perc
+      <div className="conversion-hero-band">
+        <section className="container hero" aria-labelledby="calculator-title">
+          <div className="hero-copy">
+            <span className="eyebrow">
+              <Zap size={16} />
+              Csavarkompresszor csere megtérülési előkalkuláció
             </span>
-            <span className="hero-proof">
-              <FileText size={17} />
-              emailes riport
-            </span>
+            <h1 id="calculator-title">
+              Energiamegtakarítás kalkulátor{" "}
+              <span className="industrial-word-mark">csavarkompresszorok</span> esetén,
+              sűrített levegő rendszereknél
+            </h1>
+            <p>
+              Számolja ki, mennyit csökkenthet az éves villamosenergia-költségen egy
+              korszerű csavarkompresszorral. A részletes eredményt emailben küldjük ki,
+              az alkalmazott feltételekkel és gépajánlással együtt.
+            </p>
+            <div className="hero-actions">
+              <a className="hero-cta" href="#kalkulator">
+                Indítom a kalkulációt
+                <ArrowRight size={18} />
+              </a>
+              <span className="hero-proof">
+                <Clock3 size={17} />
+                kb. 2 perc
+              </span>
+              <span className="hero-proof">
+                <FileText size={17} />
+                emailes riport
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="hero-roi-card" aria-label="Megtakarítási példa">
-          <strong>{formatHuf(result.annualHufSaved)}</strong>
-          <p>{formatHuf(result.annualHufSaved)}-nyi becsült éves villamosenergia-megtakarítás a jelenlegi beállítások alapján</p>
-          <div className="roi-card-grid">
-            <span>
-              Régi gép
-              <b>{formatNumber(oldInputKw, 1)} kW</b>
-            </span>
-            <span>
-              Korszerű gép
-              <b>{formatNumber(recommendedInputKw, 1)} kW</b>
-            </span>
+          <div className="conversion-hero-visual">
+            <Image
+              alt="Ipari csavarkompresszor sűrített levegő rendszerben"
+              className="conversion-hero-image"
+              fill
+              priority
+              sizes="(max-width: 699px) 100vw, 48vw"
+              src="/images/industrial-compressor-hero.webp"
+            />
+          <div className="hero-roi-card" aria-label="Megtakarítási példa">
+            <span className="conversion-roi-label"><span /> Becsült éves megtakarítás</span>
+            <strong>{formatHuf(result.annualHufSaved)}</strong>
+            <p>{formatHuf(result.annualHufSaved)}-nyi becsült éves villamosenergia-megtakarítás a jelenlegi beállítások alapján</p>
+            <div className="roi-card-grid">
+              <span>
+                Régi gép
+                <b>{formatNumber(oldInputKw, 1)} kW</b>
+              </span>
+              <span>
+                Korszerű gép
+                <b>{formatNumber(recommendedInputKw, 1)} kW</b>
+              </span>
+            </div>
           </div>
-        </div>
-      </section>
+          </div>
+        </section>
+      </div>
 
-      <section className="container calculator-grid" id="kalkulator">
+      <nav className="conversion-process" aria-label="A kalkuláció lépései">
+        <div className="container conversion-process-inner">
+          <a href="#kalkulator"><span>01</span><strong>Kompresszor adatok</strong><ArrowRight size={18} /></a>
+          <a href="#eredmeny"><span>02</span><strong>Megtakarítási előnézet</strong><ArrowRight size={18} /></a>
+          <a href="#riport"><span>03</span><strong>Riport küldése</strong><FileText size={18} /></a>
+        </div>
+      </nav>
+
+      <section className="container calculator-grid" id="kalkulator" ref={calculatorRef}>
         <div className="tool-panel">
           <div className="panel-kicker">
             <span>01</span>
@@ -435,8 +476,9 @@ export function CalculatorApp() {
               </div>
             </Field>
 
-            <Field label="Villamos energia díja Ft/kWh">
+            <Field label="Villamos energia díja Ft/kWh" htmlFor="energy-price">
               <input
+                id="energy-price"
                 inputMode="decimal"
                 min={1}
                 max={500}
@@ -494,6 +536,7 @@ export function CalculatorApp() {
             <div className="segmented">
               {(["5-10", "10-15", "15+"] satisfies AgeBand[]).map((ageBand) => (
                 <button
+                  aria-pressed={calculator.ageBand === ageBand}
                   className={`segment ${calculator.ageBand === ageBand ? "active" : ""}`}
                   key={ageBand}
                   type="button"
@@ -529,8 +572,9 @@ export function CalculatorApp() {
                   Az alap földgázár 304 Ft/m3 ipari piaci becslés, szabadon módosítható.
                 </div>
                 <div className="form-grid two">
-                  <OptionalField label="Földgáz ára Ft/m3">
+                  <OptionalField label="Földgáz ára Ft/m3" htmlFor="gas-price">
                     <input
+                      id="gas-price"
                       inputMode="numeric"
                       min={1}
                       type="number"
@@ -606,202 +650,9 @@ export function CalculatorApp() {
             ) : null}
           </div>
 
-          <div ref={leadFormRef} onFocusCapture={startLeadForm} className={`lead-gate-section ${isCalculatorSectionReady ? "is-ready" : ""}`}>
-            <div className="lead-gate-status">
-              <span />
-              Következő lépés: mérnöki riport adatok
-            </div>
-
-            <div className="section-title">
-              <div>
-                <div className="panel-kicker">
-                  <span>02</span>
-                  Riport küldése
-                </div>
-                <h3>Kapcsolati adatok</h3>
-              </div>
-              <span className="step-badge">
-                <FileText size={15} />
-                Emailes riport
-              </span>
-            </div>
-
-            <div className="report-conversion-card">
-              <div className="report-conversion-icon">
-                <MiniScrewCompressorLogo />
-              </div>
-              <div>
-                <span>Ami csak az e-mail riportban elérhető:</span>
-                <strong>előszűrt gépkategória a megadott üzemadatok alapján</strong>
-                <p>A PDF-ben elküldjük a megtakarítási számítást és a javasolt gépkategóriát.
-                  A riport tájékoztató előszűrés, nem végleges gépajánlat.</p>
-                <p><a href="/kompresszor-csere-ajanlat">Konkrét gépajánlatot szeretnék kérni</a></p>
-                <div className="report-conversion-points" aria-label="Riport tartalma">
-                  <span>
-                    <CheckCircle2 size={15} />
-                    előzetes terméktípus
-                  </span>
-                  <span>
-                    <CheckCircle2 size={15} />
-                    számítási feltételek
-                  </span>
-                  <span>
-                    <CheckCircle2 size={15} />
-                    mérnöki pontosítás
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-grid two">
-            <Field label="Kapcsolattartó név">
-              <input
-                id="name"
-                aria-describedby={visibleLeadFieldErrors.name ? "name-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.name)}
-                required
-                minLength={2}
-                value={lead.name}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, name: event.target.value }))
-                }
-                placeholder="Név"
-              />
-              <FieldError id="name-error" message={visibleLeadFieldErrors.name} />
-            </Field>
-
-            <Field label="Email cím">
-              <input
-                id="email"
-                aria-describedby={visibleLeadFieldErrors.email ? "email-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.email)}
-                required
-                value={lead.email}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, email: event.target.value }))
-                }
-                placeholder="email@ceg.hu"
-                type="email"
-              />
-              <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
-              {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
-                <p className="field-hint is-warning">
-                  Céges email előnyös, de nem kötelező. A részletes riportot erre az email címre küldjük.
-                </p>
-              ) : null}
-            </Field>
-
-            <OptionalField label="Telefonszám">
-              <input
-                id="phone"
-                aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
-                inputMode="tel"
-                autoComplete="tel"
-                title="Magyar mobil vagy vezetékes telefonszám"
-                value={lead.phone}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, phone: event.target.value }))
-                }
-                placeholder="+36701234567"
-                type="tel"
-              />
-              <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
-              <p className="field-hint">Opcionális. Mobil és vezetékes szám is megadható.</p>
-            </OptionalField>
-
-            <Field label="Iparág / tevékenység">
-              <IndustrialSelect
-                id="companyActivity"
-                label="Iparág / tevékenység"
-                describedBy={visibleLeadFieldErrors.companyActivity ? "companyActivity-error" : undefined}
-                invalid={Boolean(visibleLeadFieldErrors.companyActivity)}
-                value={lead.companyActivity}
-                placeholder="Válassz tevékenységet"
-                options={companyActivityOptions.map((activity) => ({
-                  value: activity,
-                  label: activity
-                }))}
-                onChange={(value) => setLead((current) => ({ ...current, companyActivity: value }))}
-              />
-              <FieldError
-                id="companyActivity-error"
-                message={visibleLeadFieldErrors.companyActivity}
-              />
-            </Field>
-
-            <OptionalField label="Cégnév">
-              <input
-                id="companyName"
-                aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
-                aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
-                value={lead.companyName}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, companyName: event.target.value }))
-                }
-                placeholder="Példa Kft."
-              />
-              <p className="field-hint">Opcionálisan töltendő.</p>
-              <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
-            </OptionalField>
-          </div>
-
-          <div className="form-grid" style={{ marginTop: 16 }}>
-            <label
-              className={`checkbox-line ${visibleLeadFieldErrors.consentPrivacy ? "is-invalid" : ""}`}
-            >
-              <input
-                aria-describedby={
-                  visibleLeadFieldErrors.consentPrivacy ? "consentPrivacy-error" : undefined
-                }
-                aria-invalid={Boolean(visibleLeadFieldErrors.consentPrivacy)}
-                type="checkbox"
-                required
-                checked={lead.consentPrivacy}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, consentPrivacy: event.target.checked }))
-                }
-              />
-              <span>
-                Elfogadom, hogy a megadott adatok alapján elkészüljön és automatikus
-                emailes riportként megérkezzen a kalkuláció, valamint elolvastam az
-                adatkezelési tájékoztatót.{" "}
-                <b className="required-mark">*</b>
-              </span>
-            </label>
-            <FieldError
-              id="consentPrivacy-error"
-              message={visibleLeadFieldErrors.consentPrivacy}
-            />
-            <label className="checkbox-line">
-              <input
-                type="checkbox"
-                checked={lead.consentMarketing}
-                onChange={(event) =>
-                  setLead((current) => ({ ...current, consentMarketing: event.target.checked }))
-                }
-              />
-              <span>
-                Hozzájárulok, hogy marketingcélú megkereséseket kapjak emailben vagy
-                telefonon, és adataim ilyen célból kézi előszűrés után szerződött szakmai
-                partnerek részére továbbíthatók legyenek.
-              </span>
-            </label>
-            <button
-              className="submit-button"
-              disabled={!canSubmit}
-              type="button"
-              onClick={submitLead}
-            >
-              {isSubmitting ? "Riport készítése..." : "Kérem a részletes riportot e-mailben!"}
-              <ArrowRight size={18} />
-            </button>
-            {error ? <div className="error-note">{error}</div> : null}
-          </div>
-          </div>
         </div>
 
-        <aside className={`result-panel ${isRecalculating ? "is-updating" : ""}`}>
+        <aside id="eredmeny" className={`result-panel ${isRecalculating ? "is-updating" : ""}`}>
           <div className="result-rail">
             <span>
               <Gauge size={18} />
@@ -839,6 +690,11 @@ export function CalculatorApp() {
                 {formatNumber(result.annualKwhSaved)} kWh/év energiamegtakarítás előnézetben
               </div>
             </div>
+
+            <a className="result-cta conversion-report-cta" href="#riport">
+              Kérem a részletes riportot e-mailben!
+              <ArrowRight size={18} />
+            </a>
 
             <div className={`benchmark-card ${result.benchmark.level}`}>
               <div>
@@ -995,6 +851,202 @@ export function CalculatorApp() {
             </ul>
           </div>
         </aside>
+
+          <form id="riport" ref={leadFormRef} onFocusCapture={startLeadForm} className={`lead-gate-section ${isCalculatorSectionReady ? "is-ready" : ""}`} noValidate onSubmit={(event) => { event.preventDefault(); void submitLead(); }}>
+            <div className="lead-gate-status">
+              <span />
+              Következő lépés: mérnöki riport adatok
+            </div>
+
+            <div className="section-title">
+              <div>
+                <div className="panel-kicker">
+                  <span>03</span>
+                  Riport küldése
+                </div>
+                <h3>Kapcsolati adatok</h3>
+              </div>
+              <span className="step-badge">
+                <FileText size={15} />
+                Emailes riport
+              </span>
+            </div>
+
+            <div className="report-conversion-card">
+              <div className="report-conversion-icon">
+                <MiniScrewCompressorLogo />
+              </div>
+              <div>
+                <span>Ami csak az e-mail riportban elérhető:</span>
+                <strong>előszűrt gépkategória a megadott üzemadatok alapján</strong>
+                <p>A PDF-ben elküldjük a megtakarítási számítást és a javasolt gépkategóriát.
+                  A riport tájékoztató előszűrés, nem végleges gépajánlat.</p>
+                <p><a href="/kompresszor-csere-ajanlat">Konkrét gépajánlatot szeretnék kérni</a></p>
+                <div className="report-conversion-points" aria-label="Riport tartalma">
+                  <span>
+                    <CheckCircle2 size={15} />
+                    előzetes terméktípus
+                  </span>
+                  <span>
+                    <CheckCircle2 size={15} />
+                    számítási feltételek
+                  </span>
+                  <span>
+                    <CheckCircle2 size={15} />
+                    mérnöki pontosítás
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-grid two">
+            <Field label="Kapcsolattartó név" htmlFor="name">
+              <input
+                id="name"
+                autoComplete="name"
+                aria-describedby={visibleLeadFieldErrors.name ? "name-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.name)}
+                required
+                minLength={2}
+                value={lead.name}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, name: event.target.value }))
+                }
+                placeholder="Név"
+              />
+              <FieldError id="name-error" message={visibleLeadFieldErrors.name} />
+            </Field>
+
+            <Field label="Email cím" htmlFor="email">
+              <input
+                id="email"
+                autoComplete="email"
+                aria-describedby={visibleLeadFieldErrors.email ? "email-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.email)}
+                required
+                value={lead.email}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, email: event.target.value }))
+                }
+                placeholder="email@ceg.hu"
+                type="email"
+              />
+              <FieldError id="email-error" message={visibleLeadFieldErrors.email} />
+              {lead.email && isValidEmail(lead.email) && !isBusinessEmail(lead.email) ? (
+                <p className="field-hint is-warning">
+                  Céges email előnyös, de nem kötelező. A részletes riportot erre az email címre küldjük.
+                </p>
+              ) : null}
+            </Field>
+
+            <OptionalField label="Telefonszám" htmlFor="phone">
+              <input
+                id="phone"
+                aria-describedby={visibleLeadFieldErrors.phone ? "phone-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.phone)}
+                inputMode="tel"
+                autoComplete="tel"
+                title="Magyar mobil vagy vezetékes telefonszám"
+                value={lead.phone}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, phone: event.target.value }))
+                }
+                placeholder="+36701234567"
+                type="tel"
+              />
+              <FieldError id="phone-error" message={visibleLeadFieldErrors.phone} />
+              <p className="field-hint">Opcionális. Mobil és vezetékes szám is megadható.</p>
+            </OptionalField>
+
+            <Field label="Iparág / tevékenység" htmlFor="companyActivity">
+              <IndustrialSelect
+                id="companyActivity"
+                label="Iparág / tevékenység"
+                describedBy={visibleLeadFieldErrors.companyActivity ? "companyActivity-error" : undefined}
+                invalid={Boolean(visibleLeadFieldErrors.companyActivity)}
+                value={lead.companyActivity}
+                placeholder="Válassz tevékenységet"
+                options={companyActivityOptions.map((activity) => ({
+                  value: activity,
+                  label: activity
+                }))}
+                onChange={(value) => setLead((current) => ({ ...current, companyActivity: value }))}
+              />
+              <FieldError
+                id="companyActivity-error"
+                message={visibleLeadFieldErrors.companyActivity}
+              />
+            </Field>
+
+            <OptionalField label="Cégnév" htmlFor="companyName">
+              <input
+                id="companyName"
+                autoComplete="organization"
+                aria-describedby={visibleLeadFieldErrors.companyName ? "companyName-error" : undefined}
+                aria-invalid={Boolean(visibleLeadFieldErrors.companyName)}
+                value={lead.companyName}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, companyName: event.target.value }))
+                }
+                placeholder="Példa Kft."
+              />
+              <p className="field-hint">Opcionálisan töltendő.</p>
+              <FieldError id="companyName-error" message={visibleLeadFieldErrors.companyName} />
+            </OptionalField>
+          </div>
+
+          <div className="form-grid" style={{ marginTop: 16 }}>
+            <label
+              className={`checkbox-line ${visibleLeadFieldErrors.consentPrivacy ? "is-invalid" : ""}`}
+            >
+              <input
+                aria-describedby={
+                  visibleLeadFieldErrors.consentPrivacy ? "consentPrivacy-error" : undefined
+                }
+                aria-invalid={Boolean(visibleLeadFieldErrors.consentPrivacy)}
+                type="checkbox"
+                required
+                checked={lead.consentPrivacy}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, consentPrivacy: event.target.checked }))
+                }
+              />
+              <span>
+                Elfogadom, hogy a megadott adatok alapján elkészüljön és automatikus
+                emailes riportként megérkezzen a kalkuláció, valamint elolvastam az
+                adatkezelési tájékoztatót.{" "}
+                <b className="required-mark">*</b>
+              </span>
+            </label>
+            <FieldError
+              id="consentPrivacy-error"
+              message={visibleLeadFieldErrors.consentPrivacy}
+            />
+            <label className="checkbox-line">
+              <input
+                type="checkbox"
+                checked={lead.consentMarketing}
+                onChange={(event) =>
+                  setLead((current) => ({ ...current, consentMarketing: event.target.checked }))
+                }
+              />
+              <span>
+                Hozzájárulok, hogy marketingcélú megkereséseket kapjak emailben vagy
+                telefonon, és adataim ilyen célból kézi előszűrés után szerződött szakmai
+                partnerek részére továbbíthatók legyenek.
+              </span>
+            </label>
+            <button
+              className="submit-button"
+              disabled={!canSubmit}
+              type="submit"
+            >
+              {isSubmitting ? "Riport készítése..." : "Kérem a részletes riportot e-mailben!"}
+              <ArrowRight size={18} />
+            </button>
+            {error ? <div className="error-note" role="alert">{error}</div> : null}
+          </div>
+          </form>
       </section>
 
       <section className="seo-support-band" aria-labelledby="szakmai-valaszok">
@@ -1034,8 +1086,8 @@ export function CalculatorApp() {
         result={result}
       />
 
-      <a className="mobile-sticky-cta" href="#kalkulator">
-        Kalkuláció indítása
+      <a className="mobile-sticky-cta" href={hasReachedCalculator ? "#riport" : "#kalkulator"}>
+        {hasReachedCalculator ? "Kérem a részletes riportot e-mailben!" : "Kalkuláció indítása"}
         <ArrowRight size={18} />
       </a>
     </main>
@@ -1067,10 +1119,10 @@ function MiniScrewCompressorLogo() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
     <div className="field">
-      <label>
+      <label htmlFor={htmlFor}>
         {label}
         <span aria-hidden="true" className="required-mark">
           *
@@ -1081,10 +1133,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function OptionalField({ label, children }: { label: string; children: React.ReactNode }) {
+function OptionalField({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
     <div className="field">
-      <label>{label}</label>
+      <label htmlFor={htmlFor}>{label}</label>
       {children}
     </div>
   );
@@ -1111,6 +1163,35 @@ function IndustrialSelect<T extends SelectValue>({
 }) {
   const selectedOption = options.find((option) => option.value === value);
   const [isOpen, setIsOpen] = useState(false);
+  const menuId = useId();
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    const root = event.currentTarget;
+    const trigger = root.querySelector<HTMLButtonElement>(".industrial-select-trigger");
+    if (event.key === "Escape" && isOpen) {
+      event.preventDefault();
+      setIsOpen(false);
+      trigger?.focus();
+      return;
+    }
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    if (!isOpen && event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    if (!isOpen) {
+      setIsOpen(true);
+      window.requestAnimationFrame(() => {
+        const items = root.querySelectorAll<HTMLButtonElement>('[role="option"]');
+        const selected = Array.from(items).find((item) => item.getAttribute("aria-selected") === "true");
+        (selected ?? (event.key === "ArrowUp" ? items[items.length - 1] : items[0]))?.focus();
+      });
+      return;
+    }
+    const items = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="option"]'));
+    const current = items.indexOf(document.activeElement as HTMLButtonElement);
+    const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 :
+      (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    items[next]?.focus();
+  }
 
   function closeOnBlur(event: FocusEvent<HTMLDivElement>) {
     if (!event.currentTarget.contains(event.relatedTarget)) {
@@ -1122,10 +1203,12 @@ function IndustrialSelect<T extends SelectValue>({
     <div
       className={`industrial-select ${isOpen ? "is-open" : ""} ${invalid ? "is-invalid" : ""}`}
       onBlur={closeOnBlur}
+      onKeyDown={handleKeyDown}
     >
       <button
         aria-describedby={describedBy}
         aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
         aria-haspopup="listbox"
         aria-label={label}
         className="industrial-select-trigger"
@@ -1140,7 +1223,7 @@ function IndustrialSelect<T extends SelectValue>({
         <ChevronDown aria-hidden="true" size={18} />
       </button>
       {isOpen ? (
-        <div aria-label={label} className="industrial-select-menu" role="listbox">
+        <div aria-label={label} className="industrial-select-menu" id={menuId} role="listbox">
           {options.map((option) => {
             const isSelected = option.value === value;
 
@@ -1151,9 +1234,10 @@ function IndustrialSelect<T extends SelectValue>({
                 key={`${option.value}`}
                 role="option"
                 type="button"
-                onClick={() => {
+                onClick={(event) => {
                   onChange(option.value);
                   setIsOpen(false);
+                  event.currentTarget.closest(".industrial-select")?.querySelector<HTMLButtonElement>(".industrial-select-trigger")?.focus();
                 }}
               >
                 <span>

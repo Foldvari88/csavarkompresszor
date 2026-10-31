@@ -8,6 +8,7 @@ import {
 } from "@/components/google-tag-manager";
 import { defaultDescription, siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
+import "./conversion-design.css";
 
 const verification = {
   ...(process.env.GOOGLE_SITE_VERIFICATION
