@@ -532,7 +532,16 @@ body:has(.site-shell, .reactivation-page, .offer-hub-page, .legal-page, .thank-y
 .cookie-banner { right: 22px; bottom: 22px; left: auto; width: min(420px, calc(100% - 32px)); border: 1px solid #dce0e8; border-radius: 11px; background: #fff; box-shadow: 0 12px 48px #121a3026; }
 .cookie-banner::before,
 .cookie-banner::after { content: none; }
-.cookie-banner-shell { display: grid; grid-template-columns: 1fr; gap: 13px; padding: 22px; background: #fff; border-radius: 11px; }
+body .cookie-banner .cookie-banner-shell { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 13px; margin: 0; padding: 22px; border: 0; background: #fff; border-radius: 11px; box-shadow: none; }
+.cookie-banner .cookie-banner-shell::after { content: none; }
+.cookie-banner :is(.cookie-banner-heading, .cookie-banner-details, .cookie-options, .cookie-actions) { grid-column: 1 / -1; grid-row: auto; min-width: 0; }
+.cookie-banner .cookie-banner-details p { color: #667085; font-size: 11px; line-height: 1.8; }
+.cookie-banner .cookie-options { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.cookie-banner .cookie-option { padding: 12px; border: 1px solid #e1e5ec; border-radius: 7px; background: #f7f8fb; }
+.cookie-banner .cookie-option strong { color: #344057; font-size: 12px; }
+.cookie-banner .cookie-option small { color: #667085; font-size: 10px; }
+.cookie-banner .cookie-option input { accent-color: #303184; }
+.cookie-banner .cookie-banner-shell .cookie-actions { display: flex; grid-column: 1 / -1; min-width: 0; }
 .cookie-banner-heading { gap: 11px; }
 .cookie-banner-icon { width: 38px; height: 38px; border: 0; background: #efeff9; color: var(--conversion-brand); box-shadow: none; }
 .cookie-kicker { padding: 0; border: 0; background: none; color: #667085; font-size: 9px; }
@@ -655,7 +664,7 @@ body:has(.cookie-banner) .site-shell .ai-chat { bottom: 25px; right: auto; left:
   body:has(.cookie-banner) .site-shell .ai-chat { bottom: 82px; left: auto; right: 14px; }
   body:has(.cookie-banner) .site-shell .ai-chat-launcher { visibility: hidden; }
   .cookie-banner { bottom: 78px; right: 16px; left: auto; }
-  .cookie-banner-shell { padding: 17px; gap: 10px; }
+  body .cookie-banner .cookie-banner-shell { padding: 17px; gap: 10px; }
   .cookie-banner h2 { font-size: 18px; }
   .cookie-actions { display: flex; gap: 6px; }
   .cookie-button { min-height: 42px; font-size: 9px; padding: 8px; }
