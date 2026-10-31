@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Calculator, Clock3, Zap } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
+import { ArrowRight, BookOpen, Calculator, Clock3 } from "lucide-react";
 import { blogPostPath, blogPosts, getReadingMinutes, type BlogPost } from "@/lib/blog";
 import "./blog.css";
 
@@ -17,8 +18,8 @@ export function BlogHeader() {
   return (
     <header className="blog-header">
       <div className="container blog-header-inner">
-        <Link className="blog-brand" href="/" aria-label="iparikalkulator.hu — főoldal">
-          <span><Zap size={21} aria-hidden="true" /></span>iparikalkulator.hu
+        <Link className="brand-home" href="/" aria-label="iparikalkulator.hu — főoldal">
+          <BrandLogo />
         </Link>
         <nav aria-label="Fő navigáció">
           <Link className="blog-nav-link" href="/blog">Tudástár</Link>
@@ -33,7 +34,7 @@ export function BlogFooter() {
   return (
     <footer className="blog-footer">
       <div className="container blog-footer-inner">
-        <div><Link className="blog-brand" href="/">iparikalkulator.hu</Link><p>Gyakorlati tudás az ipari sűrített levegő energiaköltségéhez.</p></div>
+        <div><Link className="brand-home" href="/"><BrandLogo /></Link><p>Gyakorlati tudás az ipari sűrített levegő energiaköltségéhez.</p></div>
         <nav aria-label="További oldalak">
           <Link href="/blog">Tudástár</Link><Link href="/#kalkulator">Kalkulátor</Link>
           <Link href="/adatkezeles">Adatkezelés</Link><Link href="/impresszum">Impresszum</Link>

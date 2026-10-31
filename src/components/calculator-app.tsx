@@ -15,6 +15,7 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { useRouter } from "next/navigation";
 import type { CSSProperties, FocusEvent, KeyboardEvent, ReactNode } from "react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -297,11 +298,8 @@ export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
     <main className="site-shell">
       <header className="page-band">
         <div className="container topbar">
-          <Link className="brand-mark" href="/" aria-label="iparikalkulator.hu főoldal">
-            <span className="brand-blade">
-              <MiniScrewCompressorLogo />
-            </span>
-            <span>iparikalkulator.hu</span>
+          <Link className="brand-home" href="/" aria-label="iparikalkulator.hu főoldal">
+            <BrandLogo />
           </Link>
           <nav className="conversion-nav" aria-label="Fő navigáció">
             <a href="#kalkulator">Kalkulátor</a>
@@ -1377,7 +1375,7 @@ function LegalFooterClean() {
     <footer className="legal-footer">
       <div className="container legal-footer-inner">
         <div>
-          <strong>iparikalkulator.hu</strong>
+          <BrandLogo inverse />
           <p>
             Független ipari energiahatékonysági előkalkuláció. Az eredmény
             tájékoztató jellegű.
