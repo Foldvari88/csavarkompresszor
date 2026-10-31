@@ -76,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="hu">
+    <html lang="hu" data-scroll-behavior="smooth">
       <head>
         <GoogleTagManager />
       </head>
