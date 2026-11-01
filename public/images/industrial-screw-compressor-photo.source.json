@@ -1,0 +1,13 @@
+{
+  "asset": "public/images/industrial-screw-compressor-photo.jpg",
+  "title": "Screw compressor, machine, air end",
+  "author": "Johan55",
+  "sourcePage": "https://pixabay.com/photos/screw-compressor-machine-air-end-4545842/",
+  "downloadUrl": "https://cdn.pixabay.com/photo/2019/10/13/11/18/screw-compressor-4545842_1280.jpg",
+  "license": "Pixabay Content License",
+  "licenseUrl": "https://pixabay.com/service/license-summary/",
+  "publishedDate": "2019-10-14",
+  "retrievedDate": "2026-11-01",
+  "camera": "Canon EOS 77D (as listed by the source)",
+  "processing": "Original downloaded JPEG preserved. Responsive display crop and image optimization are handled by Next.js. No generative editing."
+}

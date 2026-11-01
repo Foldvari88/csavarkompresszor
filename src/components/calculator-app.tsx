@@ -350,12 +350,12 @@ export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
 
           <div className="conversion-hero-visual">
             <Image
-              alt="Ipari csavarkompresszor sűrített levegő rendszerben"
+              alt="Ipari csavarkompresszor sűrítőegysége – valódi fénykép"
               className="conversion-hero-image"
               fill
               priority
               sizes="(max-width: 699px) 100vw, 48vw"
-              src="/images/industrial-compressor-hero.webp"
+              src="/images/industrial-screw-compressor-photo.jpg"
             />
           <div className="hero-roi-card" aria-label="Megtakarítási példa">
             <span className="conversion-roi-label"><span /> Becsült éves megtakarítás</span>
