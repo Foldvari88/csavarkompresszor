@@ -4,7 +4,8 @@ import type { BlogPost } from "./types";
 
 export { blogPosts };
 export { blogSources } from "./types";
-export type { BlogPost, BlogSection } from "./types";
+export { buyerPaths, buyerRoleLabels, blogStageLabels } from "./journeys";
+export type { BlogPost, BlogSection, BlogStage, BuyerRole } from "./types";
 
 export function getBlogPost(slug: string) {
   return blogPosts.find((post) => post.slug === slug);
@@ -15,7 +16,7 @@ export function blogPostPath(post: Pick<BlogPost, "slug">): `/blog/${string}` {
 }
 
 export function getReadingMinutes(post: BlogPost) {
-  const text = [post.title, ...post.intro, ...post.takeaways,
+  const text = [post.title, post.journey.quickAnswer, post.journey.outcome, ...post.journey.checklist, ...post.intro, ...post.takeaways,
     ...post.sections.flatMap((section) => [section.title, ...section.paragraphs,
       ...(section.bullets ?? []), section.formula ?? "",
       ...(section.table?.rows.flat() ?? [])]),
@@ -40,7 +41,8 @@ export function buildBlogPostJsonLd(post: BlogPost) {
         headline: post.title,
         description: post.description,
         datePublished: `${post.publishedAt}T12:00:00+01:00`,
-        dateModified: `${post.publishedAt}T12:00:00+01:00`,
+        dateModified: `${post.updatedAt}T12:00:00+01:00`,
+        isAccessibleForFree: true,
         inLanguage: "hu-HU",
         articleSection: post.category,
         mainEntityOfPage: url,

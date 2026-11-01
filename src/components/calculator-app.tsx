@@ -36,6 +36,8 @@ import { formatHuf, formatKw, formatNumber } from "@/lib/format";
 import { homeFaq } from "@/lib/home-seo";
 import { getLeadMeasurementConsent, trackSuccessfulLead } from "@/lib/tracking/google";
 import { getCampaignTracking } from "@/lib/tracking/campaign";
+import { calculatorThankYouPath, normalizeContentContext, contentDestination } from "@/lib/content-context";
+import { ContentEntryNotice, useContentContext } from "@/components/content-entry";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
 import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
 
@@ -132,6 +134,7 @@ const initialLead: LeadFields = {
 };
 
 export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
+  const contentContext = useContentContext();
   const submittingRef = useRef(false);
   const { ref: leadFormRef, onFocusCapture: startLeadForm, ...formTracking } = useLeadFormTracking<HTMLFormElement>("calculator");
   const calculatorRef = useRef<HTMLElement>(null);
@@ -282,9 +285,10 @@ export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
       trackSuccessfulLead({
         leadId: payload.leadId,
         email: lead.email,
-        phone: lead.phone
+        phone: lead.phone,
+        contentContext: normalizeContentContext(getCampaignTracking()) ?? undefined
       });
-      router.push(`/koszonjuk${payload.email?.customer?.status === "accepted" ? "" : "?email=kesik"}`);
+      router.push(calculatorThankYouPath(window.location.search, payload.email?.customer?.status !== "accepted"));
     } catch (caught) {
       formTracking.errors(["submission"], "server");
       setError(caught instanceof Error ? caught.message : "Váratlan hiba történt.");
@@ -386,6 +390,7 @@ export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
 
       <section className="container calculator-grid" id="kalkulator" ref={calculatorRef}>
         <div className="tool-panel">
+          <ContentEntryNotice mode="calculator" />
           <div className="panel-kicker">
             <span>01</span>
             Kompresszor adatok
@@ -883,7 +888,7 @@ export function CalculatorApp({ blogSection }: { blogSection?: ReactNode }) {
                 <strong>előszűrt gépkategória a megadott üzemadatok alapján</strong>
                 <p>A PDF-ben elküldjük a megtakarítási számítást és a javasolt gépkategóriát.
                   A riport tájékoztató előszűrés, nem végleges gépajánlat.</p>
-                <p><a href="/kompresszor-csere-ajanlat">Konkrét gépajánlatot szeretnék kérni</a></p>
+                <p><Link href={contentContext ? contentDestination(contentContext.blogSlug, "quote") : "/kompresszor-csere-ajanlat"}>Konkrét gépajánlatot szeretnék kérni</Link></p>
                 <div className="report-conversion-points" aria-label="Riport tartalma">
                   <span>
                     <CheckCircle2 size={15} />

@@ -69,7 +69,7 @@ export async function GET() {
       "gbraid",
       "wbraid",
       "liFatId",
-      "referrer"
+      "referrer", "blogSlug", "blogStage", "blogAction"
     ],
     ...leads.map((lead) => [
       lead.createdAt,
@@ -134,7 +134,10 @@ export async function GET() {
       lead.input.tracking?.gbraid ?? "",
       lead.input.tracking?.wbraid ?? "",
       lead.input.tracking?.liFatId ?? "",
-      lead.input.tracking?.referrer ?? ""
+      lead.input.tracking?.referrer ?? "",
+      lead.input.tracking?.blogSlug ?? "",
+      lead.input.tracking?.blogStage ?? "",
+      lead.input.tracking?.blogAction ?? ""
     ])
   ];
 

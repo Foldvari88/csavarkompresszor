@@ -9,6 +9,8 @@ import { trackSuccessfulLead } from "@/lib/tracking/google";
 import { getCampaignTracking } from "@/lib/tracking/campaign";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
 import { useLeadFormTracking } from "@/components/use-lead-form-tracking";
+import { ContentEntryNotice, useContentContext } from "@/components/content-entry";
+import { blogContextCatalog, normalizeContentContext } from "@/lib/content-context";
 
 type FormState = {
   companyName: string;
@@ -52,8 +54,15 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const contentContext = useContentContext();
+  const [messageEdited, setMessageEdited] = useState(false);
+  const suggestedMessage = contentContext
+    ? `A cikk alapján ezzel kapcsolatban szeretnék egyeztetni: ${blogContextCatalog[contentContext.blogSlug].topic}. Saját kérdésem: `
+    : "";
+  const effectiveMessage = messageEdited ? form.message : form.message || suggestedMessage;
 
   function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
+    if (field === "message") setMessageEdited(true);
     setForm((current) => ({ ...current, [field]: value }));
     if (errors[field]) {
       setErrors((current) => ({ ...current, [field]: undefined }));
@@ -67,7 +76,7 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
     setFormError(null);
 
     const normalizedPhone = normalizeHungarianPhone(form.phone);
-    const nextForm = { ...form, phone: normalizedPhone };
+    const nextForm = { ...form, phone: normalizedPhone, message: effectiveMessage };
     const nextErrors = validateForm(nextForm);
     setForm(nextForm);
     setErrors(nextErrors);
@@ -118,7 +127,8 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
         email: nextForm.email || undefined,
         phone: nextForm.phone || undefined,
         formType: config.kind,
-        enhancedConversionConsent: nextForm.consentAdsPersonalization
+        enhancedConversionConsent: nextForm.consentAdsPersonalization,
+        contentContext: normalizeContentContext(getCampaignTracking()) ?? undefined
       });
       router.push(
         `/ajanlat-koszonjuk?tipus=${encodeURIComponent(config.kind)}&ref=${encodeURIComponent(payload.inquiryId.slice(0, 8))}${nextForm.email && payload.email?.customer?.status !== "accepted" ? "&email=kesik" : ""}`
@@ -141,6 +151,7 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
       </div>
 
       <div className="reactivation-form-grid">
+        <div className="reactivation-field-full"><ContentEntryNotice mode="offer" /></div>
         <FormField error={errors.companyName} id="companyName" label="Cégnév">
           <input
             aria-describedby={errors.companyName ? "companyName-error" : undefined}
@@ -233,7 +244,7 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
           id="message"
           maxLength={1200}
           rows={4}
-          value={form.message}
+            value={effectiveMessage}
           onChange={(event) => updateField("message", event.target.value)}
         />
       </FormField>

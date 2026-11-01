@@ -89,6 +89,8 @@ function renderInternalEmail(inquiry: CampaignInquiryRecord, label: string) {
     ["Másodlagos adat", input.secondaryDetail ?? "—"],
     ["Megjegyzés", input.message ?? "—"],
     ["Oldal", input.pageSource],
+    ["Kapcsolódó blogcikk", input.tracking?.blogSlug ?? "—"],
+    ["Olvasói döntési szakasz", input.tracking?.blogStage ?? "—"],
     ["UTM kampány", input.tracking?.utmCampaign ?? "—"],
     ["UTM kreatív", input.tracking?.utmContent ?? "—"],
     ["Google click ID", input.tracking?.gclid ?? input.tracking?.gbraid ?? input.tracking?.wbraid ?? "—"],

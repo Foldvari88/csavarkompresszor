@@ -21,6 +21,9 @@ export type CampaignTracking = {
   wbraid?: string;
   liFatId?: string;
   referrer?: string;
+  blogSlug?: string;
+  blogStage?: "discovery" | "comparison" | "decision";
+  blogAction?: "calculator" | "quote" | "service";
 };
 
 export type HeatRecoveryInput = {

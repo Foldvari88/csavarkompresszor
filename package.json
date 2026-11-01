@@ -9,7 +9,8 @@
     "lint": "eslint",
     "resend:setup-automation": "node scripts/setup-resend-automation-sequence.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:blog-funnel": "node scripts/verify-blog-conversion.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

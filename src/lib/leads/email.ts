@@ -675,6 +675,7 @@ export function renderInternalNotificationEmail(
   const recommendedModelName = formatCompressorModel(lead.result.recommendedModel);
   return emailShell(`
     <p>Új kalkulációs beküldés érkezett a csavarkompresszor kalkulátorból.</p>
+    ${lead.input.tracking?.blogSlug ? `<p>Kapcsolódó blogcikk: <strong>${escapeHtml(lead.input.tracking.blogSlug)}</strong> · Döntési szakasz: ${escapeHtml(lead.input.tracking.blogStage ?? "-")}</p>` : ""}
     ${renderRecommendedProductImage(lead.result, options)}
     <table>
       <tr><td>Cég</td><td>${escapeHtml(lead.input.companyName || "-")}</td></tr>

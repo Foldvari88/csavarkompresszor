@@ -9,7 +9,7 @@ export async function GET() {
       "id", "createdAt", "status", "kind", "companyName", "name", "email", "phone",
       "equipmentBrand", "equipmentModel", "primaryDetail", "secondaryDetail", "message",
       "consentMarketing", "consentAdsPersonalization", "utmSource", "utmMedium", "utmCampaign",
-      "utmContent", "gclid", "gbraid", "wbraid", "liFatId", "referrer"
+      "utmContent", "gclid", "gbraid", "wbraid", "liFatId", "referrer", "blogSlug", "blogStage", "blogAction"
     ],
     ...inquiries.map((inquiry) => [
       inquiry.id,
@@ -35,7 +35,10 @@ export async function GET() {
       inquiry.input.tracking?.gbraid ?? "",
       inquiry.input.tracking?.wbraid ?? "",
       inquiry.input.tracking?.liFatId ?? "",
-      inquiry.input.tracking?.referrer ?? ""
+      inquiry.input.tracking?.referrer ?? "",
+      inquiry.input.tracking?.blogSlug ?? "",
+      inquiry.input.tracking?.blogStage ?? "",
+      inquiry.input.tracking?.blogAction ?? ""
     ])
   ];
   const csv = rows.map((row) => row.map(csvCell).join(",")).join("\n");

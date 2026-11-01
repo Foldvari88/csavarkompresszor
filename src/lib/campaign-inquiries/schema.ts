@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
+import { isBlogSlug, normalizeContentContext } from "@/lib/content-context";
 
 const optionalText = (max: number) =>
   z
@@ -19,7 +20,14 @@ const trackingSchema = z.object({
   gbraid: optionalText(300),
   wbraid: optionalText(300),
   liFatId: optionalText(300),
-  referrer: optionalText(500)
+  referrer: optionalText(500),
+  blogSlug: z.string().max(100).refine(isBlogSlug).optional(),
+  blogStage: z.enum(["discovery", "comparison", "decision"]).optional(),
+  blogAction: z.enum(["calculator", "quote", "service"]).optional()
+}).transform((tracking) => {
+  const { blogSlug, blogStage: _stage, blogAction, ...campaign } = tracking;
+  void _stage;
+  return { ...campaign, ...(normalizeContentContext({ blogSlug, blogAction }) ?? {}) };
 });
 
 export const campaignInquiryInputSchema = z

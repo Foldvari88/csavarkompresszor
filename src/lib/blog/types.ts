@@ -14,6 +14,9 @@ export type BlogPost = {
   description: string;
   category: string;
   publishedAt: string;
+  updatedAt: string;
+  seoTitle: string;
+  journey: BlogJourney;
   intro: string[];
   takeaways: string[];
   sections: BlogSection[];
@@ -21,6 +24,32 @@ export type BlogPost = {
   cta: { title: string; text: string };
   relatedSlugs: string[];
 };
+
+export type BuyerRole = "owner" | "technical" | "procurement";
+export type BlogStage = "discovery" | "comparison" | "decision";
+
+export type BlogJourney = {
+  title: string;
+  seoTitle: string;
+  description: string;
+  stage: BlogStage;
+  audience: BuyerRole[];
+  intro: string[];
+  quickAnswer: string;
+  outcome: string;
+  decisionSection: BlogSection;
+  checklist: string[];
+  objections: { question: string; answer: string }[];
+  midCta: { title: string; text: string };
+  finalCta: { title: string; text: string };
+  offer: "replacement" | "service";
+  offerLabel: string;
+  offerText: string;
+  nextSlug: string;
+  nextReason: string;
+};
+
+export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey">;
 
 export const blogSources: Record<string, { title: string; url: string }> = {
   cost: {

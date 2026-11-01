@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
-import { BlogCard, BlogCta, BlogFooter, BlogHeader, CalculatorLink } from "@/components/blog";
+import { BlogBuyerPaths, BlogCard, BlogCta, BlogFooter, BlogHeader, CalculatorLink } from "@/components/blog";
 import { blogPostPath, blogPosts } from "@/lib/blog";
 import { absoluteUrl, siteName } from "@/lib/seo";
 
-const title = "Csavarkompresszor blog és tudástár";
-const description = "10 gyakorlati útmutató a csavarkompresszor fogyasztásáról, megtérüléséről, RS/VSD választásról és hővisszanyerésről. Számoljon a saját adataival.";
+const title = "Csavarkompresszor: fogyasztás, gépválasztás és megtérülés";
+const description = "10 döntési útmutató cégvezetőknek, műszaki vezetőknek és beszerzőknek. A magas energiaköltségtől a saját kalkuláción át a személyre szabott ajánlatig.";
 
 export const metadata: Metadata = {
   title, description,
@@ -34,18 +35,19 @@ export default function BlogIndexPage() {
           <div className="container blog-index-hero-grid">
             <div>
               <span className="blog-eyebrow"><BookOpen size={17} aria-hidden="true" /> Csavarkompresszor tudástár</span>
-              <h1>A sűrített levegőnek ára van.<br /><em>Ismerje meg a sajátját.</em></h1>
-              <p>10 gyakorlati útmutató, hogy átlássa a fogyasztást, megtalálja a veszteségeket és adatokkal készüljön a következő gépbeszerzésre.</p>
+              <h1>Drága a sűrített levegő?<br /><em>A következő döntéshez legyenek saját számai.</em></h1>
+              <p>Cégvezetőknek, műszaki vezetőknek és beszerzőknek: tárja fel a költséget, hasonlítsa össze a megoldásokat, majd kérjen az üzeméhez illő ajánlatot.</p>
               <CalculatorLink /><span className="blog-hero-note">A cikkek után számoljon a saját üzemadataival.</span>
             </div>
             <div className="blog-hero-note-card">
-              <span>Az éves költség mögött</span>
-              <strong>kW <span>×</span> óra <span>×</span> Ft/kWh</strong>
-              <p>A felvett teljesítmény, az üzemidő és az energiaár együtt mutatja meg, hol érdemes keresni a megtakarítást.</p>
-              <a href="#cikkek">Válasszon témát <ArrowRight size={17} aria-hidden="true" /></a>
+              <span>A saját döntésének három lépése</span>
+              <ol className="blog-hero-steps"><li>Költségek és veszteségek feltárása</li><li>Megoldások és teljes költség összevetése</li><li>Saját kalkuláció és konkrét ajánlat</li></ol>
+              <p>Van már beszerzési feladata? <Link href="/kompresszor-csere-ajanlat#ajanlatkeres">Közvetlenül is kérhet gépajánlatot.</Link></p>
+              <a href="#sajat-helyzet">Kiválasztom a saját helyzetemet <ArrowRight size={17} aria-hidden="true" /></a>
             </div>
           </div>
         </section>
+        <BlogBuyerPaths />
         <section className="container blog-index-content" id="cikkek" aria-labelledby="cikkek-cim">
           <div className="blog-section-heading"><div><span className="blog-eyebrow">Fogyasztástól a beruházási döntésig</span><h2 id="cikkek-cim">Válaszok a költséges kérdésekre</h2></div><span className="blog-count">10 szakmai cikk</span></div>
           <div className="blog-card-grid">{blogPosts.map((post, index) => <BlogCard key={post.slug} post={post} number={index + 1} />)}</div>

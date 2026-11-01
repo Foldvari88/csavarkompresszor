@@ -54,6 +54,7 @@ export function CookieBanner() {
     }
     applyGoogleConsent(payload);
     getCampaignTracking();
+    window.dispatchEvent(new Event("ipari:consent-change"));
     setIsVisible(false);
   }
 

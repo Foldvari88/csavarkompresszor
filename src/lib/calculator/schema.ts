@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getBrandCategory } from "./brand-category";
 import { isValidHungarianPhone, normalizeHungarianPhone } from "@/lib/phone";
+import { isBlogSlug, normalizeContentContext } from "@/lib/content-context";
 
 export const ageBandSchema = z.enum(["5-10", "10-15", "15+"]);
 export const loadProfileSchema = z.enum(["continuous", "fluctuating"]);
@@ -15,7 +16,14 @@ const campaignTrackingSchema = z.object({
   gbraid: z.string().max(300).optional(),
   wbraid: z.string().max(300).optional(),
   liFatId: z.string().max(300).optional(),
-  referrer: z.string().max(500).optional()
+  referrer: z.string().max(500).optional(),
+  blogSlug: z.string().max(100).refine(isBlogSlug).optional(),
+  blogStage: z.enum(["discovery", "comparison", "decision"]).optional(),
+  blogAction: z.enum(["calculator", "quote", "service"]).optional()
+}).transform((tracking) => {
+  const { blogSlug, blogStage: _stage, blogAction, ...campaign } = tracking;
+  void _stage;
+  return { ...campaign, ...(normalizeContentContext({ blogSlug, blogAction }) ?? {}) };
 });
 
 const campaignLandingSchema = z.object({

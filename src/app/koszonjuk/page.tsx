@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, MailCheck, ShieldCheck } from "lucide-react";
+import { blogContextCatalog, contentDestination, parseContentContext } from "@/lib/content-context";
+import "@/components/content-entry.css";
 
 export const metadata: Metadata = {
   title: "Kalkuláció rögzítve | iparikalkulator.hu",
@@ -19,11 +21,16 @@ export const metadata: Metadata = {
 export default async function ThankYouPage({
   searchParams
 }: {
-  searchParams: Promise<{ visszahivas?: string; email?: string }>;
+  searchParams: Promise<{ visszahivas?: string; email?: string; blog?: string; blog_action?: string }>;
 }) {
   const params = await searchParams;
   const isCallbackRequest = params.visszahivas === "1";
   const emailDelayed = params.email === "kesik";
+  const content = parseContentContext(new URLSearchParams({ blog: params.blog ?? "", blog_action: params.blog_action ?? "" }));
+  const isServiceTopic = content && blogContextCatalog[content.blogSlug].offer === "service";
+  const offerHref = content
+    ? contentDestination(content.blogSlug, isServiceTopic ? "service" : "quote")
+    : "/kompresszor-csere-ajanlat#ajanlatkeres";
 
   return (
     <main className="thank-you-shell">
@@ -74,7 +81,14 @@ export default async function ThankYouPage({
           </div>
         </div>
 
-        <Link className="hero-cta thank-you-cta" href="/">
+        {!isCallbackRequest ? <section className="thank-you-offer" aria-labelledby="riportbol-ajanlat">
+          <h2 id="riportbol-ajanlat">A következő lépés: a saját igényére szóló ajánlat</h2>
+          <p>{isServiceTopic
+            ? "Ha a rendszer működéséről vagy egy tapasztalt hibáról szeretne egyeztetni, írja le a gépet és a tünetet a szervizajánlatkérőn."
+            : "Ha már gépbeszerzést készít elő, a riport mellé konkrét műszaki és kereskedelmi ajánlatot is kérhet. A gépadatai, a levegőigény és a telepítés feltételei alapján pontosítható a megfelelő megoldás."}</p>
+          <Link className="hero-cta" href={offerHref}>{isServiceTopic ? "Szervizügyben egyeztetek" : "Személyre szabott gépajánlatot kérek"}<ArrowRight size={18} aria-hidden="true" /></Link>
+        </section> : null}
+        <Link className="thank-you-restart" href="/">
           Új kalkuláció indítása
           <ArrowRight size={18} />
         </Link>

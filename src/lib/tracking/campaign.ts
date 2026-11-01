@@ -1,5 +1,6 @@
 import type { CampaignTracking } from "@/lib/calculator/types";
 import { readCookiePreferences } from "./google";
+import { normalizeContentContext, parseContentContext } from "@/lib/content-context";
 
 const STORAGE_KEY = "ipari-campaign-session-v1";
 const MAX_AGE_MS = 30 * 60 * 1000;
@@ -20,7 +21,7 @@ export function getCampaignTracking(defaults: CampaignTracking = {}, target?: Ca
   const current: CampaignTracking = {};
   for (const [key, query] of Object.entries(fields)) {
     const value = params.get(query) ?? (key === "liFatId" ? params.get("liFatId") : null);
-    if (value && !/^\{.+\}$/.test(value)) current[key as keyof CampaignTracking] = value.slice(0, key === "utmCampaign" ? 200 : key.startsWith("utm") ? 160 : 300);
+    if (value && !/^\{.+\}$/.test(value)) current[key as keyof typeof fields] = value.slice(0, key === "utmCampaign" ? 200 : key.startsWith("utm") ? 160 : 300);
   }
   try {
     const referrer = new URL(browser.document.referrer);
@@ -31,15 +32,21 @@ export function getCampaignTracking(defaults: CampaignTracking = {}, target?: Ca
     const raw = browser.sessionStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     if (parsed?.savedAt > now - MAX_AGE_MS && parsed?.savedAt <= now && parsed.tracking && typeof parsed.tracking === "object") {
-      for (const key of [...Object.keys(fields), "referrer"]) {
+      for (const key of [...Object.keys(fields), "referrer", "blogSlug", "blogStage", "blogAction"]) {
         const value = parsed.tracking[key];
-        if (typeof value === "string") saved[key as keyof CampaignTracking] = value.slice(0, key === "referrer" ? 500 : 300);
+        if (typeof value === "string") Object.assign(saved, { [key]: value.slice(0, key === "referrer" ? 500 : 300) });
       }
     }
   } catch { /* Storage must never prevent a lead. */ }
+  const savedContent = normalizeContentContext(saved);
+  delete saved.blogSlug; delete saved.blogStage; delete saved.blogAction;
+  if (savedContent) Object.assign(saved, savedContent);
   const hasCurrentCampaign = Object.keys(fields).some(key => Boolean(current[key as keyof CampaignTracking]));
   const result = hasCurrentCampaign ? current : { ...saved, ...current };
   if (consent?.analytics || consent?.campaign) {
+    // Internal content links never replace the paid campaign or its click identifiers.
+    const content = parseContentContext(params);
+    if (content) Object.assign(result, content);
     const persisted = { ...result };
     if (!consent.campaign) {
       delete persisted.gclid; delete persisted.gbraid; delete persisted.wbraid; delete persisted.liFatId;
@@ -49,7 +56,9 @@ export function getCampaignTracking(defaults: CampaignTracking = {}, target?: Ca
   } else {
     try { browser.sessionStorage.removeItem(STORAGE_KEY); } catch { /* Private browsing. */ }
     // Never reuse previously stored attribution after consent has been withdrawn.
-    return withoutAdIdentifiers({ ...defaults, ...current });
+    const unconsented = { ...defaults, ...current };
+    delete unconsented.blogSlug; delete unconsented.blogStage; delete unconsented.blogAction;
+    return withoutAdIdentifiers(unconsented);
   }
   const combined = { ...defaults, ...result };
   return consent?.campaign ? combined : withoutAdIdentifiers(combined);

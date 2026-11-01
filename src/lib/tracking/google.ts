@@ -1,4 +1,5 @@
 import { normalizeHungarianPhone } from "@/lib/phone";
+import { blogContextCatalog, isBlogSlug, parseContentContext, type ContentContext, type BlogSlug, type ContentAction } from "@/lib/content-context";
 
 export const GOOGLE_ADS_ID = "AW-17711633820";
 export const GOOGLE_ADS_LEAD_DESTINATION =
@@ -35,6 +36,7 @@ type SuccessfulLead = {
   phone?: string;
   formType?: string;
   enhancedConversionConsent?: boolean;
+  contentContext?: ContentContext;
 };
 
 export function isMeasurementAllowed(targetWindow: TrackingWindow) {
@@ -51,7 +53,14 @@ export function trackLeadFormEvent(
 ) {
   const target = getBrowserWindow();
   if (!target || !isMeasurementAllowed(target)) return false;
-  ensureGtag(target)("event", name, { send_to: GOOGLE_ANALYTICS_ID, form_type: formType, ...detail });
+  const content = parseContentContext(target.location?.search ?? "");
+  let contentParameters = {};
+  try {
+    if (content && readCookiePreferences(target.localStorage)?.analytics) {
+      contentParameters = { content_slug: content.blogSlug, content_stage: content.blogStage, content_action: content.blogAction };
+    }
+  } catch { /* Content measurement is optional. */ }
+  ensureGtag(target)("event", name, { send_to: GOOGLE_ANALYTICS_ID, form_type: formType, ...detail, ...contentParameters });
   return true;
 }
 
@@ -163,12 +172,18 @@ export function trackSuccessfulLead(
       value: 1,
       transaction_id: lead.leadId
     };
+    const contentParameters = savedPreferences?.analytics && lead.contentContext ? {
+      content_slug: lead.contentContext.blogSlug,
+      content_stage: lead.contentContext.blogStage,
+      content_action: lead.contentContext.blogAction
+    } : {};
 
     targetWindow.dataLayer?.push({
       event: "lead_submit_success",
       form_type: lead.formType ?? "calculator",
       lead_id: lead.leadId,
       ...eventParameters,
+      ...contentParameters,
       ...(enhancedConversionData && Object.keys(enhancedConversionData).length > 0
         ? { enhanced_conversion_data: enhancedConversionData }
         : {})
@@ -178,7 +193,8 @@ export function trackSuccessfulLead(
       send_to: GOOGLE_ANALYTICS_ID,
       form_type: lead.formType ?? "calculator",
       lead_id: lead.leadId,
-      ...eventParameters
+      ...eventParameters,
+      ...contentParameters
     });
     gtag("event", "conversion", {
       send_to: GOOGLE_ADS_LEAD_DESTINATION,
@@ -192,6 +208,28 @@ export function trackSuccessfulLead(
     // Measurement must never turn a successfully stored lead into a UI error.
     return false;
   }
+}
+
+export function trackBlogEvent(
+  name: "article_view" | "article_engaged" | "blog_cta_click" | "blog_next_article_click",
+  slug: BlogSlug,
+  detail: { action?: ContentAction | "next_article"; placement?: string; destination?: string } = {},
+  targetWindow: TrackingWindow | undefined = getBrowserWindow()
+) {
+  if (!targetWindow || !isBlogSlug(slug) || !isMeasurementAllowed(targetWindow)) return false;
+  try {
+    if (!readCookiePreferences(targetWindow.localStorage)?.analytics) return false;
+    const placements = ["header", "intro", "inline", "closing", "sidebar", "index"];
+    ensureGtag(targetWindow)("event", name, {
+      send_to: GOOGLE_ANALYTICS_ID,
+      content_slug: slug,
+      content_stage: blogContextCatalog[slug].stage,
+      ...(detail.action ? { content_action: detail.action } : {}),
+      ...(placements.includes(detail.placement ?? "") ? { cta_placement: detail.placement } : {}),
+      ...(isBlogSlug(detail.destination) ? { next_content_slug: detail.destination } : {})
+    });
+    return true;
+  } catch { return false; }
 }
 
 function ensureGtag(targetWindow: TrackingWindow): Gtag {

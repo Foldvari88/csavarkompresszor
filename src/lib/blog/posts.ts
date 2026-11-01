@@ -1,6 +1,8 @@
-import type { BlogPost } from "./types";
+import type { BlogArticle, BlogPost } from "./types";
+import { blogJourneys } from "./journeys";
+import type { BlogSlug } from "../content-context";
 
-export const blogPosts: BlogPost[] = [
+const sourcePosts: BlogArticle[] = [
   {
     slug: "csavarkompresszor-aramfogyasztas-szamitasa",
     title: "Mennyi áramot fogyaszt a csavarkompresszora? Számolja ki az éves költséget",
@@ -644,3 +646,21 @@ export const blogPosts: BlogPost[] = [
     relatedSlugs: ["csavarkompresszor-aramfogyasztas-szamitasa", "csavarkompresszor-hovisszanyeres", "suritett-levego-energiaaudit-elokeszites"]
   }
 ];
+
+export const blogPosts: BlogPost[] = sourcePosts.map((post) => {
+  const journey = blogJourneys[post.slug as BlogSlug];
+  return {
+    ...post,
+    title: journey.title,
+    seoTitle: journey.seoTitle,
+    description: journey.description,
+    intro: journey.intro,
+    updatedAt: "2026-11-01",
+    journey,
+    sections: post.slug === "csavarkompresszor-meretezes-hibak"
+      ? [...post.sections, journey.decisionSection]
+      : [...post.sections.slice(0, 4), journey.decisionSection, ...post.sections.slice(4)],
+    faq: [...journey.objections, ...post.faq],
+    cta: journey.finalCta
+  };
+});
