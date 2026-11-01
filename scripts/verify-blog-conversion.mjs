@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { registerHooks } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // This targeted check uses Node's existing TypeScript support, without installing project dependencies.
 const root = new URL("../", import.meta.url);
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "zod" && process.env.BLOG_QA_ZOD_PATH) {
+      return nextResolve(pathToFileURL(process.env.BLOG_QA_ZOD_PATH).href, context);
+    }
     let candidate;
     if (specifier.startsWith("@/")) candidate = new URL(`src/${specifier.slice(2)}`, root);
     else if (specifier.startsWith(".") && context.parentURL?.startsWith("file:")) candidate = new URL(specifier, context.parentURL);
@@ -197,7 +200,36 @@ check("Public article scripts cannot introduce mail sends or forced navigation",
   assert.ok(client.includes("passive: true")); assert.ok(client.includes("45000"));
 });
 
-const report = { generatedAt: new Date().toISOString(), checks, articles: wordCounts, passed: checks.length, failed: 0 };
+let schemaChecks = "unavailable-without-project-dependencies";
+try {
+  const { leadInputSchema } = await import("../src/lib/calculator/schema.ts");
+  const { campaignInquiryInputSchema } = await import("../src/lib/campaign-inquiries/schema.ts");
+  const context = { blogSlug: "kompresszor-kalkulator-adatok", blogStage: "discovery", blogAction: "quote", utmSource: "googleads" };
+  check("Calculator server validation retains verified content fields and derives the true stage", () => {
+    const input = { brand: "Atlas Copco", ageBand: "10-15", nominalKw: 37, annualHours: 4000,
+      energyPriceHufKwh: 70, email: "qa@example.test", name: "QA teszt", companyActivity: "Gyártás", consentPrivacy: true };
+    assert.equal(leadInputSchema.safeParse(input).success, true);
+    const parsed = leadInputSchema.parse({ ...input, tracking: context });
+    assert.equal(parsed.tracking.blogSlug, context.blogSlug);
+    assert.equal(parsed.tracking.blogStage, "decision");
+    assert.equal(parsed.tracking.utmSource, "googleads");
+    assert.equal(leadInputSchema.safeParse({ ...input, tracking: { ...context, blogSlug: "invalid-article" } }).success, false);
+  });
+  check("Quote server validation preserves attribution and rejects unknown article identifiers", () => {
+    const input = { kind: "compressor-replacement", pageSource: "kompresszor-csere-ajanlat", companyName: "QA teszt", name: "QA teszt", email: "qa@example.test", consentPrivacy: true };
+    assert.equal(campaignInquiryInputSchema.safeParse(input).success, true);
+    const parsed = campaignInquiryInputSchema.parse({ ...input, tracking: context });
+    assert.equal(parsed.tracking.blogStage, "decision"); assert.equal(parsed.tracking.blogAction, "quote");
+    assert.equal(campaignInquiryInputSchema.safeParse({ ...input, tracking: { ...context, blogSlug: "invalid-article" } }).success, false);
+    const partial = campaignInquiryInputSchema.parse({ ...input, tracking: { blogSlug: context.blogSlug } });
+    assert.equal(partial.tracking.blogSlug, undefined);
+  });
+  schemaChecks = "passed";
+} catch (error) {
+  if (error?.code !== "ERR_MODULE_NOT_FOUND") throw error;
+}
+
+const report = { generatedAt: new Date().toISOString(), checks, articles: wordCounts, passed: checks.length, failed: 0, schemaChecks };
 console.log(JSON.stringify(report, null, 2));
 const reportPath = process.argv.find(arg => arg.startsWith("--report="))?.slice(9);
 if (reportPath) writeFileSync(reportPath, JSON.stringify(report, null, 2));

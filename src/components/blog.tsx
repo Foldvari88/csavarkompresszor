@@ -89,11 +89,11 @@ export function BlogTeaser() {
   );
 }
 
-export function BlogOfferLink({ post, className = "blog-text-link" }: { post: BlogPost; className?: string }) {
+export function BlogOfferLink({ post, className = "blog-text-link", placement = "closing" }: { post: BlogPost; className?: string; placement?: Placement }) {
   const action = post.journey.offer === "service" ? "service" : "quote";
   return (
     <Link className={className} href={contentDestination(post.slug as BlogSlug, action)} prefetch={false}
-      data-blog-action={action} data-blog-slug={post.slug} data-blog-placement="closing">
+      data-blog-action={action} data-blog-slug={post.slug} data-blog-placement={placement}>
       {post.journey.offerLabel}<ArrowRight size={17} aria-hidden="true" />
     </Link>
   );

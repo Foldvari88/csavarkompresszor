@@ -52,7 +52,7 @@ export default async function BlogPostPage({ params }: Props) {
               <h1>{post.title}</h1><p className="blog-article-deck">{post.description}</p>
               <p className="blog-audience">{post.journey.audience.map((role) => buyerRoleLabels[role]).join(" · ")}</p>
               <div className="blog-article-meta"><span>iparikalkulator.hu</span><span>Frissítve: <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt)}</time></span><span><Clock3 size={15} aria-hidden="true" /> {getReadingMinutes(post)} perc olvasás</span></div>
-              <div className="blog-article-actions"><CalculatorLink slug={post.slug as BlogSlug} placement="intro" />{post.journey.stage === "decision" ? <BlogOfferLink post={post} /> : null}</div>
+              <div className="blog-article-actions"><CalculatorLink slug={post.slug as BlogSlug} placement="intro" />{post.journey.stage === "decision" ? <BlogOfferLink post={post} placement="intro" /> : null}</div>
             </header>
             <div className="blog-article-layout">
               <div className="blog-prose">

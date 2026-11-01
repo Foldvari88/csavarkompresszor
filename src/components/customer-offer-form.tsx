@@ -244,7 +244,7 @@ export function CustomerOfferForm({ config }: { config: CustomerOfferConfig }) {
           id="message"
           maxLength={1200}
           rows={4}
-            value={effectiveMessage}
+          value={effectiveMessage}
           onChange={(event) => updateField("message", event.target.value)}
         />
       </FormField>
