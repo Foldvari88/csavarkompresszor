@@ -40,7 +40,7 @@ export function contentDestination(slug: BlogSlug, action: ContentAction) {
   return `/kompresszor-csere-ajanlat?${query}#ajanlatkeres` as const;
 }
 
-export function calculatorThankYouPath(search: string, emailDelayed: boolean) {
+export function calculatorThankYouPath(search: string, emailDelayed: boolean): "/koszonjuk" | `/koszonjuk?${string}` {
   const context = parseContentContext(search);
   const query = new URLSearchParams();
   if (emailDelayed) query.set("email", "kesik");
@@ -48,5 +48,6 @@ export function calculatorThankYouPath(search: string, emailDelayed: boolean) {
     query.set("blog", context.blogSlug);
     query.set("blog_action", context.blogAction);
   }
-  return `/koszonjuk${query.size ? `?${query}` : ""}` as const;
+  if (query.size) return `/koszonjuk?${query}`;
+  return "/koszonjuk";
 }
