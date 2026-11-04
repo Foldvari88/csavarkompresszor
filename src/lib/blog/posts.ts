@@ -4,6 +4,57 @@ import type { BlogSlug } from "../content-context";
 
 const sourcePosts: BlogArticle[] = [
   {
+    slug: "csavarkompresszor-cnc-muhelybe",
+    title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",
+    description: "CNC-műhelyre szabott ajánlatkérési útmutató és energiaoldali számítási példa.",
+    category: "Iparági útmutató", publishedAt: "2026-11-04",
+    intro: [],
+    takeaways: ["A megmunkálógép gyártói levegőelőírása az első adatforrás.", "A rövid igénycsúcs és a tartós kapacitáshiány eltérő feladat.", "Az éves áramköltséget azonos üzemi feladatra érdemes összehasonlítani."],
+    sections: [
+      {
+        id: "cnc-gepoldali-kovetelmenyek", title: "1. A CNC kézikönyvét nyissa ki a kompresszorkatalógus előtt",
+        paragraphs: [
+          "A szerszámgép előtelepítési útmutatójából gyűjtse ki a szükséges levegőmennyiséget, a nyomástartományt és a csatlakozási feltételeket. A Haas VF-4SS útmutatója is külön kezeli ezeket az adatokat, és tiszta, száraz levegőellátást ír elő. Egy másik gép követelményeit a saját dokumentációjából kell ellenőrizni.",
+          "Több CNC esetén készítsen gépenként egy sort. A pontos típus, a felszereltség és az alkalmazott műveletek is szerepeljenek benne. Egyetlen gép adatából nem következik az egész műhely légigénye. Az ajánlatadó így látja, melyik követelmény gyártói adat, és melyik részhez szükséges még mérés vagy pontosítás."
+        ], sourceIds: ["haasAir"]
+      },
+      {
+        id: "cnc-egyidejuseg-es-csucs", title: "2. Mikor kér egyszerre levegőt a gép és a műhely?",
+        paragraphs: [
+          "A gépi ciklusok mellé vegye fel a kézi lefúvatást, a további pneumatikus fogyasztókat és a termelésen kívül is fennmaradó igényt. A műszak átlagos fogyasztása és egy rövid, nagy igényű pillanat külön adat. Jegyezze fel, mikor jelenik meg nyomásesés, melyik fogyasztónál, és mi működik ugyanakkor.",
+          "A megfelelően méretezett tárolás segíthet egy ismert időtartamú csúcs kiszolgálásában. A tartály azonban nem állít elő levegőt, ezért tartós kapacitáshiányt nem lehet pusztán több literrel megoldani. A nyomásprofilt, a hálózat szűkületeit és a kompresszor vezérlését együtt kell értékelni."
+        ], sourceIds: ["pressure"]
+      },
+      {
+        id: "cnc-szaritas-szures", title: "3. A szárító és a szűrő az ajánlat része legyen",
+        paragraphs: [
+          "Ne csak a kompresszoregység árát kérje be. Tisztázza az alkalmazáshoz szükséges szárítást, szűrést és kondenzátumkezelést is. A levegőminőség követelménye a végfelhasználásból indul ki; a szükségesnél szigorúbb kezelés is növelheti a beruházási és üzemeltetési költséget.",
+          "Az ajánlatban szerepeljen, milyen környezeti és üzemi feltételekre érvényes a levegő-előkészítés teljesítménye. Kérdezzen rá a szűrőcserére, a kondenzátumürítők ellenőrzésére és a karbantartás alatti ellátásra. A megfelelő minőséget a napi üzem során is fenn kell tartani; nem elegendő egyszer felsorolni a berendezéseket."
+        ], sourceIds: ["quality"]
+      },
+      {
+        id: "cnc-energiakoltseg-pelda", title: "4. Szemléltető példa: mit jelent 3 kW különbség éves szinten?",
+        paragraphs: [
+          "Tegyük fel, hogy azonos levegőellátási feladat mellett a jelenlegi rendszer átlagosan 18 kW-ot, a vizsgált másik megoldás 15 kW-ot vesz fel. Évi 4 000 üzemórával és kizárólag példaként választott 70 Ft/kWh fogyasztásarányos energiaárral a különbség 840 000 Ft évente. Ezek feltételezett adatok, nem CNC-műhelyre általánosan érvényes fogyasztási értékek.",
+          "A jelenlegi energiasor ebben a példában 5,04 millió, a másik 4,2 millió Ft/év. A teljes döntéshez az ajánlati árat, a telepítést és az igazolt szervizkülönbséget is hozzá kell tenni. A névleges motorteljesítményt ne cserélje fel a mért átlagos villamos felvétellel; a kettő eltérő szerepet tölt be az értékelésben."
+        ], formula: "(18 − 15) kW × 4 000 óra/év × 70 Ft/kWh = 840 000 Ft/év", sourceIds: ["cost"]
+      },
+      {
+        id: "cnc-ajanlatkeresi-adatlap", title: "5. Ezt küldje el az összehasonlítható ajánlathoz",
+        paragraphs: [
+          "Az első egyeztetéshez nem kell kész gépházterv. A CNC-gépek adatlapja, a jelenlegi kompresszor márkája és teljesítménye, valamint a műszakrend már használható kiindulópont. Külön soron jelezze az új gép várható indulását, a későbbi bővítést és azt, marad-e tartalék berendezés a rendszerben.",
+          "Az ajánlatban ugyanarra az üzemi feladatra kérje a légszállítást, a nyomást, a levegőkezelést és a teljes villamos felvételt. Az ismert adatokból közben készíthet energiaoldali előkalkulációt. Ha pedig már a beszerzést szervezi, közvetlenül a CNC-műhelyre szóló gépajánlatkérést válassza; a hiányzó részletek az egyeztetésen pontosíthatók."
+        ], bullets: ["CNC-géptípusok, gyártói levegőelőírások és egyidejű működés.", "Meglévő kompresszor, ismert panasz, rendelkezésre állási elvárás.", "Műszakrend, saját energiaár és a telepítés helyszíni feltételei."]
+      }
+    ],
+    faq: [
+      { question: "Nagyobb tartállyal elkerülhető a kompresszorcsere?", answer: "Ismert, rövid igénycsúcsnál a megfelelő tárolás része lehet a megoldásnak. Tartósan nagyobb levegőigénynél azonban a feltöltési kapacitást is biztosítani kell. A mért nyomásprofil és az időarányok alapján lehet a két helyzetet elkülöníteni." },
+      { question: "A kalkulátor megmondja, melyik gép látja el a CNC-műhelyt?", answer: "A kalkulátor energiaoldali előbecslést és további egyeztetéshez használható kiindulópontot ad. A tényleges légszállítási, nyomás- és levegőminőségi alkalmasságot a CNC-gépek előírásai és az üzemi igény alapján külön kell ellenőrizni." }
+    ],
+    cta: { title: "Nézze meg saját műhelye energiaoldali lehetőségét", text: "A gépadatok és a saját üzemóra alapján indulhat az előbecslés." },
+    relatedSlugs: ["csavarkompresszor-meretezes-hibak", "fix-vagy-vsd-csavarkompresszor", "csavarkompresszor-teljes-elettartam-koltseg"]
+  },
+  {
     slug: "csavarkompresszor-aramfogyasztas-szamitasa",
     title: "Mennyi áramot fogyaszt a csavarkompresszora? Számolja ki az éves költséget",
     description: "Felvett teljesítmény, üzemóra és áramár: így számolja ki csavarkompresszora éves fogyasztását. Konkrét példák és ingyenes kalkulátor.",
@@ -655,7 +706,7 @@ export const blogPosts: BlogPost[] = sourcePosts.map((post) => {
     seoTitle: journey.seoTitle,
     description: journey.description,
     intro: journey.intro,
-    updatedAt: "2026-11-01",
+    updatedAt: post.updatedAt ?? (post.publishedAt > "2026-11-01" ? post.publishedAt : "2026-11-01"),
     journey,
     sections: post.slug === "csavarkompresszor-meretezes-hibak"
       ? [...post.sections, journey.decisionSection]
@@ -663,4 +714,4 @@ export const blogPosts: BlogPost[] = sourcePosts.map((post) => {
     faq: [...journey.objections, ...post.faq],
     cta: journey.finalCta
   };
-});
+}).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));

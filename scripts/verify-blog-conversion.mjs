@@ -34,10 +34,17 @@ function check(name, action) {
   action(); checks.push({ name, status: "passed" });
 }
 const wordCounts = [];
-check("Exactly ten distinct articles and matching attribution catalog", () => {
-  assert.equal(blogPosts.length, 10);
-  assert.equal(new Set(blogPosts.map(p => p.slug)).size, 10);
+check("Growing article library retains unique URLs and a matching attribution catalog", () => {
+  assert.ok(blogPosts.length >= 10);
+  assert.equal(new Set(blogPosts.map(p => p.slug)).size, blogPosts.length);
   assert.deepEqual(blogPosts.map(p => p.slug).sort(), Object.keys(blogContextCatalog).sort());
+  for (let index = 0; index < blogPosts.length; index++) {
+    const post = blogPosts[index];
+    assert.match(post.publishedAt, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(post.updatedAt, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(post.updatedAt >= post.publishedAt, `${post.slug}: modified before publication`);
+    if (index) assert.ok(blogPosts[index - 1].publishedAt >= post.publishedAt, "Newest article must appear first");
+  }
 });
 check("Every article has unique buyer copy, an actionable checklist and valid next step", () => {
   for (const post of blogPosts) {
@@ -64,7 +71,7 @@ check("Every article has unique buyer copy, an actionable checklist and valid ne
     wordCounts.push({ slug: post.slug, words, stage: post.journey.stage });
   }
   for (const field of ["title", "quickAnswer", "outcome"]) {
-    assert.equal(new Set(blogPosts.map(p => p.journey[field])).size, 10, `${field} is generic or repeated`);
+    assert.equal(new Set(blogPosts.map(p => p.journey[field])).size, blogPosts.length, `${field} is generic or repeated`);
   }
 });
 check("All three buyer paths use real articles and progress toward a decision", () => {

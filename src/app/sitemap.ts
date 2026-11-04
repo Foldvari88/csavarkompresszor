@@ -8,8 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: absoluteUrl("/blog"),
-      lastModified: new Date(`${blogPosts[0].updatedAt}T12:00:00+01:00`),
-      changeFrequency: "monthly",
+      lastModified: new Date(`${blogPosts.reduce((latest, post) => post.updatedAt > latest ? post.updatedAt : latest, blogPosts[0].updatedAt)}T12:00:00+01:00`),
+      changeFrequency: "daily",
       priority: 0.8
     },
     ...blogPosts.map((post) => ({

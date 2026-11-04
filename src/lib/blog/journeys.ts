@@ -20,6 +20,35 @@ export const buyerPaths = [
 ] satisfies Array<{ id: string; role: BuyerRole; title: string; text: string; slugs: BlogSlug[] }>;
 
 export const blogJourneys = {
+  "csavarkompresszor-cnc-muhelybe": {
+    title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",
+    seoTitle: "Kompresszor CNC-géphez: méretezés és energiaköltség",
+    description: "Ipari kompresszort választ CNC-műhelybe? Nyomás, légszállítás, szárítás és éves áramköltség: ezekkel az adatokkal kérjen megalapozott ajánlatot.",
+    stage: "comparison", audience: ["technical", "owner", "procurement"],
+    intro: [
+      "Megérkezik az új CNC-megmunkálóközpont, és felmerül a kérdés: elég lesz hozzá a meglévő kompresszor? A katalógusban szereplő kW és a tartály literértéke önmagában nem ad választ. A gép működéséhez szükséges levegőt a megfelelő nyomáson, megfelelő minőségben és a terhelt pillanatokban is biztosítani kell.",
+      "Ez az útmutató forgácsoló CNC-gépeket használó műhelyeknek segít előkészíteni a kompresszorválasztást. Nem a lézervágás technológiai vágógázának méretezéséről szól. Végigvesszük az ajánlatkéréshez szükséges adatokat, majd egy feltételezett példán forintra fordítjuk az energiaigényt."
+    ],
+    quickAnswer: "A CNC-géphez a saját gyártói előírásából induljon ki: szükséges légszállítás, megengedett nyomástartomány és levegőminőség. Ezek mellé kell az egyidejű fogyasztás, a műszakrend és a hálózat vizsgálata. A kompresszor névleges kW-ja az energiaköltség becsléséhez hasznos, de önmagában nem igazolja a gép alkalmasságát.",
+    outcome: "El tud készíteni egy CNC-műhelyre szabott ajánlatkérési adatlapot, és külön látja a műszaki alkalmasságot meg az éves energiahatást.",
+    decisionSection: {
+      id: "uj-cnc-a-meglevo-muhelyben", title: "Új CNC-gép a műhelyben: bővíteni, javítani vagy cserélni érdemes?",
+      paragraphs: [
+        "Tegyük fel, hogy két megmunkálóközpont mellé egy harmadik érkezik. Ez szemléltető döntési helyzet, nem ügyfélreferencia. A korábbi gép üzemórája és a harmadik CNC kézikönyve jó kezdet, de az új egyidejű terhelést és a leállás nélküli ellátás igényét is meg kell határozni.",
+        "Ha a jelenlegi rendszer csak rövid igénycsúcsnál bizonytalan, a helyi nyomásesés, a tárolás és a vezérlés vizsgálata lehet az első feladat. Ha az új, tartós levegőigény meghaladja az igazolt kapacitást, bővítés vagy csere kerülhet napirendre. A két helyzetre más műszaki ajánlat szükséges.",
+        "Az ajánlatkérésben jelezze, mikor indul az új gép, mi marad tartaléknak, és mely adat még becslés. Így a szakmai egyeztetés konkrét termelési feladatra indul. A kalkulátor ehhez az energiaoldali nagyságrendet adja hozzá; a légszállítási méretezést a tényleges igény alapján kell lezárni."
+      ]
+    },
+    checklist: ["CNC-gépenként a gyártó levegőigénye, nyomása és minőségi előírása.", "Egyidejű üzem, műszakrend, jelenlegi kompresszor és tervezett bővítés.", "Saját üzemóra és energiaár, valamint az ajánlatból elvárt teljes telepítési tartalom."],
+    objections: [
+      { question: "Minden CNC-géphez olajmentes kompresszor kell?", answer: "Ezt a fogyasztó gyártói követelménye dönti el. A kompresszor kialakítása és a teljes levegő-előkészítés együtt számít. A megengedett olaj-, nedvesség- és részecskeszintet kell tisztázni, majd ehhez megfelelő rendszert ajánlani." },
+      { question: "Az új CNC még nincs a műhelyben. Kérhetek már ajánlatot?", answer: "Igen. A pontos géptípus, a gyártói előtelepítési adatlap és a tervezett műszakrend alapján elindítható az egyeztetés. A helyszíni hálózati és telepítési feltételeket a végleges kiválasztás előtt pontosítani kell." }
+    ],
+    midCta: { title: "A gépajánlat mellé tegye oda a saját éves energiaköltségét", text: "Induljon a jelenlegi kompresszor adataival, a műhely valós üzemórájával és saját áramárával. A becsült éves különbség segít az ajánlatok pénzügyi értékelésében." },
+    finalCta: { title: "A következő kompresszora a CNC-műhely feladatára legyen kiválasztva", text: "Készítsen saját energiaoldali előbecslést, majd a CNC-adatlappal és a bővítési tervvel kérjen műszaki egyeztetést. Így a megtakarítási elképzelés összeérhet a tényleges levegőigénnyel." },
+    offer: "replacement", offerLabel: "CNC-műhelyhez kérek gépajánlatot", offerText: "Írja le a CNC-gépek típusát, számát és a tervezett műszakot. Ha még hiányzik adat, ezt is jelezheti; az első egyeztetésen pontosítható az ajánlati feladat.",
+    nextSlug: "csavarkompresszor-teljes-elettartam-koltseg", nextReason: "Ha a műszaki igény már tisztább, a teljes költségről szóló cikk segít közös alapon összevetni a gépárat, az energiát és a szervizt."
+  },
   "csavarkompresszor-aramfogyasztas-szamitasa": {
     title: "Csavarkompresszor áramfogyasztása: mennyibe kerül évente a sűrített levegő?",
     seoTitle: "Csavarkompresszor áramfogyasztása és éves költsége",

@@ -1,5 +1,6 @@
 // Public editorial identifiers only. Keep this catalog small enough for form clients.
 export const blogContextCatalog = {
+  "csavarkompresszor-cnc-muhelybe": { topic: "a CNC-műhely kompresszorának kiválasztása", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-aramfogyasztas-szamitasa": { topic: "a kompresszor éves áramköltsége", stage: "discovery", offer: "replacement" },
   "csavarkompresszor-csere-megterulese": { topic: "a kompresszorcsere megtérülése", stage: "decision", offer: "replacement" },
   "fix-vagy-vsd-csavarkompresszor": { topic: "a fix és az RS/VSD gép összehasonlítása", stage: "comparison", offer: "replacement" },

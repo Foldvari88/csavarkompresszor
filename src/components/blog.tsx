@@ -81,7 +81,7 @@ export function BlogTeaser() {
       <div className="container">
         <div className="blog-section-heading">
           <div><span className="blog-eyebrow"><BookOpen size={16} aria-hidden="true" /> Csavarkompresszor tudástár</span><h2 id="blog-tudastar">A magas számlától a megalapozott gépajánlatig</h2><p>Költséget tárna fel, műszaki megoldást választana vagy már ajánlatokat hasonlítana össze? Kezdje a saját döntésénél.</p></div>
-          <Link className="blog-text-link" href="/blog">Mind a 10 cikk <ArrowRight size={17} aria-hidden="true" /></Link>
+          <Link className="blog-text-link" href="/blog">Összes cikk <ArrowRight size={17} aria-hidden="true" /></Link>
         </div>
         <div className="blog-card-grid">{blogPosts.slice(0, 3).map((post, index) => <BlogCard key={post.slug} post={post} number={index + 1} />)}</div>
       </div>

@@ -49,9 +49,13 @@ export type BlogJourney = {
   nextReason: string;
 };
 
-export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey">;
+export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey"> & { updatedAt?: string };
 
 export const blogSources: Record<string, { title: string; url: string }> = {
+  haasAir: {
+    title: "Haas VF-4SS előtelepítési útmutató: a gép levegőellátása",
+    url: "https://legacy-aem.haascnc.com/owners/pre-install-guide/mills-pre-install/VF-4SS.html"
+  },
   cost: {
     title: "U.S. Department of Energy: Determine the Cost of Compressed Air for Your Plant",
     url: "https://www.energy.gov/sites/default/files/2014/05/f16/compressed_air1.pdf"

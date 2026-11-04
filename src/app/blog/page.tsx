@@ -6,7 +6,7 @@ import { blogPostPath, blogPosts } from "@/lib/blog";
 import { absoluteUrl, siteName } from "@/lib/seo";
 
 const title = "Csavarkompresszor: fogyasztás, gépválasztás és megtérülés";
-const description = "10 döntési útmutató cégvezetőknek, műszaki vezetőknek és beszerzőknek. A magas energiaköltségtől a saját kalkuláción át a személyre szabott ajánlatig.";
+const description = "Csavarkompresszor döntési útmutatók cégvezetőknek, műszaki vezetőknek és beszerzőknek. Az energiaköltségtől a saját kalkuláción át az ajánlatkérésig.";
 
 export const metadata: Metadata = {
   title, description,
@@ -49,7 +49,7 @@ export default function BlogIndexPage() {
         </section>
         <BlogBuyerPaths />
         <section className="container blog-index-content" id="cikkek" aria-labelledby="cikkek-cim">
-          <div className="blog-section-heading"><div><span className="blog-eyebrow">Fogyasztástól a beruházási döntésig</span><h2 id="cikkek-cim">Válaszok a költséges kérdésekre</h2></div><span className="blog-count">10 szakmai cikk</span></div>
+          <div className="blog-section-heading"><div><span className="blog-eyebrow">Fogyasztástól a beruházási döntésig</span><h2 id="cikkek-cim">Válaszok a költséges kérdésekre</h2></div><span className="blog-count">{blogPosts.length} szakmai cikk</span></div>
           <div className="blog-card-grid">{blogPosts.map((post, index) => <BlogCard key={post.slug} post={post} number={index + 1} />)}</div>
           <BlogCta title="A következő lépés már az Ön számairól szól" text="Adja meg kompresszora adatait, az éves üzemórát és a villamosenergia-árat. Nézze meg, mekkora lehet a korszerűsítés becsült éves energiahatása." />
         </section>
