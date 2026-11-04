@@ -4,7 +4,7 @@ Időzítés: minden nap 08:00, Europe/Budapest. A felhasználó napi egy új, é
 
 ## Egy futás eredménye
 
-Pontosan egy, aznapra dátumozott, egyedi és ellenőrzött cikk a https://www.iparikalkulator.hu/blog alatt. A siker feltétele a tényleges éles URL, a tartalom és a CTA működésének visszaellenőrzése. Egy mentett piszkozat vagy Git-push önmagában nem jelent sikeres publikálást.
+Pontosan egy, aznapra dátumozott, egyedi és ellenőrzött cikk a https://www.iparikalkulator.hu/blog alatt. A siker feltétele a tényleges éles URL, a tartalom és a CTA működésének visszaellenőrzése. Egy mentett piszkozat vagy Git-push önmagában nem jelent sikeres publikálást. A felhasználó külön kérésére kézzel létrehozott többcikkes csomag önálló feladat, nem a napi futás visszamenőleges pótlása. A napi automatizáció ne készítse el újra az ezekkel már lefedett témákat.
 
 ## Kutatás és témaválasztás
 
@@ -26,7 +26,7 @@ A fő CTA felirata mindenhol „Tovább a kalkulátorra”. A környező szöveg
 
 Forrás: https://github.com/Foldvari88/csavarkompresszor, főág `main`; élesítés: a meglévő Vercel-kapcsolat. A kis munkapéldány jelenleg `D:\ChatGPT\kompresszor-blog-konverzio\repo`. Frissíts a tényleges főágról, és vizsgáld meg a helyi módosításokat. Más munkáját őrizd meg; ne force-pusholj és ne végezz általános takarító resetet. Használj dátumozott `codex/` ágat.
 
-Az új cikkhez frissítsd együtt a `src/lib/blog/posts.ts`, `src/lib/blog/journeys.ts` és `src/lib/content-context.ts` katalógusait. Új szakmai hivatkozás a `src/lib/blog/types.ts` forráskatalógusába kerülhet. A kapcsolódó és következő cikk csak létező URL legyen, a továbbhaladás vezessen döntési cikkhez vagy ajánlatkéréshez. A megjelenési és frissítési dátum legyen valós, Europe/Budapest szerinti nap. A lista új cikket előre sorol, a számláló és az oldaltérkép automatikus.
+Az új cikkhez frissítsd együtt a `src/lib/blog/posts.ts`, `src/lib/blog/journeys.ts` és `src/lib/content-context.ts` katalógusait. A meglévő általános iparági útmutatók tartalma és döntési szövege a `src/lib/blog/industry-guides.ts` fájlban van, amelyet a cikk- és továbbhaladási katalógus is beolvas. A napi új cikk saját megjelenési dátummal kerüljön a katalógusba; a kézi iparági csomag rögzített dátumát ne örökölje. Új szakmai hivatkozás a `src/lib/blog/types.ts` forráskatalógusába kerülhet. A kapcsolódó és következő cikk csak létező URL legyen, a továbbhaladás vezessen döntési cikkhez vagy ajánlatkéréshez. A megjelenési és frissítési dátum legyen valós, Europe/Budapest szerinti nap. A lista új cikket előre sorol, a számláló és az oldaltérkép automatikus.
 
 Futtasd a `node scripts/verify-blog-conversion.mjs` ellenőrzést. A meglévő függőségekkel a szerveroldali sémák is vizsgálhatók; csak az ellenőrzés kedvéért ne telepíts nagy függőségcsomagot. A Vercel előnézeti összeállításának sikeresnek kell lennie az éles főági frissítés előtt. Ha a főág közben változott, őrizd meg és illeszd hozzá a változtatást. A meglévő Git-hitelesítést használd; titkot ne írj naplóba.
 
