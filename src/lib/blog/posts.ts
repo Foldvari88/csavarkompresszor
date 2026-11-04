@@ -1,8 +1,10 @@
 import type { BlogArticle, BlogPost } from "./types";
 import { blogJourneys } from "./journeys";
 import type { BlogSlug } from "../content-context";
+import { industryArticles } from "./industry-guides";
 
 const sourcePosts: BlogArticle[] = [
+  ...industryArticles,
   {
     slug: "csavarkompresszor-cnc-muhelybe",
     title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",

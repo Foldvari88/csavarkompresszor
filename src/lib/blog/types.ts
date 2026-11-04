@@ -52,6 +52,13 @@ export type BlogJourney = {
 export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey"> & { updatedAt?: string };
 
 export const blogSources: Record<string, { title: string; url: string }> = {
+  printingAir: { title: "Becker: nyomdai nyomó- és vákuumellátás", url: "https://www.becker-international.com/de/en/products/combined-pressure-vacuum-pumps.htm" },
+  vehicleAir: { title: "Chicago Pneumatic: a levegőigény és az egyidejű használat", url: "https://compressors.cp.com/en-us/north-america/understanding-compressed-air" },
+  foodAir: { title: "Parker: a sűrített levegő szennyeződése az élelmiszeriparban", url: "https://www.parker.com/content/dam/Parker-com/Literature/IGFG/PDF-Files/Compressed_Air_Contamination_Food_Industry.pdf" },
+  airPurity: { title: "Atlas Copco: útmutató a levegőminőség követelményeihez", url: "https://www.atlascopco.com/content/dam/atlas-copco/compressor-technique/oil-free-air/documents/ISO%20regulations%20best%20practices%20guide.pdf" },
+  woodAir: { title: "Kaeser: sűrített levegő és vákuum a faiparban", url: "https://us.kaeser.com/compressed-air-resources/applications/wood-product-manufacturing/" },
+  packagingAir: { title: "SMC: pneumatikai megoldások a csomagolóiparban", url: "https://media.smc.eu/asset/4f141a85-48c0-4740-a56c-b68b7fd60f7f/Packaging-EN.pdf" },
+  plasticAir: { title: "Atlas Copco: eltérő levegőfeladatok a műanyag-palack gyártásában", url: "https://www.atlascopco.com/en-in/compressors/air-compressor-blog/compressed-air-systems-for-pet-bottle-and-plastic-blow-moulding" },
   haasAir: {
     title: "Haas VF-4SS előtelepítési útmutató: a gép levegőellátása",
     url: "https://legacy-aem.haascnc.com/owners/pre-install-guide/mills-pre-install/VF-4SS.html"

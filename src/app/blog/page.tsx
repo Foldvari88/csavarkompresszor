@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
-import { BlogBuyerPaths, BlogCard, BlogCta, BlogFooter, BlogHeader, CalculatorLink } from "@/components/blog";
+import { BlogBuyerPaths, BlogCard, BlogCta, BlogFooter, BlogHeader, BlogIndustryLinks, CalculatorLink } from "@/components/blog";
 import { blogPostPath, blogPosts } from "@/lib/blog";
 import { absoluteUrl, siteName } from "@/lib/seo";
 
@@ -47,6 +47,7 @@ export default function BlogIndexPage() {
             </div>
           </div>
         </section>
+        <BlogIndustryLinks />
         <BlogBuyerPaths />
         <section className="container blog-index-content" id="cikkek" aria-labelledby="cikkek-cim">
           <div className="blog-section-heading"><div><span className="blog-eyebrow">Fogyasztástól a beruházási döntésig</span><h2 id="cikkek-cim">Válaszok a költséges kérdésekre</h2></div><span className="blog-count">{blogPosts.length} szakmai cikk</span></div>

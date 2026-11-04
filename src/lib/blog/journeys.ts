@@ -1,5 +1,6 @@
 import type { BlogJourney, BuyerRole, BlogStage } from "./types";
 import type { BlogSlug } from "../content-context";
+import { industryJourneys } from "./industry-guides";
 
 export const buyerRoleLabels: Record<BuyerRole, string> = {
   owner: "Cégvezetőknek és pénzügyi döntéshozóknak",
@@ -20,6 +21,7 @@ export const buyerPaths = [
 ] satisfies Array<{ id: string; role: BuyerRole; title: string; text: string; slugs: BlogSlug[] }>;
 
 export const blogJourneys = {
+  ...industryJourneys,
   "csavarkompresszor-cnc-muhelybe": {
     title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",
     seoTitle: "Kompresszor CNC-géphez: méretezés és energiaköltség",

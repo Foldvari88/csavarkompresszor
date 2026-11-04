@@ -1,5 +1,11 @@
 // Public editorial identifiers only. Keep this catalog small enough for form clients.
 export const blogContextCatalog = {
+  "csavarkompresszor-nyomdaba": { topic: "a nyomda sűrítettlevegő-ellátása", stage: "comparison", offer: "replacement" },
+  "csavarkompresszor-autoszervizbe": { topic: "az autószerviz kompresszorának kiválasztása", stage: "comparison", offer: "replacement" },
+  "csavarkompresszor-elelmiszeriparba": { topic: "az élelmiszeripari üzem levegőellátási igénye", stage: "decision", offer: "replacement" },
+  "csavarkompresszor-faipari-muhelybe": { topic: "a faipari műhely sűrítettlevegő-igénye", stage: "comparison", offer: "replacement" },
+  "csavarkompresszor-csomagolouzembe": { topic: "a csomagolóüzem levegőellátása", stage: "comparison", offer: "replacement" },
+  "csavarkompresszor-muanyag-feldolgozas": { topic: "a műanyag-feldolgozó üzem működtető levegője", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-cnc-muhelybe": { topic: "a CNC-műhely kompresszorának kiválasztása", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-aramfogyasztas-szamitasa": { topic: "a kompresszor éves áramköltsége", stage: "discovery", offer: "replacement" },
   "csavarkompresszor-csere-megterulese": { topic: "a kompresszorcsere megtérülése", stage: "decision", offer: "replacement" },

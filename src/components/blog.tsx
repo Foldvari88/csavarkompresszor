@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { ArrowRight, BookOpen, Calculator, Check, Clock3 } from "lucide-react";
-import { blogPostPath, blogPosts, blogStageLabels, buyerPaths, buyerRoleLabels, getBlogPost, getReadingMinutes, type BlogPost } from "@/lib/blog";
+import { blogPostPath, blogPosts, blogStageLabels, buyerPaths, buyerRoleLabels, getBlogPost, getReadingMinutes, industryGuideLinks, type BlogPost } from "@/lib/blog";
 import { contentDestination, type BlogSlug } from "@/lib/content-context";
 import "./blog.css";
 
@@ -118,6 +118,19 @@ export function BlogPreparation({ post }: { post: BlogPost }) {
       <h2 id="sajat-kovetkezo-lepes">Három pont a következő lépéshez</h2>
       <ul>{post.journey.checklist.map((item) => <li key={item}><Check size={18} aria-hidden="true" /><span>{item}</span></li>)}</ul>
       <p>Nem ismert minden adat? Jelölje a bizonytalanságot, és az ismert gépadatokkal induljon el az egyeztetés.</p>
+    </section>
+  );
+}
+
+export function BlogIndustryLinks() {
+  return (
+    <section className="container blog-industry-links" aria-labelledby="iparagi-utmutatok">
+      <div className="blog-section-heading"><div><span className="blog-eyebrow">A saját üzeméből induljon</span><h2 id="iparagi-utmutatok">Melyik területre keres kompresszort?</h2><p>Külön útmutatók a jellemző levegős feladatokhoz, az ajánlatkérési adatokhoz és a saját kalkulációhoz.</p></div></div>
+      <nav className="blog-industry-grid" aria-label="Iparági kompresszorútmutatók">
+        {industryGuideLinks.map(({ slug, label }) => (
+          <Link key={slug} href={blogPostPath(getBlogPost(slug)!)} prefetch={false}><span>{label}</span><ArrowRight size={18} aria-hidden="true" /></Link>
+        ))}
+      </nav>
     </section>
   );
 }

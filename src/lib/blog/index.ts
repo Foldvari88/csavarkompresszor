@@ -4,6 +4,7 @@ import type { BlogPost } from "./types";
 
 export { blogPosts };
 export { blogSources } from "./types";
+export { industryGuideLinks } from "./industry-guides";
 export { buyerPaths, buyerRoleLabels, blogStageLabels } from "./journeys";
 export type { BlogPost, BlogSection, BlogStage, BuyerRole } from "./types";
 
