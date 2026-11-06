@@ -1,5 +1,6 @@
 // Public editorial identifiers only. Keep this catalog small enough for form clients.
 export const blogContextCatalog = {
+  "hutveszarito-vagy-adszorpcios-szarito": { topic: "a sűrített levegő szárításának kiválasztása", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-nyomdaba": { topic: "a nyomda sűrítettlevegő-ellátása", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-autoszervizbe": { topic: "az autószerviz kompresszorának kiválasztása", stage: "comparison", offer: "replacement" },
   "csavarkompresszor-elelmiszeriparba": { topic: "az élelmiszeripari üzem levegőellátási igénye", stage: "decision", offer: "replacement" },

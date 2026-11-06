@@ -22,6 +22,62 @@ export const buyerPaths = [
 
 export const blogJourneys = {
   ...industryJourneys,
+  "hutveszarito-vagy-adszorpcios-szarito": {
+    "title": "Hűtveszárító vagy adszorpciós szárító? Így hasonlítsa össze az ajánlatokat",
+    "seoTitle": "Hűtveszárító vagy adszorpciós szárító? Döntési útmutató",
+    "description": "Melyik sűrítettlevegő-szárító illik az üzeméhez? Harmatpont, méretezés, regenerálás és éves költség az összehasonlítható ajánlatokhoz.",
+    "stage": "comparison",
+    "audience": [
+      "procurement",
+      "technical"
+    ],
+    "intro": [
+      "Új kompresszorra kér ajánlatot, és az egyik csomagban hűtveszárító, a másikban adszorpciós szárító szerepel. Az árkülönbség látható, a szükséges levegőminőség viszont még nincs leírva. Ilyenkor könnyű olyan berendezést összehasonlítani, amely más feladatra készült.",
+      "A döntést a fogyasztó követelményével, a hálózat hőmérsékleti viszonyaival és a valós levegőigénnyel érdemes kezdeni. Ez az útmutató abban segít, hogy a szárítás műszaki feladata és teljes költsége ugyanarra az ajánlatkérési lapra kerüljön. A kalkulátorral közben a kompresszor energiaoldali kiinduló költségét is megbecsülheti."
+    ],
+    "quickAnswer": "Hűtveszárító akkor jöhet szóba, ha az elérhető, jellemzően fagypont feletti nyomás alatti harmatpont megfelel a fogyasztóknak és a hálózatnak. Alacsonyabb harmatpontigénynél adszorpciós szárítást is vizsgálni kell. A végleges választáshoz a légszállítás, a belépési feltételek és a regenerálás költsége is szükséges.",
+    "outcome": "Össze tudja állítani azt az adatlapot, amellyel azonos üzemi feltételekre kérhet szárítást is tartalmazó gépajánlatot.",
+    "decisionSection": {
+      "id": "szaritas-ajanlati-feladat",
+      "title": "5. Az egész üzemet vagy csak egy kritikus ágat kell jobban szárítani?",
+      "paragraphs": [
+        "Tegyük fel, hogy egy üzemben a legtöbb fogyasztó meglévő levegőellátása megfelelő, egy új gép azonban alacsonyabb harmatpontot kér. Ez feltételezett döntési helyzet. Kérjen két változatot: a központi rendszer módosítását és a kritikus ág külön kezelését. Mindkettőnél ugyanazt a gépoldali követelményt kell teljesíteni.",
+        "A külön kezelés lehetőségét az adott ág légigénye, a csőhálózat és a telepítési feltételek alapján vizsgálják meg. Az ajánlatban szerepeljen a karbantartás alatti ellátás és az átadáskor végzett ellenőrzés is. A kisebb kezelt légmennyiség önmagában még nem tesz minden helyi megoldást alkalmassá.",
+        "A következő egyeztetésre vigye el a fogyasztói előírást, a hálózati vázlatot és a saját üzemadatokat. A kompresszor energiaoldali előkalkulációja mellé kérjen külön szárítói költségsort. Így a beruházásról a teljes ellátási feladat alapján dönthet."
+      ],
+      "sourceIds": [
+        "dryerLocal"
+      ]
+    },
+    "checklist": [
+      "Fogyasztói levegőminőség és nyomás alatti harmatpont, a hálózat leghidegebb szakasza.",
+      "Légigény, belépési nyomás és hőmérséklet, környezeti maximum és műszakrend.",
+      "Kompresszoradatok, saját energiaár, a szárítás és szerviz külön ajánlati költsége."
+    ],
+    "objections": [
+      {
+        "question": "Hűtveszárítóval ellátható a kültéri csővezeték?",
+        "answer": "A vezetékben várható legalacsonyabb levegő-hőmérsékletet kell összevetni a biztosított nyomás alatti harmatponttal. Ha a levegő a harmatpont alá hűl, ismét kicsapódhat a víz. A téli állapotot és a berendezés telepítési korlátait külön egyeztessék."
+      },
+      {
+        "question": "Minden élelmiszeripari vagy festési feladathoz adszorpciós szárító kell?",
+        "answer": "Az iparág neve önmagában nem ad méretezési vagy minőségi előírást. A konkrét technológia víz-, olaj- és részecskekövetelményeiből induljon ki. Ezek alapján kell kiválasztani és igazolni a teljes levegőkezelést."
+      }
+    ],
+    "midCta": {
+      "title": "Tegye az ajánlat mellé a saját kompresszora éves energiaköltségét",
+      "text": "A jelenlegi gép, a valós üzemóra és saját áramára alapján indulhat az előbecslés. A szárító villamos felvételét és regenerálását külön kérje az ajánlatadó költségszámításába."
+    },
+    "finalCta": {
+      "title": "Készítse elő a saját üzemére szóló összehasonlítást",
+      "text": "Számolja át a kompresszor energiaoldali kiinduló költségét, majd az adatlapjával kérjen teljes gépajánlatot. A kalkulátor eredményét a szárítás és a telepítés külön tételeivel egészítse ki."
+    },
+    "offer": "replacement",
+    "offerLabel": "Szárítást is tartalmazó gépajánlatot kérek",
+    "offerText": "Írja le az ajánlatkérés megjegyzésében a szükséges harmatpontot, a levegőigényt és a telepítés feltételeit. A gép és a levegőkezelés műszaki tartalma az egyeztetésen pontosítható.",
+    "nextSlug": "csavarkompresszor-teljes-elettartam-koltseg",
+    "nextReason": "A szárítási feladat tisztázása után nézze meg, hogyan lehet a beruházást, energiát és karbantartást közös időtávon összehasonlítani."
+  },
   "csavarkompresszor-cnc-muhelybe": {
     title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",
     seoTitle: "Kompresszor CNC-géphez: méretezés és energiaköltség",

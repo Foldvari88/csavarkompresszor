@@ -6,6 +6,99 @@ import { industryArticles } from "./industry-guides";
 const sourcePosts: BlogArticle[] = [
   ...industryArticles,
   {
+    "slug": "hutveszarito-vagy-adszorpcios-szarito",
+    "title": "Hűtveszárító vagy adszorpciós szárító? Így hasonlítsa össze az ajánlatokat",
+    "description": "Melyik sűrítettlevegő-szárító illik az üzeméhez? Harmatpont, méretezés, regenerálás és éves költség az összehasonlítható ajánlatokhoz.",
+    "category": "Levegőkezelés",
+    "publishedAt": "2026-11-06",
+    "intro": [],
+    "takeaways": [
+      "A nyomás alatti harmatpontot a fogyasztói igényhez és a hálózathoz kell illeszteni.",
+      "A névleges légszállítás csak a hozzá tartozó üzemi feltételekkel értelmezhető.",
+      "A szárító saját fogyasztása mellett a regenerálást és a nyomásveszteséget is vizsgálja."
+    ],
+    "sections": [
+      {
+        "id": "nyomas-alatti-harmatpont",
+        "title": "1. Először a szükséges harmatpontot rögzítse",
+        "paragraphs": [
+          "A nyomás alatti harmatpont azt mutatja meg, milyen hőmérsékleten kezd kicsapódni a vízgőz az adott nyomású levegőből. Ez eltérhet a légköri nyomáson megadott harmatponttól. Az ajánlatokban ezért azonos fogalmat és azonos mérési feltételeket kérjen.",
+          "A követelményt a felhasználó gép dokumentációjából és a hálózat körülményeiből gyűjtse ki. Jelölje a fűtetlen vagy kültéri szakaszokat is. A kelleténél mélyebb szárítás többletköltséget jelenthet, a nem elegendő szárítás pedig a lehűlő hálózatban újabb vízkiválást engedhet. A cél a szükséges minőség tartós biztosítása."
+        ],
+        "sourceIds": [
+          "dryerSelection",
+          "dryerSourcebook"
+        ]
+      },
+      {
+        "id": "hutve-vagy-adszorpcio",
+        "title": "2. Mitől különbözik a két szárítási elv?",
+        "paragraphs": [
+          "A hűtveszárító lehűti a sűrített levegőt, leválasztja a kicsapódó vizet, majd rendszerint visszamelegíti a kilépő levegőt. Gyakori ajánlati érték a +3 °C körüli nyomás alatti harmatpont, de mindig a konkrét adatlap vállalását kell ellenőrizni.",
+          "Az adszorpciós szárító nedvességmegkötő anyaggal dolgozik. Ezt regenerálni kell; az ehhez használt levegő és energia a konstrukciótól függ. Kaphatók például −40 °C harmatpontra megadott változatok. Az alacsonyabb szám önmagában nem beszerzési előny: akkor indokolt, ha a feladat ezt igényli."
+        ],
+        "sourceIds": [
+          "dryerSelection",
+          "dryerMaintenance"
+        ]
+      },
+      {
+        "id": "szarito-tenyleges-kapacitas",
+        "title": "3. A katalógus légszállítása mellé kérje oda a feltételeket",
+        "paragraphs": [
+          "Azonos m³/perc érték mögött eltérő belépési nyomás, levegő-hőmérséklet és környezeti hőmérséklet állhat. A helyszíni feltételek megváltoztathatják a kezelhető légmennyiséget. A gyártó korrekciós tényezőit az adott típusra kell alkalmazni.",
+          "Ne csak egy átlagos tavaszi műszakot írjon az adatlapra. Kérje a választás ellenőrzését a várható legkedvezőtlenebb feltételekre is, beleértve a nyári gépházat és a szükséges csúcsterhelést. Az ajánlatadó mutassa meg, milyen belépési adatok mellett biztosítja az elvárt kimeneti minőséget. A kompresszor motorjának kW-értéke ezt a vizsgálatot nem helyettesíti."
+        ],
+        "sourceIds": [
+          "dryerSourcebook"
+        ]
+      },
+      {
+        "id": "szaritas-eves-koltsege",
+        "title": "4. A saját villamos felvétel csak az egyik költségsor",
+        "paragraphs": [
+          "Kérjen külön adatot a szárító villamosenergia-igényéről, az esetleges regeneráló levegőről, a szűrőkről és a nyomásveszteségről. A regenerálásra elhasznált sűrített levegő előállítása a kompresszort is terheli. A hővel vagy fúvóval regenerált kiviteleknél ezek energiaigényét is számításba kell venni.",
+          "Szemléltető számpéldaként 1 kW átlagos többletfelvétel, évi 4 000 óra és kizárólag példának választott 70 Ft/kWh mellett 280 000 Ft éves energiaköltség adódik. Ez feltételezett költség, nem szárítótípusokra érvényes különbség vagy megtakarítási ígéret.",
+          "A két ajánlatot ugyanarra a hasznos levegőigényre számoltassa ki. Tisztázzák, melyik mérési pont tartalmazza már a szárítót, hogy egy tételt se számoljanak kétszer."
+        ],
+        "formula": "1 kW × 4 000 óra/év × 70 Ft/kWh = 280 000 Ft/év",
+        "sourceIds": [
+          "dryerSourcebook"
+        ]
+      },
+      {
+        "id": "viz-a-halozatban",
+        "title": "6. Meglévő vizesedésnél a hibát is tárják fel",
+        "paragraphs": [
+          "Ha korábban megfelelő rendszerben jelenik meg a víz, jegyezze fel az időpontot, a terhelést, a gépház hőmérsékletét és a kijelzett harmatpontot. A romló teljesítmény hátterében túlterhelés, nem megfelelő hűtés vagy hibás kondenzátumürítés is állhat. Ezekre más beavatkozás szükséges, mint egy új minőségi követelmény teljesítésére.",
+          "A szervizzel ellenőriztesse a szárítót és a hozzá tartozó előkészítő elemeket. Kérjen diagnózist és javítási tartalmat, mielőtt pusztán a panasz alapján nagyobb berendezést rendelne. Az új gépajánlatban pedig rögzítsék, mely meglévő elemek maradnak, és melyeket cserélik."
+        ],
+        "sourceIds": [
+          "dryerMaintenance"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "A szárító kiváltja a sűrítettlevegő-szűrőt?",
+        "answer": "A szárítás és a részecske-, illetve olajterhelés kezelése külön feladat. Az elő- és utószűrést a szárító gyártói előírásához és a fogyasztó minőségi követelményéhez kell kiválasztani. A szárító önmagában nem igazolja a teljes levegőminőséget."
+      },
+      {
+        "question": "A kalkulátor kiválasztja a megfelelő szárítót?",
+        "answer": "A kalkulátor a kompresszor energiaoldali előbecsléséhez ad kiindulópontot. A szárítót a harmatpont, légigény és üzemi körülmények alapján külön kell méretezni. A szárítás éves költségét az ajánlatadóval egészítse hozzá a teljes összehasonlításhoz."
+      }
+    ],
+    "cta": {
+      "title": "Készítse elő a saját üzemére szóló összehasonlítást",
+      "text": "Számolja át a kompresszor energiaoldali kiinduló költségét, majd az adatlapjával kérjen teljes gépajánlatot. A kalkulátor eredményét a szárítás és a telepítés külön tételeivel egészítse ki."
+    },
+    "relatedSlugs": [
+      "csavarkompresszor-meretezes-hibak",
+      "csavarkompresszor-teljes-elettartam-koltseg",
+      "csavarkompresszor-cnc-muhelybe"
+    ]
+  },
+  {
     slug: "csavarkompresszor-cnc-muhelybe",
     title: "Kompresszor CNC-géphez: méretezés, levegőminőség és éves költség",
     description: "CNC-műhelyre szabott ajánlatkérési útmutató és energiaoldali számítási példa.",

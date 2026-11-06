@@ -52,6 +52,10 @@ export type BlogJourney = {
 export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey"> & { updatedAt?: string };
 
 export const blogSources: Record<string, { title: string; url: string }> = {
+  dryerSelection: {"title":"Kaeser: hűtveszárítók és adszorpciós szárítók kiválasztása","url":"https://us.kaeser.com/compressed-air-resources/compressed-air-tips/compressed-air-treatment-guide/dryer-selection-guide.aspx"},
+  dryerSourcebook: {"title":"U.S. Department of Energy: sűrítettlevegő-szárítás és rendszerköltség (2016)","url":"https://www.energy.gov/sites/default/files/2016/03/f30/Improving%20Compressed%20Air%20Sourcebook%20version%203.pdf"},
+  dryerMaintenance: {"title":"Kaeser: sűrítettlevegő-szárítók karbantartása","url":"https://us.kaeser.com/compressed-air-resources/kaeser-talks-shop/air-dryer-maintenance.aspx"},
+  dryerLocal: {"title":"Kaeser: adszorpciós szárítás méretezése és helyi alkalmazása","url":"https://us.kaeser.com/compressed-air-resources/kaeser-talks-shop/desiccant-dryers-part-two.aspx"},
   printingAir: { title: "Becker: nyomdai nyomó- és vákuumellátás", url: "https://www.becker-international.com/de/en/products/combined-pressure-vacuum-pumps.htm" },
   vehicleAir: { title: "Chicago Pneumatic: a levegőigény és az egyidejű használat", url: "https://compressors.cp.com/en-us/north-america/understanding-compressed-air" },
   foodAir: { title: "Parker: a sűrített levegő szennyeződése az élelmiszeriparban", url: "https://www.parker.com/content/dam/Parker-com/Literature/IGFG/PDF-Files/Compressed_Air_Contamination_Food_Industry.pdf" },
