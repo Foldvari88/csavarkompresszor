@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: blogPostPath(post) },
     openGraph: {
       title: post.title, description: post.description, url: blogPostPath(post), type: "article",
-      publishedTime: `${post.publishedAt}T12:00:00+01:00`, modifiedTime: `${post.updatedAt}T12:00:00+01:00`,
+      publishedTime: post.publishedAt, modifiedTime: post.updatedAt,
       authors: ["iparikalkulator.hu"], section: post.category,
       locale: "hu_HU", siteName: "iparikalkulator.hu",
       images: [{ url: "/images/industrial-compressor-og.jpg", width: 1200, height: 630, alt: post.title }]

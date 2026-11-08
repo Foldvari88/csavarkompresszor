@@ -8,13 +8,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: absoluteUrl("/blog"),
-      lastModified: new Date(`${blogPosts.reduce((latest, post) => post.updatedAt > latest ? post.updatedAt : latest, blogPosts[0].updatedAt)}T12:00:00+01:00`),
+      lastModified: blogPosts.reduce((latest, post) => post.updatedAt > latest ? post.updatedAt : latest, blogPosts[0].updatedAt),
       changeFrequency: "daily",
       priority: 0.8
     },
     ...blogPosts.map((post) => ({
       url: absoluteUrl(blogPostPath(post)),
-      lastModified: new Date(`${post.updatedAt}T12:00:00+01:00`),
+      lastModified: post.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.7
     })),
