@@ -10,7 +10,7 @@ const sourcePosts: BlogArticle[] = [
     "title": "Hűtveszárító vagy adszorpciós szárító? Így hasonlítsa össze az ajánlatokat",
     "description": "Melyik sűrítettlevegő-szárító illik az üzeméhez? Harmatpont, méretezés, regenerálás és éves költség az összehasonlítható ajánlatokhoz.",
     "category": "Levegőkezelés",
-    "publishedAt": "2026-11-06",
+    "publishedAt": "2026-11-08",
     "intro": [],
     "takeaways": [
       "A nyomás alatti harmatpontot a fogyasztói igényhez és a hálózathoz kell illeszteni.",
@@ -39,7 +39,7 @@ const sourcePosts: BlogArticle[] = [
         ],
         "sourceIds": [
           "dryerSelection",
-          "dryerMaintenance"
+          "dryerDesiccant"
         ]
       },
       {
