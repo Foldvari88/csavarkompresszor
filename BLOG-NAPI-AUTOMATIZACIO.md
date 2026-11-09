@@ -1,6 +1,8 @@
 # Napi tudástárcikk – iparikalkulator.hu
 
-Időzítés: minden nap 08:00, Europe/Budapest. A felhasználó napi egy új, éles tudástárcikket kért releváns Google-keresőkifejezések alapján, kalkulátorra vezető CTA-val. A publikálás engedélyezett; a napi cikkhez nem kell új jóváhagyás.
+Állapot 2026. november 9-től: az ütemezett feladat SZÜNETEL. A felhasználó legutóbbi feltétele szerint csak az eredeti tíz cikk vásárlószerzési és konverziós céljának igazolt teljesülése után kapcsolható be. A technikai ellenőrzés vagy egy kedvező keresési helyezés önmagában nem igazolja ezt; a valódi érdeklődők továbbhaladásáról és az ajánlatkérések minőségéről is bizonyíték szükséges. A meglévő cikkek célhoz kapcsolódó javítása folytatható, új napi cikket a feltétel teljesüléséig ne publikálj.
+
+Bekapcsolás utáni időzítés: hétfőtől péntekig 08:00, Europe/Budapest, hétköznaponként pontosan egy új cikk. Szombaton és vasárnap nincs új publikálás, az elmulasztott napokat ne pótold több cikkel. Hétfő: csavarkompresszorok; kedd: Donaldson sűrítettlevegő-szűrés, szárítás és levegőkezelés; szerda: CompAir kompresszorok; csütörtök: olajkenésű kompresszorok; péntek: olajmentes kompresszorok. A megkezdett, még nem publikált napi rekord folytatása elsőbbséget élvez a témarenddel szemben. A Donaldson-tartalom a tényleges gyártói termékkörre épüljön. A feltétel teljesülése után a napi éles publikálás engedélyezett, külön jóváhagyást nem kell kérni.
 
 ## Egy futás eredménye
 
