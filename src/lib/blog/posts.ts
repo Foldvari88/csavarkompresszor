@@ -602,10 +602,11 @@ const sourcePosts: BlogArticle[] = [
   },
   {
     slug: "suritett-levego-energiaaudit-elokeszites",
-    title: "Sűrített levegő energiaaudit: mit mérjen meg kompresszorcsere előtt?",
-    description: "Mérési terv kompresszorcsere előtt: villamos felvétel, nyomás, légszállítás, terhelési profil és veszteségek. Így készítse elő az energiaauditot.",
+    title: "Sűrített levegő energiaaudit: mit mérjen és milyen eredményt kérjen?",
+    description: "Sűrített levegő energiaauditot készít elő? Mérési terv, megtakarítási számpélda és ajánlatkérési lista a rendszerjavítás és gépcsere összevetéséhez.",
     category: "Energiaaudit",
     publishedAt: "2026-10-31",
+    updatedAt: "2026-11-09",
     intro: [
       "Magas a villanyszámla, gyakori a nyomáspanasz, és az új kompresszor ajánlata már az asztalon van. Mielőtt dönt, érdemes tisztázni, hogy a költség mekkora része kötődik a géphez, a hálózathoz és a termelés levegőigényéhez.",
       "Egy jól előkészített sűrítettlevegő-vizsgálat az üzem tényleges feladatát mutatja meg. Nemcsak egy nagyobb vagy újabb gép kiválasztásához ad adatot: a javítások, a vezérlés és a beruházások sorrendjét is segít meghatározni."
@@ -640,11 +641,23 @@ const sourcePosts: BlogArticle[] = [
       },
       {
         id: "intezkedesek-sorrendje",
-        title: "A jelentés végén intézkedési tervet kérjen",
+        title: "Számpélda: mennyit hoz a javítás, és mennyit az utána következő gépcsere?",
         paragraphs: [
           "A hasznos jelentés megmutatja a kiinduló állapotot, a beavatkozás műszaki feltételeit, költségét és várható hatását. Külön kezelje a karbantartást, a vezérlés módosítását, a hálózati javítást és a gépcserét. Az egyes intézkedések egymásra hatását is fel kell tüntetni.",
-          "Például a szivárgásjavítás csökkentheti az új gép ellátandó igényét. Ha a gépcsere megtakarítását még a javítás előtti állapotra számolják, az összesített ígéret túlzó lehet. Kérjen egyértelmű választ arra, melyik adat mért, melyik becsült, és melyik beavatkozási sorrendre érvényes."
-        ]
+          "Az alábbi szemléltető példa teljes egészében feltételezett, nem mért ügyféleredmény és nem megtakarítási ígéret. Azonos hasznos levegőellátást, termelést, szükséges nyomást és levegőminőséget feltételezünk. Mindhárom állapotot évi 4 000 órára és 70 Ft/kWh változatlan energiaárra számoljuk; a kW-adatok azonos rendszerhatáron értett átlagos villamos felvételek, nem adattáblás motorteljesítmények.",
+          "A példában a rendszerjavítás évi 840 000 Ft energiaköltséget takarít meg. A javított rendszerhez illesztett új gép további 840 000 Ft-ot: a kettő együtt az eredeti állapothoz képest 1 680 000 Ft. A 840 000 és az 1 680 000 Ft összeadása kétszer számolná el a javítás előnyét. Ez csak energiaoldali összevetés; a beruházás, a szerviz és a finanszírozás külön tétel.",
+          "A saját üzeménél ugyanezt a három sort kérje kitölteni, a mért és becsült értékek megjelölésével. Milyen mérés támasztja alá az alapállapotot? Mekkora többletelőnyt ad a következő lépés az előzőhöz képest? Mi a költsége, és hogyan mérik vissza az eredményt? Ha a tényleges üzemidő vagy termelés változik, a példabeli éves szorzás helyett az összehasonlítható saját adatokból számoljon."
+        ],
+        formula: "Éves energiaköltség = átlagos villamos felvétel (kW) × éves üzemóra (h) × energiaár (Ft/kWh)",
+        table: {
+          caption: "Feltételezett példa: azonos üzemi feladat, évi 4 000 óra és 70 Ft/kWh",
+          headers: ["Állapot", "Átlagos felvétel", "Éves energia", "Éves energiaköltség"],
+          rows: [
+            ["Kiinduló rendszer", "30 kW", "120 000 kWh", "8 400 000 Ft"],
+            ["Rendszerjavítás után", "27 kW", "108 000 kWh", "7 560 000 Ft"],
+            ["Javítás után, hozzá illesztett új géppel", "24 kW", "96 000 kWh", "6 720 000 Ft"]
+          ]
+        }
       },
       {
         id: "kalkulacio-es-visszameres",
