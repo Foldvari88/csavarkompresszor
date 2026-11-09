@@ -355,6 +355,7 @@ const sourcePosts: BlogArticle[] = [
     description: "Szivárgáskeresés és energiaköltség: hogyan derítse ki, miért jár a kompresszor termelés nélkül, és hogyan igazolja a javítás hatását?",
     category: "Veszteségcsökkentés",
     publishedAt: "2026-10-31",
+    updatedAt: "2026-11-09",
     intro: [
       "Leállt a termelés, de a kompresszor újra és újra elindul. Ez jó ok a vizsgálatra. A háttérben szivárgás is lehet, de működhetnek technológiai fogyasztók, szárítók vagy olyan ágak is, amelyekre műszakon kívül nincs szükség.",
       "Az elvesző levegő költsége nem egy látványos számlasor. Az üzemórában, a villamosenergia-fogyasztásban és a gép igénybevételében jelenik meg. Ha ezt megméri és forintra fordítja, a javítások sorrendje is sokkal könnyebben eldönthető."
@@ -383,7 +384,7 @@ const sourcePosts: BlogArticle[] = [
         title: "A megtakarítást a villamos oldalon igazolja",
         paragraphs: [
           "Tegyük fel, hogy azonos összehasonlítási feltételek mellett a javítás és az újraszabályozás után 4 kW-tal csökken az átlagos felvétel. Ha ez évi 3 000 órára érvényes, 12 000 kWh a különbség. 70 Ft/kWh szemléltető árral az energiahatás 840 000 Ft évente.",
-          "A számítás szándékosan mért teljesítménykülönbségből indul ki. Egy becsült légveszteségi százalékot nem célszerű egyszerűen azonos villamos megtakarítási százalékként kezelni. A gép részterhelési működése és a vezérlés dönt arról, hogyan követi az energiafelvétel a csökkenő levegőigényt."
+          "Ez feltételezett számpélda; a saját üzeménél mért átlagos villamos teljesítménykülönbséggel kell számolni. Egy becsült légveszteségi százalékot nem célszerű egyszerűen azonos villamos megtakarítási százalékként kezelni. A gép részterhelési működése és a vezérlés dönt arról, hogyan követi az energiafelvétel a csökkenő levegőigényt."
         ],
         formula: "Mért átlagteljesítmény-csökkenés × érintett éves üzemóra × saját Ft/kWh"
       },
@@ -401,8 +402,9 @@ const sourcePosts: BlogArticle[] = [
         title: "Mit jelent mindez a kompresszorcserére nézve?",
         paragraphs: [
           "A javítás után kisebb lehet az ellátandó igény. Ezért új gép méretezését lehetőleg a rendezett rendszer adataira alapozza. Ellenkező esetben a korábbi veszteség egy része beépülhet az új kapacitásba is.",
-          "A kalkulátor segít az energiaoldali nagyságrend és a gépcsere lehetőségének felmérésében. Szivárgási arányt nem mér és nem állapít meg. A javítási megtakarítást és a gépcsere megtakarítását mindig közös, javítás utáni alapállapothoz igazítsa, hogy ugyanazt a veszteséget ne számolja el kétszer."
-        ]
+          "A kalkulátor segít az energiaoldali nagyságrend és a gépcsere lehetőségének felmérésében. Szivárgási arányt nem mér és nem állapít meg. A javítás energiahatását a javítás előtti és utáni, összehasonlíthatóan mért állapotból számolja. A későbbi gépcserét már a javítás utáni rendszerhez viszonyítsa. A két egymásra épülő lépés megtakarítása így összegezhető anélkül, hogy a javítás előnyét kétszer számolná el."
+        ],
+        sourceIds: ["analysis"]
       }
     ],
     faq: [
