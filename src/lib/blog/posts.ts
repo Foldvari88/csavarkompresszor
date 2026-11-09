@@ -541,9 +541,10 @@ const sourcePosts: BlogArticle[] = [
   {
     slug: "csavarkompresszor-meretezes-hibak",
     title: "Csavarkompresszor-méretezés: 5 hiba, amely évekre megdrágíthatja az üzemeltetést",
-    description: "Túlméretezés, csúcsigény, légszállítás és nyomás: az öt legfontosabb méretezési hiba kompresszorbeszerzés előtt, gyakorlati ellenőrzőlistával.",
+    description: "Csavarkompresszor méretezése beszerzés előtt: FAD-légszállítás, m³/perc, nyomás és terhelési profil. Számpélda és adatlista az összehasonlítható gépajánlatokhoz.",
     category: "Gépválasztás",
     publishedAt: "2026-10-31",
+    updatedAt: "2026-11-09",
     intro: [
       "A nagyobb kompresszor biztonságos választásnak tűnhet. Ha azonban a gép az év nagy részében kedvezőtlen részterhelésen dolgozik, a tartalék kapacitásnak tartós üzemeltetési ára lehet. A túl kis gép közben nyomásproblémát és termelési fennakadást okozhat.",
       "A megfelelő méret a levegőigény időbeli alakulásából, a szükséges nyomásból és a levegőminőségi feladatból vezethető le. A motor kW-értéke ennek csak egy része. Az alábbi öt hiba elkerülésével jobb kérdéseket tehet fel az ajánlatadó műszaki csapatnak."
@@ -555,17 +556,30 @@ const sourcePosts: BlogArticle[] = [
         title: "1. hiba: csak a névleges kW alapján választ",
         paragraphs: [
           "Az azonos névleges motorteljesítményű gépek szállított levegőmennyisége és teljes villamos felvétele eltérhet. Az üzemi nyomás is befolyásolja az összevetést. Először azt írja le, mekkora levegőmennyiségre van szükség az adott feladathoz, és milyen nyomáson.",
-          "Az ajánlatban kérje a tényleges légszállítást, a teljes csomag villamos felvételét és az adatok mérési feltételeit. A DOE rendszerelemzési útmutatója a mennyiség, a minőség, a nyomás és a terhelési profil közös meghatározásából indul ki."
+          "Az ajánlatban kérje a tényleges légszállítást, a teljes csomag villamos felvételét és az adatok mérési feltételeit. A DOE rendszerelemzési útmutatója a mennyiség, a minőség, a nyomás és a terhelési profil közös meghatározásából indul ki.",
+          "Az adatlapon keresse a FAD (Free Air Delivery) légszállítást: ez a kompresszor által leadott levegőmennyiség a megadott beszívási vagy referenciafeltételekre visszaszámítva. A m³/perc, l/perc és l/s egységek átválthatók, de csak azonos vonatkoztatási feltételek mellett hasonlíthatók össze. A normálállapotra megadott Nm³/óra értéket külön ellenőrzés nélkül ne tekintse ugyanannak.",
+          "Azonos vonatkoztatási állapot esetén 1 m³/perc = 1 000 l/perc, illetve 1 l/s = 60 l/perc. Például 50 l/s = 3 m³/perc. Az ajánlatoknál azonos üzemi nyomáson vesse össze a légszállítást és a teljes kompresszorcsomag villamos felvételét. A motor névleges kW-ja és a teljes csomag felvett kW-ja eltérő adat; a Kaeser CAGI-adatlapokat bemutató útmutatója is külön kezeli őket."
         ],
-        sourceIds: ["analysis"]
+        sourceIds: ["analysis", "fadFlow", "performanceData"]
       },
       {
         id: "csucs-es-atlag",
         title: "2. hiba: a csúcsterhelést egész napos igényként kezeli",
         paragraphs: [
           "Néhány másodperces vagy perces csúcsot másképp kell kezelni, mint a többórás magas fogyasztást. Jegyezze fel a csúcs időtartamát, ismétlődését és a fogyasztók egyidejűségét. A névleges igények egyszerű összeadása túlzó eredményt adhat, ha a berendezések ritkán működnek egyszerre.",
-          "Szemléltető üzemmenetben napi hat órán át 3 m³/perc, majd két órán át 6 m³/perc a levegőigény. A nagyobb érték teljesítése szükséges, de az éves hatékonyságot a kisebb igénynél töltött idő is alakítja. A teljes profil alapján kell gépkombinációt és szabályozást vizsgálni."
-        ]
+          "A következő példa feltételezett üzemmenet, nem mért ügyféladat. Azonos vonatkoztatási állapotra megadva napi hat órán át 3 m³/perc, majd két órán át 6 m³/perc a levegőigény. Az idővel súlyozott átlag 3,75 m³/perc. Ez önmagában nem a szükséges gépméret: a kétórás, 6 m³/perc igényt is ki kell szolgálni.",
+          "Az ajánlatadótól mindkét üzemállapotra kérjen megoldást: hogyan tartja a szükséges nyomást a magas igénynél, és hogyan működik a hosszabb, kisebb terhelésen? A gépkombinációt, a vezérlést és az esetleges tárolást együtt kell vizsgálni. Egy rövid csúcs és egy kétórás többletigény ellátása eltérő feladat; a tartály szükséges méretét külön kell meghatározni."
+        ],
+        formula: "Idővel súlyozott átlag a példában: (6 × 3 + 2 × 6) ÷ 8 = 3,75 m³/perc",
+        table: {
+          caption: "Feltételezett nyolcórás légigényprofil – az átlag nem helyettesíti a csúcs vizsgálatát",
+          headers: ["Üzemállapot", "Napi időtartam", "Légigény"],
+          rows: [
+            ["Jellemző termelés", "6 óra", "3 m³/perc"],
+            ["Tartósan magasabb igény", "2 óra", "6 m³/perc"],
+            ["A teljes műszak súlyozott átlaga", "8 óra összesen", "3,75 m³/perc"]
+          ]
+        }
       },
       {
         id: "vesztesegekre-meretezes",

@@ -52,6 +52,8 @@ export type BlogJourney = {
 export type BlogArticle = Omit<BlogPost, "updatedAt" | "seoTitle" | "journey"> & { updatedAt?: string };
 
 export const blogSources: Record<string, { title: string; url: string }> = {
+  fadFlow: { title: "Atlas Copco: légszállítás, FAD és vonatkoztatási feltételek", url: "https://www.atlascopco.com/en-ae/compressors/wiki/compressed-air-articles/physics-physicalunits2" },
+  performanceData: { title: "Kaeser: kompresszorok összehasonlítása CAGI-adatlap alapján", url: "https://us.kaeser.com/download.ashx?id=tcm:46-37894" },
   dryerDesiccant: { title: "Atlas Copco Magyarország: az adszorpciós szárítók működése és regenerálása", url: "https://www.atlascopco.com/hu-hu/compressors/wiki/compressed-air-articles/what-is-desiccant-air-dryer" },
   dryerSelection: {"title":"Kaeser: hűtveszárítók és adszorpciós szárítók kiválasztása","url":"https://us.kaeser.com/compressed-air-resources/compressed-air-tips/compressed-air-treatment-guide/dryer-selection-guide.aspx"},
   dryerSourcebook: {"title":"U.S. Department of Energy: sűrítettlevegő-szárítás és rendszerköltség (2016)","url":"https://www.energy.gov/sites/default/files/2016/03/f30/Improving%20Compressed%20Air%20Sourcebook%20version%203.pdf"},
