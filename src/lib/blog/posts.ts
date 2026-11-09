@@ -6,6 +6,100 @@ import { industryArticles } from "./industry-guides";
 const sourcePosts: BlogArticle[] = [
   ...industryArticles,
   {
+    "slug": "csavarkompresszor-karbantartas-szervizterv",
+    "title": "Csavarkompresszor karbantartása: ütemezés, költség és szervizajánlat",
+    "description": "Mikor esedékes a csavarkompresszor szervize? Üzemóra, gyártói előírás, üzemi környezet és költség: így készítsen használható karbantartási tervet.",
+    "category": "Karbantartás",
+    "publishedAt": "2026-11-09",
+    "intro": [],
+    "takeaways": [
+      "A gyártói ütemtervet a saját géptípusra és üzemre kell alkalmazni.",
+      "Az üzemórát és a naptári esedékességet együtt tartsa nyilván.",
+      "A szerviz díját, a leállást és az energiaadatokat külön soron értékelje."
+    ],
+    "sections": [
+      {
+        "id": "szerviz-ora-es-naptar",
+        "title": "1. A kézikönyv és az üzemóra legyen a terv alapja",
+        "paragraphs": [
+          "A vezérlő kijelzését, az aktuális összes üzemórát és az utolsó szerviz időpontját rögzítse egy közös nyilvántartásban. A gép pontos típusa és sorozatszáma is szerepeljen benne. Egy hasonló teljesítményű másik kompresszor általános listája nem helyettesíti a saját berendezés előírását.",
+          "Vannak üzemórához, naptári időhöz vagy mindkettőhöz kötött feladatok. A gyártó által megadott feltételeket a szervizzel tisztázza, és a közelgő határidőt a termelési tervben is jelölje. Ha a dokumentáció hiányzik, ezt jelezze az ajánlatkérésben; a bizonytalan előzményt nem érdemes igazolt friss karbantartásként kezelni."
+        ],
+        "sourceIds": [
+          "serviceSchedule",
+          "serviceChecks"
+        ]
+      },
+      {
+        "id": "szerviz-tartalma",
+        "title": "2. Az olajcsere megnevezése helyett a teljes munkatartalmat kérje",
+        "paragraphs": [
+          "A csavarkompresszor szervize a típustól függően többek között a kenőanyag, a szűrők, a leválasztó, a hűtés és a hajtás ellenőrzését érintheti. Nem minden elem cseréje esedékes egyszerre. Az ajánlatban legyen elkülönítve, mit vizsgálnak, mit cserélnek, és mely további munkáról döntenek állapotfelmérés után.",
+          "Az anyagok megnevezése és a géphez való megfelelőségük is legyen követhető. Kérdezzen rá a befejezéskor átadott munkalapra és a következő esedékesség rögzítésére. A szervizjelzés egyszerű törlése nem igazolja, hogy a szükséges feladatokat elvégezték; ehhez a dokumentált munka ad használható előzményt."
+        ],
+        "sourceIds": [
+          "serviceSchedule",
+          "serviceChecks"
+        ]
+      },
+      {
+        "id": "uzemi-kornyezet-karbantartas",
+        "title": "3. A por és a hőmérséklet is kerüljön a szervizigénybe",
+        "paragraphs": [
+          "Poros levegőnél a szűrők és hűtőfelületek állapota gyorsabban változhat. Magas környezeti hőmérsékletnél a hűtési feltételek és az üzemi hőterhelés is számít. A szerviznek ezért a gépház körülményeit is ismernie kell, különösen akkor, ha a gyártási folyamat vagy a szellőzés megváltozott.",
+          "Jegyezze fel, mikor jelentkezik szokatlan hőmérséklet, visszatérő figyelmeztetés vagy terhelési probléma. A dátum, a hibakód és az akkori termelési helyzet pontosabb kiindulópont, mint az, hogy a gép néha furcsán működik. A beavatkozásokat a feladatra képzett szakemberrel és a berendezés előírásai szerint végeztessék."
+        ],
+        "sourceIds": [
+          "serviceChecks"
+        ]
+      },
+      {
+        "id": "teljes-levegoellatas-szerviz",
+        "title": "4. A kompresszor mellett a levegőkezelést is vegye számba",
+        "paragraphs": [
+          "A szűrők, a szárító és a kondenzátumürítők állapota a teljes rendszer működését befolyásolja. Az elhanyagolt szűrés nyomásveszteséget okozhat, a hibás nedvességkezelés pedig a felhasználási pontnál jelentkezhet panasz formájában. A gép karbantartása és a levegőkezelők esedékessége legyen külön azonosítható.",
+          "Kérje, hogy a feladat határa egyértelmű legyen: csak a kompresszoregységet vizsgálják, vagy a kapcsolódó szárítót, szűrőket és ürítőket is? Azonos rendszerhatár nélkül két szervizajánlat végösszege félrevezető lehet. A munkalapon az észlelt hibát, a javasolt teendőt és az elvégzett munkát különítsék el."
+        ],
+        "sourceIds": [
+          "maintenance"
+        ]
+      },
+      {
+        "id": "szerviz-es-eves-energia",
+        "title": "6. Az éves energiaköltséget külön soron tegye a döntés mellé",
+        "paragraphs": [
+          "Feltételezett példaként egy rendszer átlagos villamos felvétele 20 kW, éves üzemideje 4 000 óra. A kizárólag szemléltetésre választott 70 Ft/kWh fogyasztásarányos energiaárral ez 5 600 000 Ft évente. Ez nem egy géptípus fogyasztási adata és nem karbantartással elérhető megtakarítás.",
+          "A saját vizsgálathoz mért kWh vagy megfelelő időszakból származó átlagos felvett teljesítmény ad jó alapot. A karbantartás előtti és utáni energiaadatot azonos termelési és nyomásfeltételek mellett érdemes értékelni. A kalkulátor a kompresszor energiaoldali előbecslését segíti; a szerviz díját és a leállás költségét külön kell hozzátenni.",
+          "Ha már gépcserét is mérlegel, a javítás és az új berendezés ajánlata ugyanarra a levegőellátási feladatra szóljon. Így a szervizelhető állapot, az éves energia és a beruházási igény összehasonlíthatóvá válik."
+        ],
+        "formula": "20 kW × 4 000 óra/év × 70 Ft/kWh = 5 600 000 Ft/év",
+        "sourceIds": [
+          "cost",
+          "maintenance"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "Kérhetek ajánlatot, ha nincs meg a korábbi szervizkönyv?",
+        "answer": "Igen. A gép adattáblája, aktuális üzemórája, ismert panaszai és a rendelkezésre álló számlák alapján elindítható az egyeztetés. A hiányzó előzményt jelezze; a szükséges állapotfelmérés és munkatartalom a műszaki egyeztetésen pontosítható."
+      },
+      {
+        "question": "A kalkulátor kiszámítja a karbantartás árát?",
+        "answer": "A kalkulátor a kompresszor energiaoldali előbecslésére szolgál. A karbantartás díjához a konkrét gép, a szükséges anyagok, a munkatartalom és a helyszíni feltételek alapján szervizajánlatot kell kérni. A két költségsort együtt érdemes értékelni."
+      }
+    ],
+    "cta": {
+      "title": "A következő szerviz már összegyűjtött adatokból induljon",
+      "text": "Készítsen saját energiaoldali előkalkulációt, és gyűjtse mellé a munkalapokat meg az üzemi panaszokat. Ha a szerviz már esedékes, közvetlenül is elindíthatja az egyeztetést."
+    },
+    "relatedSlugs": [
+      "csavarkompresszor-aramfogyasztas-szamitasa",
+      "suritett-levego-szivargas-koltsege",
+      "csavarkompresszor-teljes-elettartam-koltseg"
+    ]
+  },
+  {
     "slug": "hutveszarito-vagy-adszorpcios-szarito",
     "title": "Hűtveszárító vagy adszorpciós szárító? Így hasonlítsa össze az ajánlatokat",
     "description": "Melyik sűrítettlevegő-szárító illik az üzeméhez? Harmatpont, méretezés, regenerálás és éves költség az összehasonlítható ajánlatokhoz.",

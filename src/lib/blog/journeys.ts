@@ -22,6 +22,62 @@ export const buyerPaths = [
 
 export const blogJourneys = {
   ...industryJourneys,
+  "csavarkompresszor-karbantartas-szervizterv": {
+    "title": "Csavarkompresszor karbantartása: ütemezés, költség és szervizajánlat",
+    "seoTitle": "Csavarkompresszor karbantartás: ütemezés és költség",
+    "description": "Mikor esedékes a csavarkompresszor szervize? Üzemóra, gyártói előírás, üzemi környezet és költség: így készítsen használható karbantartási tervet.",
+    "stage": "discovery",
+    "audience": [
+      "technical",
+      "owner"
+    ],
+    "intro": [
+      "A kompresszor még működik, de közeledik a szervizjelzés, a termelés pedig nem szívesen enged át egy délelőttöt a karbantartásnak. Ilyenkor az első kérdés rendszerint az ár és az időpont. A jó ajánlathoz azonban azt is tisztázni kell, milyen gépet, milyen előzmények után és milyen üzemben kell szervizelni.",
+      "Ez az útmutató a karbantartás megtervezéséhez ad döntési sorrendet. A gép saját kézikönyvéből, a tényleges üzemórából és a műhely tapasztalataiból indulunk ki. Így a szervizköltség mellett az ellátás folyamatossága és az energiafelhasználás is helyet kaphat a vezetői egyeztetésen."
+    ],
+    "quickAnswer": "A csavarkompresszor karbantartását a konkrét gép gyártói ütemterve, üzemórája, naptári határideje és működési környezete alapján kell tervezni. A szervizjelzés mellé gyűjtse össze a korábbi munkalapokat és a panaszokat. Azonos műszaki tartalomra kérjen ajánlatot, előre egyeztetett leállási ablakkal.",
+    "outcome": "Összeállíthat egy olyan szervizigényt, amelyből a feladat, a szükséges előzmény és a tervezhető leállás is kiderül.",
+    "decisionSection": {
+      "id": "szerviz-ket-muszakra",
+      "title": "5. Több műszakhoz igazítsa újra a karbantartás ütemét",
+      "paragraphs": [
+        "Tegyük fel, hogy egy műhely egyműszakos működésről két műszakra áll át. Ez szemléltető üzemi helyzet. A tavaly megszokott szervizhónap változatlanul szerepel a naptárban, miközben a gép hetente lényegesen több órát fut. Az új üzemrendben ugyanaz az üzemórához kötött feladat korábban válhat esedékessé.",
+        "A következő hetek várható üzemóráját vezesse át a tervbe, és a szervizzel nézessék át az esedékességet. Egyeztessék, a karbantartás idején mely fogyasztóknak kell levegő, rendelkezésre áll-e megfelelő tartalék, és hogyan történik a termelésbe visszaadás. A tartalék megoldás alkalmasságát a tényleges igényre kell tisztázni.",
+        "A vezetői döntéshez írja egy lapra a tervezett munkát, az ajánlati összeget, a várható kiesést és a felelősöket. Ettől a karbantartás nem lesz automatikusan olcsóbb, de a beszerzés és a termelés ugyanarról a feladatról tud egyeztetni."
+      ],
+      "sourceIds": [
+        "serviceSchedule"
+      ]
+    },
+    "checklist": [
+      "Géptípus, sorozatszám, aktuális üzemóra és a gyártói szervizütemterv.",
+      "Utolsó munkalapok, cserélt anyagok, hibakódok és a környezet változásai.",
+      "Tervezett leállási ablak, szükséges tartalékellátás és saját energiaadatok."
+    ],
+    "objections": [
+      {
+        "question": "Elég évente egyszer szervizeltetni a csavarkompresszort?",
+        "answer": "Ezt a saját típus előírása és használata dönti el. Ha a karbantartás üzemórához és naptári időhöz is kötött, mindkettőt követni kell. Több műszak, por vagy kedvezőtlen hőmérséklet miatt a korábbi időpont felülvizsgálatra szorulhat."
+      },
+      {
+        "question": "Olajmentes csavarkompresszornál is kell karbantartás?",
+        "answer": "Igen. Az olajmentes sűrítési elv nem szünteti meg a szűrés, hűtés, hajtás és vezérlés ellenőrzési igényét. A feladatok és anyagok a gép konstrukciójától függnek; olajkenésű típus karbantartási listáját ne másolja át automatikusan."
+      }
+    ],
+    "midCta": {
+      "title": "Ismerje meg a karbantartott gép energiaoldali kiinduló költségét",
+      "text": "A saját gépadatokkal, üzemórával és áramárral készíthet előbecslést. A kapott éves összeg mellé külön tegye oda a konkrét szervizajánlatot és az esetleges mérési adatokat."
+    },
+    "finalCta": {
+      "title": "A következő szerviz már összegyűjtött adatokból induljon",
+      "text": "Készítsen saját energiaoldali előkalkulációt, és gyűjtse mellé a munkalapokat meg az üzemi panaszokat. Ha a szerviz már esedékes, közvetlenül is elindíthatja az egyeztetést."
+    },
+    "offer": "service",
+    "offerLabel": "Karbantartásra kérek szervizajánlatot",
+    "offerText": "Adja meg a gép márkáját, típusát, üzemóráját és a kívánt időablakot. Írja le a jelzéseket és azt is, ha hiányzik a korábbi munkalap. A pontos műszaki tartalom ezekből egyeztethető.",
+    "nextSlug": "csavarkompresszor-teljes-elettartam-koltseg",
+    "nextReason": "Ha a szerviz mellett már a gépcsere is felmerül, a teljes költségről szóló útmutató segít közös időtávon összevetni az energiát, a karbantartást és a beruházást."
+  },
   "hutveszarito-vagy-adszorpcios-szarito": {
     "title": "Hűtveszárító vagy adszorpciós szárító? Így hasonlítsa össze az ajánlatokat",
     "seoTitle": "Hűtveszárító vagy adszorpciós szárító? Döntési útmutató",
